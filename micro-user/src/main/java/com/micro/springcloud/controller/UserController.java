@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.micro.springcloud.constant.Constant;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @RequestMapping("/enq")

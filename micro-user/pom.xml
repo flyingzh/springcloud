@@ -12,6 +12,7 @@
 	<artifactId>micro-user</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>micro-user</name>
+	<packaging>jar</packaging>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -19,11 +20,11 @@
 	</properties>
 
 	<dependencies>
-		<!-- <dependency>
+		<dependency>
 			<groupId>micro.springcloud</groupId>
 			<artifactId>micro-utils</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency> -->
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

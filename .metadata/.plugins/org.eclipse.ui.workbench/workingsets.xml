@@ -123,6 +123,7 @@
 <item elementID="=eureka-server" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-user" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-ribbon" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=micro-ribbon-zuul" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 </workingSet>
 <workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542703231279_2" label="Window Working Set" name="Aggregate for window 1542703231279"/>
 <workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545903002892_7" label="Multiple Working Sets" name="Aggregate:doraemon:micro:">
