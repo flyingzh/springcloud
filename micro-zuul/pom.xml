@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>micro.springcloud</groupId>
-	<artifactId>micro-ribbon-zuul</artifactId>
+	<artifactId>micro-zuul</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>micro-ribbon-zuul</name>
+	<name>micro-zuul</name>
 	<description>zuul</description>
 
 	<properties>
