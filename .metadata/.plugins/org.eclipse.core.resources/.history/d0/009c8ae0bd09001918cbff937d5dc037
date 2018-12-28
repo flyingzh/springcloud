@@ -1,0 +1,5 @@
+package com.micro.springcloud.configurie;
+
+public class RestConfig {
+
+}

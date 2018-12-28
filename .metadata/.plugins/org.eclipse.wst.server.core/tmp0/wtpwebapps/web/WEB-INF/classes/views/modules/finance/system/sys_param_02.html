@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>会计期间</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <style>
+        .yearRangeBody {
+            overflow-y: auto;
+            height: 420px;
+        }
+
+        .wrapper-top {
+            height: 3.8em;
+        }
+
+        .wrapper-top > label {
+            padding-top: 3px !important;
+        }
+    </style>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div class="ht-inner copyright_content" id="vmDiv" v-cloak>
+        <form class="form-horizontal clearfix">
+            <div class="col-sm-4">
+                <div class="wrapper-top">
+                    <span class="input-sm pl0">启用会计年度</span>
+                    <select v-model.number="accountingYear.value" class="form-control input-sm inline width-auto"
+                        :disabled="canUpdateAccountPeriod==false">
+                        <option v-for="year in selectOpt" :value="year">{{year}}</option>
+                    </select>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center pd5">会计年度</div>
+                    <div class="yearRangeBody">
+                        <table class="table table-condensed">
+                            <tr v-for="(val, year) in years">
+                                <td class="text-center">{{year}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-sm-8">
+                <div class="wrapper-top">
+                    <label class="checkbox-inline mr30">
+                        <input v-model="accountingNaturalYear.value" type="checkbox" true-value="1" false-value="0"
+                            :disabled="canUpdateAccountPeriod==false" /> 自然年度会计时间
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="accountingPeriodNumber.value" type="radio" value="12" :disabled="canUpdateAccountPeriod==false" />
+                        12
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="accountingPeriodNumber.value" type="radio" value="13" :disabled="canUpdateAccountPeriod==false" />
+                        13
+                    </label>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center of-hidden pd5">
+                        <div class="col-sm-4 text-center">会计期间</div>
+                        <div class="col-sm-8 text-center">开始日期</div>
+                    </div>
+                    <div class="yearRangeBody">
+                        <table class="table table-condensed table-hover">
+                            <tr v-for="(period, index) in accountingPeriod">
+                                <td class="col-sm-4"><span class="pl30">{{index+1}}</span></td>
+                                <td class="col-sm-8 text-center">
+                                    <input v-if="canUpdateAccountPeriod==false" :disabled="index > -1" v-model="period"
+                                        type="text" class="text-center" />
+                                    <input id="0" v-else-if="index == 0" v-model="period" @change="updateStartDate($event)"
+                                        type="text" class="text-center" />
+                                    <input id="index" v-else :disabled="index > 0" v-model="period" type="text" class="text-center" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-12 text-center">
+                <i-button @click="save" type="primary" :disabled="canUpdateAccountPeriod==false">保存</i-button>
+                <!-- <button type="button" class="btn btn-primary" @click="save" :disabled="canUpdateAccountPeriod==false">保存 -->
+                </button>
+            </div>
+
+        </form>
+    </div>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/system/sys_param_02.js"></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

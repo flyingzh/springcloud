@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>按钮管理</title>
+	#parse("modules/public/header.html")
+</head>
+
+<body>
+<div id="button-index" class="pd-md container" style="width:100%">
+	<div v-show="!isShow">
+			<i-form class="form-content" label-width="120" >
+				<fieldset class="layui-elem-field layui-field-title">
+					<legend>按钮查询</legend>
+				</fieldset>
+				<row>
+					<i-col span="8">
+						<form-item label="按钮名称：">
+							<input type="text" v-model="body.name" class="input-sm  form-control input-width" placeholder="可模糊搜索">
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item>
+							<ht-btns :is-search="true" :is-add="false" class="inline-block" @search="search"></ht-btns>
+						</form-item>
+					</i-col>
+				</row>
+			</i-form>
+		<!--列表区-->
+		<div>
+			<!--列表按钮-->
+			<ht-add-del-btn @add="add" @modify="modify" @view="view" @del="del"></ht-add-del-btn>
+			<!--列表-->
+			<base-data-list :data_config="button_list" v-model="selected" :need-reload="reload"></base-data-list>
+		</div>
+	</div>
+	<!--新增/修改页面-->
+	<div id="add-user" v-show="isShow">
+		<div class="btn-menu">
+			<span @click="save">保存</span>
+			<span @click="cancel">退出</span>
+		</div>
+		<fieldset class="layui-elem-field layui-field-title">
+			<legend>新增按钮</legend>
+		</fieldset>
+		<div class="col-xs-7">
+			<form class="form-horizontal ht-form" id="form">
+				<div class="form-group form-group-sm">
+					<label for="menu" class="col-xs-4 control-label">按钮名称:
+						<span class="star"></span>
+					</label>
+					<div class="col-xs-8">
+						<input id="menu" v-model="addButton.name" name="menu" class="form-control ht-width"
+							   :disabled="isEdit" type="text"/>
+					</div>
+				</div>
+				<div class="form-group form-group-sm">
+					<label for="menutitle" class="col-xs-4 control-label">按钮标识:
+						<span class="star"></span>
+					</label>
+					<div class="col-xs-8">
+						<input id="menutitle" v-model="addButton.permission" name="menutitle"
+							   class="form-control ht-width" :disabled="isEdit" type="text"/>
+					</div>
+				</div>
+				<div class="form-group form-group-sm">
+					<label for="menuimage" class="col-xs-4 control-label">按钮图标:
+					</label>
+					<div class="col-xs-8">
+						<input id="menuimage" v-model="addButton.iCon" name="menuimage" class="form-control ht-width"
+							   :disabled="isEdit" type="text"/>
+					</div>
+				</div>
+				<div class="form-group form-group-sm">
+					<label class="col-xs-4 control-label">备注:
+					</label>
+					<div class="col-xs-8">
+                        <textarea v-model="addButton.remark" class="form-control" rows="3"
+								  :disabled="isEdit"></textarea>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<script src="${rc.contextPath}/js/permission/button-index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

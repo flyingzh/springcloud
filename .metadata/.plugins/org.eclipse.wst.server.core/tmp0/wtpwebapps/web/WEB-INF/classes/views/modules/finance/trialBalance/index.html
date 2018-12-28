@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>试算平衡表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/trialBalance/index.css">
+
+</head>
+
+<body>
+    <div id="trial-balance" class="ht-common-list" v-cloak>
+        <div class="btn-menu">
+            <poptip content="content" placement="bottom" ref="filter" class="ht-poptip" @on-popper-show="isFilterVisible = true">
+                <button class="ht-btn">过滤</button>
+                <div class="ht-filterPoptipContent" slot="content">
+                    <p>
+                        <label id="accountYearObj" class="inline-block label60">会计年度：</label>
+                        <i-select v-model="formData.accountYear" style="width:120px">
+                            <i-option v-for="item in subjectList1" :value="item.value" :key="item.value">{{ item.name }}</i-option>
+                        </i-select>
+                        <label id="accountPeriodObj" class="inline-block label60">会计期间：</label>
+                        <i-select v-model="formData.accountPeriod" style="width:120px">
+                            <i-option v-for="item in subjectList2" :value="item.value" :key="item.value">{{ item.name }}</i-option>
+                        </i-select>
+                    </p>
+                    <p class="mt10">
+                        <label class="inline-block label60">科目级别：</label>
+                        <Input-number :max="99" :min="1" :disabled="treeDisabled" v-model="formData.treeHeight" style="width:120px"></Input-number>
+                        <label class="inline-block label60">币别：</label>
+                        <i-select id="currencyObj" v-model="formData.currencyId" style="width:120px">
+                            <i-option v-for="item in subjectList4" :value="item.value" :key="item.value">{{ item.name }}</i-option>
+                        </i-select>
+                        <span style="display: none">Selected: {{ formData.currencyId }}</span>
+                    </p>
+                    <p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="formData.showSubjectDetail"> 只显示明细科目
+                            </label>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="formData.showProjectDetail"> 显示核算项目明细
+                            </label>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" v-model="formData.includeVoucher"> 包括未过账凭证
+                            </label>
+                        </div>
+                    </p>
+                    <div class="mt10 ht-commTxtRight">
+                        <i-button type="primary" @click="save">确定</i-button>
+                        <i-button type="primary" @click="cancel">取消</i-button>
+                        <!-- <i-button size="small" @click="cancel" class="ht-float-right ml10">取消</i-button>
+                    <i-button type="primary" size="small" @click="save" class="ht-float-right">确定</i-button>      -->
+                    </div>
+                </div>
+            </poptip>
+            <button class="ht-btn" @click="refresh">刷新</button>
+            <button class="ht-btn" @click="htPrint()">打印</button>
+            <!--<button class="ht-btn" @click="more('Preview')">预览</button>-->
+            <button class="ht-btn" @click="more('Derivation')">引出</button>
+            <button class="ht-btn" @click="outHtml">退出</button>
+            <!--<Dropdown trigger="click" @on-click="more" placement="bottom-start">-->
+            <!--<span type="text">-->
+            <!--更多-->
+            <!--<Icon type="arrow-down-b"></Icon>-->
+            <!--</span>-->
+            <!--<Dropdown-menu slot="list">-->
+            <!--<Dropdown-item name="Print" >打印</Dropdown-item>-->
+            <!--<Dropdown-item name="Preview" >预览</Dropdown-item>-->
+            <!--<Dropdown-item name="Derivation" >引出</Dropdown-item>-->
+            <!--</Dropdown-menu>-->
+            <!--</Dropdown>-->
+        </div>
+        <div class="pl20 pr20 pb10 mt10">
+            <!-- label60-->
+            <label class="inline-block">期间：</label>{{formData.accountantTime}}
+            <label class="inline-block ml30">币别：</label>{{formData.currencyName}}
+            <label class="inline-block ml30">试算结果：</label>
+            <span v-if="formData.message=='试算结果平衡'" style="color:blue">{{formData.message}}</span>
+            <span v-if="formData.message=='试算结果不平衡'" style="color:red">{{formData.message}}</span>
+        </div>
+        <section class="pl20 pr20">
+            <div class="jqGrid_wrapper ht-set-table">
+                <table id="my_report"></table>
+                <div id="my_pager"></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/trialBalance/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

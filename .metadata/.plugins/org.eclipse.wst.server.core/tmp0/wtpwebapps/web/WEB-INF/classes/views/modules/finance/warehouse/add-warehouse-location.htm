@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="../header.html" />
+    <link rel="stylesheet" href="../../css/basedata/add-warehouse-location.css">
+
+    <title>新增/修改库位</title>
+</head>
+<body>
+    <div id="warehouseLocation">
+        <!-- 按钮栏 -->
+        <div class="ht-tabnav">
+            <span @click="save">保存</span>
+            <span>退出</span>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>新建库位</legend>
+        </fieldset>
+        <form class="form-horizontal ht-form">
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">库位编码：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <input  class="form-control ht-width required" type="text" />
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">库位名称：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <input  class="form-control ht-width required" type="text" />
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">库位组：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <select name="" id=""  class="form-control ht-width">
+                        <option value="0">请选择</option>
+                        <option value="1">A</option>
+                        <option value="2">B</option>
+                        <option value="3">C</option>
+                        <option value="4">D</option>
+                    </select>
+                </div>            
+            </div>          
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">备注：</label>
+                <div class="col-xs-9">
+                    <textarea name="" id="" cols="30" rows="5"  class="form-control ht-width" ></textarea>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建人：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">自动带出</p>
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建时间：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">2018-05-30</p>
+                </div>
+            </div>   
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">最新修改人：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">自动带出</p>
+                </div>
+            </div>   
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">最新修改时间：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">2018-05-30</p>
+                </div>
+            </div>                                                                                                                      
+        </form>
+    </div>    
+        <script src='../../js/basedata/add-warehouse-location.js'></script>
+</body>
+</html>

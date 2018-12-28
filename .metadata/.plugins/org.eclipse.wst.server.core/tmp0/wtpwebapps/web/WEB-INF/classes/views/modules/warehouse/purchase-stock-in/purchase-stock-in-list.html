@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>采购入库列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/purchase-stock-in/purchase-stock-in-list.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="curStockNo"
+            :receipt-status="curDocStatus"
+            :step-list.sync="stepList"
+            url-check='${rc.contextPath}/purchasestock/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/purchasestock/queryProcessInfoByStockNo'
+            url-approve='${rc.contextPath}/purchasestock/submitapproval'
+            @on-auto-approve="autoSubmitOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    >
+    </ht-approve-reject>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" @click="refresh">刷新</span>
+            <span class="pd-rg-md" @click="add">新增</span>
+            <span class="pd-rg-md" @click="del">删除</span>
+            <span class="pd-rg-md" @click="goUpdate">修改</span>
+            <span class="pd-rg-md" @click="submit">提交</span>
+            <span class="pd-rg-md" @click="_approval">审核</span>
+            <span class="pd-rg-md" @click="_reject">驳回</span>
+            <span class="pd-rg-md" @click="print">打印</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader :data="categoryType" trigger="hover" transfer="true" style="width: 200px;display: inline-block;"
+                                  v-model="goodsTypes" class="ht-input-width" style="width: 200px;display: inline-block;" @on-change="changeGoodsType"
+                        clearable >
+                        </cascader>
+                    </form-item>
+                    <form-item label="供应商：">
+                        <ht-selectsupplier @getinfo="closeSupplier" ref="selectSupplier" is-check="no" >
+                        </ht-selectsupplier>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="日期：">
+                        <date-picker type="daterange" @on-change="changeDate" clearable placeholder="请选择日期" style="width: 200px" v-model="selectDates" class="ht-input-width" ref="dType" clearable></date-picker>
+                    </form-item>
+                    <form-item label="单据状态：">
+                        <i-select v-model="body.docStatus" class="ht-input-width"  style="width: 200px;display: inline-block;" ref="docStatus" @on-clear="handleClearSelect('docStatus')" clearable >
+                            <i-option v-for="(item,index) in docStatusArr" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="单据编号：">
+                        <i-input type="text" v-model="body.stockNo" ref="sType" class="ht-input-width" style="width: 200px"></i-input>
+                    </form-item>
+                    <form-item>
+                        <ht-btns  :is-search="true" :is-add="false"
+                                  class="inline-block"
+                                  @clear='clear' @search="search"></ht-btns>
+                    </form-item>
+                </i-col>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"  v-show="isTabulationHide" :return-row-data="true"></base-data-list>
+        </div>
+    </div>
+
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        'ht-approve-reject',
+        'ht-selectsupplier',
+        '${rc.contextPath}/js/warehouse/purchase-stock-in/purchase-stock-in-list.js'
+    ]);
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

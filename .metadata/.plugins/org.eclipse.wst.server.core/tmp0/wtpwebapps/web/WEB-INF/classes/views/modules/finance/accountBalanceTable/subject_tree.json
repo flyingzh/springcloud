@@ -1,0 +1,92 @@
+{
+  "code": "100100",
+  "data": {
+    "biaowai": [],
+    "quanyi": [],
+    "sunyi": [],
+    "zichan": [
+      {
+
+        "id": 1,
+        "parentId": 0,
+        "subjectName": "库存现金"
+
+      },
+      {
+        "id": 2,
+        "parentId": 1,
+        "subjectName": "现金"
+
+      },
+      {
+        "id": 3,
+        "parentId": 1,
+        "subjectName": "库存外币"
+
+      },
+      {
+        "id": 4,
+        "parentId": 0,
+        "subjectName": "银行存款"
+
+      },
+      {
+        "id": 5,
+        "parentId": 4,
+        "subjectName": "建行"
+
+      },
+      {
+        "id": 6,
+        "parentId": 4,
+        "subjectName": "中行"
+
+      },
+      {
+        "id": 7,
+        "parentId": 6,
+        "subjectName": "中行1"
+
+      },
+      {
+        "id": 8,
+        "parentId": 6,
+        "subjectName": "中行2"
+
+      }
+    ],
+    "gongtong": [],
+    "fuzhai": [
+      {
+        "id": 9,
+        "parentId": 4,
+        "subjectName": "库存现金"
+
+      },
+      {
+        "id": 8,
+        "parentId": 6,
+        "subjectName": "银行存款"
+
+      },
+      {
+        "id": 9,
+        "parentId": 7,
+        "subjectName": "长期股权投资"
+
+      },
+      {
+        "id": 15,
+        "parentId": 8,
+        "subjectName": "我是谁"
+      },
+      {
+        "id": 16,
+        "parentId": 9,
+        "subjectName": "我是"
+      }
+    ],
+    "chenben": []
+  },
+  "msg": "操作成功"
+}

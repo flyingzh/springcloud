@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器同步设置</title>
+    #parse("modules/public/header.html")
+    <!--<link rel="stylesheet" type="text/css" href="../../../../statics/css/iview.css">-->
+    <!--<link rel="stylesheet" href="./index1.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/css/basedata/common.css">
+    <link rel="stylesheet" href="../../../../statics/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../../statics/css/main.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css">-->
+    <style>
+        .infoBtn {
+            display: inline-block;
+            width: 5px;
+            height: 30px;
+            background-color: #D0B64C;
+        }
+
+        .info-font {
+            font-family: '微软雅黑 Bold', '微软雅黑';
+            font-weight: 700;
+            font-style: normal;
+            font-size: 18px;
+            color: #D8AE29;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: top;
+        }
+        .btn {
+            display: inline-block;
+            width: 60px;
+            height: 25px;
+            font-family: '微软雅黑 Regular', '微软雅黑';
+            font-weight: 400;
+            font-style: normal;
+            line-height: 25px;
+
+        }
+        .info{
+            padding-left: 40px;
+        }
+        .timeBox{
+            width: 190px;
+            height: 350px;/*190px;*/
+            border:  1px solid #ccc;
+            font-size: 24px;
+            overflow-y: auto;
+        }
+        .modifybtn{
+            margin:10px 0
+        }
+
+        .modalBox{
+            width: 315px;
+            height: 185px;
+            border:1px solid #000;
+            position: absolute;
+            z-index: 20;
+            margin:30px;
+        }
+        .smallBox{
+            width:228px;
+            height: 60px;
+            border:1px solid #000;
+            margin: 0 auto;
+            font-size: 17px;
+        }
+        .slice{
+            margin: 0 3px;
+            font-weight: bold;
+        }
+        .inp{
+            border: 0px;
+            width:50px;
+            height:50px;
+            text-align: center;
+            margin-top: 5px;
+            margin-left: 14px;
+        }
+        .ft-icon{
+            width:0;
+            height:0;
+            border-left:15px solid transparent;
+            border-right:15px solid transparent;
+            border-bottom:15px solid #ccc;
+            position: absolute;
+            top: 3px;
+            left: 2px;
+        }
+        .tp-icon{
+            width:0;
+            height:0;
+            border-left:15px solid transparent;
+            border-right:15px solid transparent;
+            border-top:15px solid #ccc;
+            position: absolute;
+            bottom: 3px;
+            left:2px
+        }
+        .br-back{
+            background: #1ab7ea;
+        }
+    </style>
+</head>
+<body>
+<div id="async-server" v-cloak>
+    <div class="btn-menu ">
+        <span class="pd-rg-md" @click="save">保存</span>
+        <span class="pd-rg-md" @click="exit">退出</span>
+    </div>
+    <row>
+        <i-col span="12">
+            <div>
+                <span class="infoBtn"></span>
+                <p class="info-font">设定每天同步时刻</p>
+            </div>
+            <row>
+                <i-col span="9">
+                    <div class="timeBox">
+                        <p class="info" v-show="timeArray.length>0" v-for="(item,index) in timeArray" @click="actionShow(index)">
+                            <span>{{item.hour}}</span>:
+                            <span>{{item.min}}</span>
+                        </p>
+                    </div>
+                </i-col>
+                <i-col span="7">
+                    <i-button @click="addTime">增加时刻</i-button>
+                    <br>
+                    <i-button @click="modifyTime" class="modifybtn">修改时刻</i-button>
+                    <br>
+                    <i-button @click="delTime">删除时刻</i-button>
+                    <!--时刻框-->
+                    <div class="modalBox" v-if="timeShow">
+                        <div v-if="!updateShow" style="font-size: 15px;margin:10px">增加时刻</div>
+                        <div v-if="updateShow" style="font-size: 15px;margin:10px">修改时刻</div>
+                        <div class="smallBox">
+                            <row>
+                                <i-col span="20">
+                                    <input type="text" class="inp ivu-input" placeholder="00"  v-model="timeObj.hour"  @focus="getIndex(1)" @change="htTestChange"/> <span class="slice">:</span>
+                                    <input type="text" class="inp ivu-input" placeholder="00"  v-model="timeObj.min"   @focus="getIndex(2)" @change="htTestChange"/>
+                                </i-col>
+                                <i-col span="4">
+                                    <div style="height: 58px;position: relative">
+                                        <span class="ft-icon" @click="addInfo"  @change="htTestChange"></span>
+                                        <span class="tp-icon" @click="reduceInfo"  @change="htTestChange"></span>
+                                    </div>
+                                </i-col>
+                            </row>
+                        </div>
+                        <div style="text-align: center;padding-top: 20px">
+                            <i-button v-if="!updateShow" type="info" style="width: 104px" @click="confirm">确定</i-button>
+                            <i-button v-if="updateShow" type="info" style="width: 104px" @click="update">修改</i-button>
+                            <i-button style="width: 104px" @click="cancel">取消</i-button>
+                        </div>
+
+                    </div>
+                </i-col>
+            </row>
+        </i-col>
+    </row>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+#parse("modules/public/footer.html")
+</body>
+<script src='${rc.contextPath}/js/server/subordinate-server/subord-server-sync.js'></script>
+<script src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+</html>

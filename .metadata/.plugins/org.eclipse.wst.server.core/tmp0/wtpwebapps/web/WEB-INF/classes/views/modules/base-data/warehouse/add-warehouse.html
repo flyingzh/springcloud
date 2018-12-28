@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>A010仓库资料</title>
+    #parse("modules/public/header.html")
+    <style>
+        .ht-info-width {
+            width: 305px;
+        }
+
+        form.form-horizontal {
+            width: 1200px;
+        }
+
+        .select-area textarea {
+            width: 305px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="warehouse-info" v-cloak>
+
+        <div id="popup" v-show="showModal">
+            <modal v-model="showModal" title="选择组织" @on-ok="okModel" @on-cancel="cancelModel" ok-text="确认">
+                <i-table border ref="test" :columns="columns" :data="colContent" @on-selection-change="changeselect"></i-table>
+            </modal>
+        </div>
+
+        <div v-show="!isEdit">
+            <div class="btn-menu ht-menu-fix">
+                #if($shiro.hasPermission("basedata:warehouse:add"))
+                <span @click="add_click">新增</span>
+                #end #if($shiro.hasPermission("basedata:warehouse:add"))
+                <span @click="copy">复制</span>
+                #end #if($shiro.hasPermission("basedata:warehouse:update"))
+                <span @click="modify">修改</span>
+                #end #if($shiro.hasPermission("basedata:warehouse:delete"))
+                <span @click="del_click">删除</span>
+                <!--#end #if($shiro.hasPermission("basedata:warehouse:allot"))-->
+                <!--<span @click="showOrgin">分配</span>-->
+                #end
+
+                <span @click="cancel">退出</span>
+            </div>
+            <div style="height: 50px"></div>
+            <div v-show="isSearchHide">
+                <i-form label-width="120">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="仓库名称：">
+                                <i-input class="ht-width-md" v-model="body.name"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="仓库编码：">
+                                <i-input class="ht-width-md" v-model="body.codes"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="仓库类型：">
+                                <search-select-more class="ht-width-md" :options="warehouseType" v-model="body.type" ref="type"></search-select-more>
+                            </form-item>
+                            <form-item>
+                                <ht-btns class="inline-block" @search="search" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+                <!-- <div class="search-menu ">
+                    <label>仓库名称：</label>
+                    <input type="text" name="wname" style="width:260px" class="form-control inline-block" v-model="body.name">
+                    <label>仓库编码：</label>
+                    <input type="text" style="width:260px" class="form-control  inline-block" v-model="body.codes">
+                    <ht-btns style="margin-left:20px" class="inline-block" @search="search" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                </div>
+                <div class="search-menu ">
+                    <label>仓库类型：</label>
+                    <search-select-more style="width:260px" class="inline-block" :options="warehouseType" v-model="body.type" ref="type"></search-select-more>
+                </div> -->
+            </div>
+
+            <div style="height: 25px;">
+                <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </span>
+            </div>
+
+            <div class="search-menu">
+                <base-data-list v-show="isTabulationHide" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+            #parse("modules/public/footer.html")
+        </div>
+        <div v-show="isEdit">
+            <!-- 按钮栏 -->
+            <div class="btn-menu ht-menu-fix">
+                <span @click="save" v-show="buttonFlag">保存</span>
+                <span @click="exit">退出</span>
+            </div>
+            <div style="height: 10px"></div>
+            <form id="my_from" class="form-horizontal ht-form" style="width:800px">
+                <div class="layui-tab">
+                    <ul class="layui-tab-title" v-show="isShow">
+                        <li class="layui-this">仓库明细</li>
+                        <li>变更信息</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    仓库编码：
+                                </label>
+                                <div class="col-xs-9">
+                                    <input class="form-control ht-info-width" type="text"  disabled   v-model="addBody.codes" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    仓库名称：
+                                </label>
+                                <div class="col-xs-9">
+                                    <input class="form-control ht-info-width required" type="text" name="wname" v-model="addBody.name" :disabled="isLock" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    类型：
+                                </label>
+                                <div class="col-xs-9">
+                                    <i-select class="ht-info-width" name="wType" v-model="addBody.type" :disabled="isLock">
+                                        <i-option value="" disabled>--请选择--</i-option>
+                                        <i-option :value="item.name" v-for="item in warehouseType">{{item.name}}</i-option>
+                                    </i-select>
+                                </div>
+                            </div>
+                            <!--<div class="form-group form-group-sm">-->
+                            <!--<label class="col-xs-3 control-label">库位组：</label>-->
+                            <!--<div class="col-xs-9">-->
+                            <!--<select name="wgroup"  class="form-control ht-info-width" v-model="addBody.groupId" :disabled="isLock">-->
+                            <!--<option value="" disabled>&#45;&#45;请选择&#45;&#45;</option>-->
+                            <!--<option :value="item.value" v-for="item in warehouseGroup">{{item.label}}</option>-->
+                            <!--</select>-->
+                            <!--</div>-->
+                            <!--</div>-->
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">地址：</label>
+                                <div class="col-xs-9">
+                                    <area-select class="select-area" v-model="area" :init="areaInit" :url="warehoseUrl" ref="warea"></area-select>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">仓库管理员：</label>
+                                <div class="col-xs-9">
+                                    <i-select name="adimin" v-model="addBody.managerName" :disabled="isLock" class="ht-info-width">
+                                        <i-option value="" disabled>--请选择--</i-option>
+                                        <i-option :value="item.value+'-'+item.label" v-for="item in admin">{{item.label}}</i-option>
+                                    </i-select>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">联系电话：</label>
+                                <div class="col-xs-9">
+                                    <input class="form-control ht-info-width" type="text" v-model="addBody.phoneNum" :disabled="isLock" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    有效状态：
+                                </label>
+                                <div class="col-xs-9">
+                                    <label class="radio-inline" v-for="item in status">
+                                        <input type="radio" name="www" :value="item.value" v-model="addBody.status" :disabled="isLock"> {{item.label}}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">备注：</label>
+                                <div class="col-xs-9">
+                                    <textarea name="comment" cols="30" rows="5" class="form-control ht-info-width" v-model="addBody.remark" :disabled="isLock"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">创建人：</label>
+                                <div class="col-xs-3" style="padding-top:6px;">
+                                    {{addBody.createName}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-tab-item">
+                            <common-record-list :record_config="data_config2" :url="logUrl"></common-record-list>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            #parse("modules/public/footer.html")
+        </div>
+    </div>
+    <script src="${rc.contextPath}/js/basedata/add-warehouse.js"></script>
+</body>
+
+</html>

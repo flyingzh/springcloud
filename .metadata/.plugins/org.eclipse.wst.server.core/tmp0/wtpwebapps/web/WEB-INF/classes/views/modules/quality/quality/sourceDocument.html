@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>已质检列表</title>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="sourceDocument" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-sm pd-lf-sm" @click="reloadAgain">刷新</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <div class="search-menu ht-menu-top" style="height: 100px; margin-bottom:80px" v-show="isSearchHide">
+            <!--<div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>单据类型：</label>-->
+                    <!--<i-select v-model="body.documentType" class="ht-input-width" ref="dType" style="width: 200px;display: inline-block;">-->
+                        <!--<i-option value="">全部</i-option>-->
+                        <!--<i-option :value="item.value" v-for="item in docType" :key="'dType'+item.value">{{item.name}}</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>单据编号：</label>-->
+                    <!--<i-input type="text" v-model='body.documentCode' class="ht-input-width" placeholder="可模糊搜索" style="width: 200px"></i-input>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>检验单号：</label>-->
+                    <!--<i-input type="text" v-model='body.qcDocumentCode' class="ht-input-width" placeholder="可模糊搜索" style="width: 200px"></i-input>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"-->
+                             <!--class="inline-block"></ht-btns>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>&nbsp;&nbsp;&nbsp;质检员：</label>-->
+                    <!--<i-select v-model="body.inspectorName" filterable style="width: 200px;display: inline-block;" ref="inspect">-->
+                        <!--<i-option v-for="item in inspectorNameList" :key="'inspect'+item.empName" :value="item.empName" >{{item.empCode + '   |   ' + item.empName }}</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>商品类型：</label>-->
+                    <!--<cascader :data="categoryType" trigger="hover"-->
+                              <!--v-model="commodityCategoty" style="width: 200px;display: inline-block;">-->
+                    <!--</cascader>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label" style="height: 50px;">-->
+                    <!--<label>单据日期：</label>-->
+                    <!--<date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="Select date" style="width: 200px"></date-picker>-->
+                <!--</div>-->
+            <!--</div>-->
+            <i-form label-width="120" >
+                <row >
+                    <i-col span="8">
+                        <form-item label="单据类型：">
+                            <i-select v-model="body.documentType" class="ht-width-input" ref="dType" clearable>
+                                <i-option :value="item.value" v-for="item in docType" :key="'dType'+item.value">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="质检员：">
+                            <i-select v-model="body.inspectorName" filterable class="ht-width-input" ref="inspect" clearable>
+                                <i-option v-for="item in inspectorNameList" :key="'inspect'+item.empName" :value="item.empName" >{{item.empCode + '   -   ' + item.empName }}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="商品类型：">
+                            <cascader :data="categoryType" trigger="hover"
+                                      v-model="commodityCategoty" class="ht-width-input">
+                            </cascader>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="送检编号：">
+                            <i-input type="text" v-model='body.documentCode' class="ht-width-input" placeholder="可模糊搜索" ></i-input>
+                        </form-item>
+                        <form-item label="源单单号：">
+                            <i-input type="text" v-model='body.upstreamSourceCode' class="ht-width-input" placeholder="可模糊搜索" ></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="检验单号：">
+                            <i-input type="text" v-model='body.qcDocumentCode' class="ht-width-input" placeholder="可模糊搜索" ></i-input>
+                        </form-item>
+                        <form-item label="单据日期：">
+                            <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="Select date" class="ht-width-input"></date-picker>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block" ></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <div style="height: 25px;">
+            <sapn class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            </sapn>
+        </div>
+        <div>
+            <base-data-list v-show="isTabulationHide" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+        </div>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/quality/sourceDocument.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

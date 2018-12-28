@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>A026主营商品类别维护</title>
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+</head>
+
+<body>
+<div id="productLevel" style="width:100%" v-cloak>
+    <div class="btn-menu" v-show="!isShow">
+        #if($shiro.hasPermission("basedata:tmainproductcategory:add"))
+        <span @click="add">新增</span>
+        #end
+        #if($shiro.hasPermission("basedata:tmainproductcategory:add"))
+        <span @click="copy">复制</span>
+        #end
+        #if($shiro.hasPermission("basedata:tmainproductcategory:update"))
+        <span @click="modify">修改</span>
+        #end
+        #if($shiro.hasPermission("basedata:tmainproductcategory:delete"))
+        <span @click="del">删除</span>
+        #end
+        <span @click="exit">退出</span>
+    </div>
+    <div v-show="!isShow">
+        <div class="search-menu">
+            <i-form label-width="120" v-show="isSearchHide">
+                <row>
+                    <i-col span="8">
+                        <form-item label="主营商品类别：">
+                            <i-input v-model='body.name' placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="创建时间：">
+
+                            <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="有效状态：">
+                            <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                                 <i-option :value="item.value" v-for="item in status">{{item.label}}</i-option>
+                             </i-select>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+
+            <div style="margin-top:20px;">
+                <div style="height: 25px;">
+                    <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                    </span>
+
+                    </span>
+                </div>
+                <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+        </div>
+    </div>
+    <div id="mainProduct" v-show="isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu">
+            <span @click="save" v-if="!isEdit" v-show="isSave">保存</span>
+            <span @click="cancel">退出</span>
+        </div>
+        <form id="add-product-category" class="form-horizontal ht-form">
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    代码：
+                </label>
+                <div class="col-xs-9">
+                    <input name="code" class="form-control ht-width " maxlength="30" disabled
+                           type="text" v-model="addBody.code"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    主营商品类别：
+                </label>
+                <div class="col-xs-9">
+                    <input name="name" class="form-control ht-width required" maxlength="30" type="text"
+                           :disabled="isEdit" v-model="addBody.name"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">备注：</label>
+                <div class="col-xs-9">
+                    <textarea name="remark" id="" cols="30" rows="5" class="form-control ht-width" :disabled="isEdit"
+                              v-model="addBody.remark"></textarea>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">有效状态：</label>
+                <div class="col-xs-9">
+                    <label class="radio-inline" v-for="item in status">
+                        <input type="radio" name="status" :value="item.value" :disabled="isEdit"
+                               v-model="addBody.status"> {{item.label}}
+                    </label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建时间：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">{{addBody.createTime}}</p>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建人：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">{{addBody.createName}}</p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+<script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<!--<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>-->
+<!--<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>-->
+<!--<script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>-->
+<!--<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>-->
+<script src="${rc.contextPath}/js/components/ht-btns.js"></script>
+<script src="${rc.contextPath}/js/components/date-select.js"></script>
+<script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/basedata/mainproduct-category-maintain.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

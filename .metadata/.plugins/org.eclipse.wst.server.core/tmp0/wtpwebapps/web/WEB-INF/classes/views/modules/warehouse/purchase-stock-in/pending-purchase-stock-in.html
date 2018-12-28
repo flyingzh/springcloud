@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>采购入库-待入库列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/purchase-stock-in/pending-purchase-stock-in.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="refresh">刷新</span>
+            <a href="javascript:void(0)"  class="pd-rg-md"   style="text-decoration: none"  @click="generateStockDoc">生成采购入库单</a>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="源单类型：">
+                        <i-select v-model="body.businessType" class="ht-input-width" ref="businessType" style="width: 200px;display: inline-block;" clearable
+                         @on-clear="handleClearSelect('businessType')">
+                            <i-option v-for="item in sourceDocTypeArr" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="单据编号：">
+                        <i-input type="text" v-model='body.orderNo' class="ht-input-width" style="width: 200px"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader :data="categoryType" trigger="hover"
+                                  v-model="goodsTypes" class="ht-input-width" style="width: 200px;display: inline-block;" @on-change="changeGoodsType">
+                        </cascader>
+                    </form-item>
+                    <form-item label="收货日期：">
+                        <date-picker type="daterange" @on-change="changeDate" placeholder="请选择日期" style="width: 200px;margin-bottom: 20px" v-model="selectDates"></date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="供应商：">
+                        <ht-selectsupplier
+                                @getinfo="closeSupplier"
+                                ref="selectSupplier"  is-check="no">
+                        </ht-selectsupplier>
+                    </form-item>
+                    <form-item>
+                        <ht-btns  :is-search="true" :is-add="false"
+                                  class="inline-block"
+                                  @clear='clear' @search="search"></ht-btns>
+                    </form-item>
+                </i-col>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="myTable" v-model="selected" :data_config="data_config" :need-reload="reload"  v-show="isTabulationHide" :return-row-data="true"></base-data-list>
+        </div>
+    </div>
+</div>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'base-data-list',
+        'ht-selectsupplier',
+        '${rc.contextPath}/js/warehouse/purchase-stock-in/pending-purchase-stock-in.js'
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+</html>

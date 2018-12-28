@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workingSetManager>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542703211521_0" label="Java Main Sources" name="Java Main Sources">
+<item elementID="=common-log/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-log/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-model/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-model/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=registry-core/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-config/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-core/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-core/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-entity/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-event/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-exception/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-utils/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-basedata/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-basedata/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=registry-consul/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=registry-consul/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-consul/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-consul/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-redis/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-httpclient/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-remote/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-shiro/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-velocity/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-webconfig/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-webconfig/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-psw/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-psw/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-fastdfs/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-fastdfs/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=web/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=web/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-casServer/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-casServer/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-finance/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-finance/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-job/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-job/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-quality/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-quality/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-sysmanager/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-sysmanager/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=interactmq-activemq/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=interactmq-activemq/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=interactmq-core/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-core/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-core/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-rocketmq/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-rocketmq/src\/main\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-activemq/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-mysql/src\/main\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSet>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542703211539_1" label="Java Test Sources" name="Java Test Sources">
+<item elementID="=common-model/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=registry-core/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-config/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-core/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-entity/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-basedata/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=registry-consul/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-consul/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-httpclient/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-remote/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-shiro/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-velocity/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-webconfig/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-psw/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=common-fastdfs/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=web/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-casServer/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-casServer/src\/test\/resources" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-finance/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-job/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-quality/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=doraemon-service-sysmanager/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-core/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=transactionmq-rocketmq/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-activemq/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=util-mysql/src\/test\/java" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSet>
+<workingSet editPageId="org.eclipse.ui.resourceWorkingSetPage" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542704053504_3" label="doraemon" name="doraemon">
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-sysmanager" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-core" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-event" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-shiro" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-basedata" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-webconfig" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/transactionmq-core" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/registry-consul" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/transactionmq-rocketmq" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/web" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-quality" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-commons" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-entity" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-remote" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-fastdfs" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-job" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-casServer" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/util-consul" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-config" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/interactmq-core" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-utils" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/util-mysql" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/registry-core" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/util-redis" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-psw" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-exception" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-model" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-httpclient" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-application" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/util-activemq" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-log" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service-finance" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/common-velocity" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/doraemon-service" type="4"/>
+<item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/interactmq-activemq" type="4"/>
+</workingSet>
+<workingSet editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545894104136_7" label="micro" name="micro">
+<item elementID="=micro-utils" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=eureka-server" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=micro-user" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=micro-ribbon" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSet>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542703231279_2" label="Window Working Set" name="Aggregate for window 1542703231279"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545903002892_7" label="Multiple Working Sets" name="Aggregate:doraemon:micro:">
+<workingSet IMemento.internal.id="doraemon"/>
+<workingSet IMemento.internal.id="micro"/>
+</workingSet>
+<mruList name="micro"/>
+</workingSetManager>

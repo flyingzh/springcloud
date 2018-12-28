@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>待发物流列表</title>
+    <!--<link rel="stylesheet" type="text/css" href="../../../../statics/css/iview.css">-->
+    <!--<link rel="stylesheet" href="./index.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/css/basedata/common.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/css/bootstrap.min.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/css/main.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/plugins/layui/css/layui.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/plugins/jqgrid/ui.jqgrid-bootstrap.css">-->
+    <!--<link rel="stylesheet" href="../../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css">-->
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/logistics-dispatch/pending-logistics-dispatch.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="reloadAgain">刷新</span>
+            <span class="pd-rg-md" @click="generateLogistics">生成物流配送单</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu " style="height: 95px;" v-show="isSearchHide">
+            <i-form  :model="body" label-width="120" class="form-content">
+                <row>
+                    <i-col span="8">
+                        <form-item label="源单类型：">
+                            <i-select v-model="body.docCode" clearable @on-clear="handleClearType" class="ht-input-width" ref="docCode" style="width: 200px;display: inline-block;" ref="dType">
+                                <i-option v-for="item in selectType" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="供应商：">
+                            <!--<i-select  v-model="body.supplierId" style="width: 150px;"
+                                       filterable=true name="supplier_id" transfer="true" ref="supplier" class="ht-width-md">
+                                <i-option v-for="item in supplierList" :value="item.id"
+                                          :label="item.supplierName" :key="item.supplierCode">
+                                    <slot>{{ item.supplierName }}</slot>
+                                </i-option>
+                            </i-select>-->
+                            <ht-selectsupplier @getinfo="closeSupplier" ref="supplier"></ht-selectsupplier>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="源单编号：">
+                            <i-input type="text" v-model="body.docNo" ref="docNo" class="ht-input-width" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="客户：">
+                            <!--<i-select v-model="body.custId" filterable=true style="width: 150px;"
+                                      name="cust_id" class="ht-width-md" transfer="true" ref="cust">
+                                <i-option v-for="item in customerList" :value="item.id"
+                                          :label="item.name" :key="item.code">
+                                    <slot>{{ item.name }}</slot>
+                                </i-option>
+                            </i-select>-->
+                            <ht-customer-list v-model="customerModel" ref="cust">
+                        </form-item>
+                        <form-item>
+                            <ht-btns  :is-search="true" :is-add="false"
+                                      class="inline-block"
+                                      @clear='clear' @search='search' style="margin-left: 30px;"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+
+        </div>
+        <div style="height:35px">
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        </div>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" :return-row-data =true  v-show="isTabulationHide"  v-model="selected"></base-data-list>
+        </div>
+    </div>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-select',
+        'ht-approve-reject',
+        'ht-img-magnifier',
+        'ht-toggle',
+        'ht-selectsupplier',
+        'access',
+        '${rc.contextPath}/js/components/ht-customer-list.js',
+        '${rc.contextPath}/js/warehouse/logistics-dispatch/pending-logistics-dispatch.js'
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+
+<!--<script src="${rc.contextPath}/js/components/ht-toggle.js"></script>-->
+<!--<script src="${rc.contextPath}/js/warehouse/logistics-dispatch/pending-logistics-dispatch.js"></script>-->
+</html>

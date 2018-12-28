@@ -1,0 +1,20 @@
+package com.micro.springcloud.controller;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequestMapping("/test")
+@RestController
+public class RibbonRestController {
+
+	@Value("${server.port}")
+	private String port;
+	
+	@RequestMapping("/enq")
+	public String enq(@RequestParam String enq) {
+		return "hello: "+enq +"; port: "+port;
+	}
+	
+}

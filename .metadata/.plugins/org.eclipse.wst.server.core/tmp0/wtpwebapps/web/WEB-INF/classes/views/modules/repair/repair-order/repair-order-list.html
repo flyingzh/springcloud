@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>维修定单——列表</title>
+    <style>
+        .selectInp{
+            width: 60%;
+        }
+        .form-content{
+            padding: 30px 0 0 50px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="repair-order-list" v-cloak>
+
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="repairOrder.repairOrderNo"
+            :receipt-status="repairOrder.status"
+            :step-list.sync="steplist"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/repairOrderController/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/repairOrderController/queryProcessInfoByOrderNo'
+            url-approve='${rc.contextPath}/repairOrderController/submitapproval'
+            url-table-data='${rc.contextPath}/repairOrderController/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <div class="btn-menu">
+        <span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="add">新增</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="del">删除</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="submit">提交</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+    </div>
+    <i-form class="form-content" v-show="isHideSearch" >
+        <row>
+            <i-col span="8">
+                <form-item label="商品类型：">
+                    <!--<cascader @on-change="changeCategory($event)"  trigger="hover" class="ht-width-md inline-block"-->
+                               <!--class="ht-width-input" transfer :data="categoryType" v-model="body.goodsType">-->
+                    <!--</cascader>-->
+                    <ht-commodity-type :show-tip="false" @change="changeProductType" ref="gtype"></ht-commodity-type>
+                </form-item>
+                <form-item label="维修厂家：">
+                    <!--<i-input class="ht-width-md" v-model="body.supplierName"></i-input>-->
+                    <ht-selectsupplier
+                            @getinfo="selectSupplier"
+                            ref="supplier"
+                    >
+                    </ht-selectsupplier>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="客户：">
+                    <!--<i-input class="ht-width-md" v-model="body.custName"></i-input>-->
+                    <ht-customer-list
+                            v-model="selectCustomerObj"
+                            @sure="closeCustomer"
+                            is-check="no"
+                            ref="customerRef"
+                    >
+                    </ht-customer-list>
+                </form-item>
+                <form-item label="日期：">
+                    <date-picker v-model="dateArr" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+                                 placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="单据编号：">
+                    <i-input class="ht-width-md"  placeholder="可模糊搜索" v-model="body.repairOrderNo"></i-input>
+                </form-item>
+                <form-item>
+                    <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false"
+                             class="inline-block" style="margin-left:72px"></ht-btns>
+                </form-item>
+            </i-col>
+        </row>
+    </i-form>
+    <!-- 隐藏按钮 -->
+    <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+    <!-- 列表部分 -->
+    <base-data-list v-show="isHideList" :return-row-data="true"  table_id="myTable"
+                    :data_config="data_user_list" :need-reload="reload" v-model="selected" ></base-data-list>
+
+</div>
+
+
+
+<script>
+    htLoadJs([
+        '${rc.contextPath}/js/components/ht-toggle.js',
+        '${rc.contextPath}/js/components/ht-select.js',
+        '${rc.contextPath}/js/components/ht-approve-reject.js',
+        '${rc.contextPath}/js/components/ht-product-detail.js',
+        '${rc.contextPath}/js/components/base-data-list.js',
+        "${rc.contextPath}/js/components/ht-img-magnifier.js",
+        "${rc.contextPath}/js/components/ht-selectsupplier.js",
+        "${rc.contextPath}/js/components/ht-customer-list.js",
+        '${rc.contextPath}/js/access/access.js',
+        '${rc.contextPath}/js/components/ht-commodity-difference.js',
+        '${rc.contextPath}/js/components/ht-commodity-type.js',
+        '${rc.contextPath}/js/repair/repair-order/repair-order-list.js']
+    );
+</script>
+<!--<script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/date-select.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-review-turndown.js"></script>
+<script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>-->
+
+#parse("modules/public/footer.html") </body>
+</body>
+
+</html>

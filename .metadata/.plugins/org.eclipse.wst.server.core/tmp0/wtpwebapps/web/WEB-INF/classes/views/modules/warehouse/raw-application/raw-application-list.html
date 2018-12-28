@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>原料领用申请单 - 列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/raw-application/raw-application-list.css'>
+    <style>
+        div.ht-menu-top {
+            padding-top: 30px;
+        }
+        .ivu-modal-confirm-body{
+            width: 230px;
+            overflow: hidden;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div>
+        <ht-approve-reject
+                :trigger="modalTrigger"
+                :modal-type="modalType"
+                :receipt-id="documentNo"
+                :receipt-status="documentStatus"
+                :step-list.sync="stepList"
+                url-check='${rc.contextPath}/rawapplication/findUserOperation'
+                url-init-approve='${rc.contextPath}/rawapplication/queryProcessByReceiptsId'
+                url-approve='${rc.contextPath}/rawapplication/submitapproval'
+                @on-auto-approve="autoApproveOrReject"
+                @on-approve="approvalOrRejectCallBack"
+                @on-reject="approvalOrRejectCallBack"
+                ref="ar"
+        >
+        </ht-approve-reject>
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="reloadAgain">刷新</span>
+
+            <span class="pd-rg-md" @click="add">新增</span>
+
+            <span class="pd-rg-md" @click="update">修改</span>
+
+            <span class="pd-rg-md" @click="del">删除</span>
+
+            <span class="pd-rg-md" @click="submit">提交</span>
+
+            <span class="pd-rg-md" @click="approval">审核</span>
+
+            <span class="pd-rg-md" @click="reject">驳回</span>
+
+            <span class="pd-rg-md" @click="">打印</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu ht-menu-top" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <!-- row代表行 -->
+                <row :gutter="16">
+                    <i-col span="8">
+                        <form-item label="领料用途：">
+                            <i-select class="ht-input-width" clearable @on-clear="handleClearType" ref="purpose" style="width: 200px;display: inline-block;" v-model="body.purpose">
+                                <i-option v-for="item in selectPickingUse" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="供应商：">
+                            <!--<i-select  v-model="body.supplierId" style="width: 150px;"
+                                      filterable=true name="supplier_id" transfer="true" ref="supplier" class="ht-width-md">
+                                <i-option v-for="item in supplierList" :value="item.id"
+                                          :label="item.supplierName" :key="item.supplierCode">
+                                    <slot>{{ item.supplierName }}</slot>
+                                </i-option>
+                            </i-select>-->
+                            <ht-selectsupplier @getinfo="closeSupplier" ref="supplier" is-check="no"></ht-selectsupplier>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据编号：">
+                            <i-input type="text" v-model="body.documentNo" ref="sType" class="ht-input-width" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="日期：">
+                            <date-picker type="daterange" placeholder="Select date" style="width: 200px" v-model="dateArr" class="ht-input-width" ref="dType" ></date-picker>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block" style="margin-left: 20px"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div >
+        <div style="height: 35px;">
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        </div>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"  v-show="isTabulationHide"></base-data-list>
+        </div>
+    </div>
+</div>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'ht-approve-reject',
+        'ht-selectsupplier',
+        '${rc.contextPath}/js/warehouse/raw-application/raw-application-list.js'
+    ])
+</script>
+#parse("modules/public/footer.html") </body>
+<!--<script src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script src="${rc.contextPath}/js/components/ht-approve-reject.js"></script>
+<script src="${rc.contextPath}/js/warehouse/raw-application/raw-application-list.js"></script>-->
+</html>

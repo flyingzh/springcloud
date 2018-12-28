@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旧料收回单</title>
+    #parse("modules/public/header.html")
+    <script src="${rc.contextPath}/js/access/access.js"></script>
+    <style>
+        .testTableWrap {
+            padding-left: 20px;
+            margin-bottom: 120px;
+            width: 96%;
+            overflow-x: scroll;
+        }
+
+        .testTableWrap .edit-table th:not(:first-child) {
+            min-width: 100px;
+            padding: 0 6px;
+        }
+
+        .testTableWrap .edit-table th, td:first-child {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .testTableWrap .edit-table td {
+            line-height: 100%;
+        }
+
+        .testTableWrap .edit-table td.ht-text-left {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .testTableWrap .edit-table td.ht-number-right {
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .source-list .ivu-form-item {
+            display: inline-block;
+        }
+
+        .source-list .ivu-modal-footer {
+            display: none;
+        }
+
+        .source-list-detail #my_pager_id_detail_center {
+            display: none;
+        }
+
+        .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > table {
+            margin-left: 0em;
+        }
+
+        .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > * {
+            float: none;
+        }
+    </style>
+</head>
+
+<body>
+<div id="oldRecycle" v-cloak>
+    <div class="ht-approve-stamp" v-show="body.orderStatus === 4">
+        审核
+    </div>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="body.orderNo"
+            :receipt-status="body.orderStatus"
+            :step-list.sync="steplist"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/oldmaterialRecycle/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/tpurchaseapply/queryProcessInfoByOrderNo'
+            url-approve='${rc.contextPath}/oldmaterialRecycle/approval'
+            url-table-data='${rc.contextPath}/tpurchaseapply/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    ></ht-approve-reject>
+
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <i-button type="text" :disabled="body.orderStatus != 1" @click="saveClick(1)">保存</i-button>
+            <i-button type="text" :disabled="body.orderStatus != 1" @click="saveClick(2)">提交</i-button>
+            <i-button type="text" :disabled="body.orderStatus == 1 || body.orderStatus == 4" @click="approval">审核
+            </i-button>
+            <i-button type="text" :disabled="body.orderStatus == 1 || body.orderStatus == 4" @click="reject">驳回
+            </i-button>
+            <i-button type="text" @click="exit">退出</i-button>
+        </div>
+        <div style="height: 45px"></div>
+        <i-form label-width="120" ref="formValidate" :rules="ruleValidate" :model="body">
+            <tabs value="name1" v-show="isSearchHide" :animated="false" class="clearfix">
+                <tab-pane label="基本信息" name="name1">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="单据编号：">
+                                <i-input class="ht-width-input" disabled v-model="body.orderNo"></i-input>
+                            </form-item>
+                            <form-item label="收料日期：" prop="recycleDate">
+                                <date-picker :disabled="body.orderStatus != 1"
+                                             :readonly="body.orderStatus != 1"
+                                             transfer
+                                             type="date"
+                                             format="yyyy-MM-dd"
+                                             v-model="body.recycleDate"
+                                             split-panels placeholder="请选择" style="width: 200px"
+                                             @on-change="htTestChange"
+                                ></date-picker>
+                            </form-item>
+                            <form-item label="业务员：" prop="salesmanId">
+
+                                <i-select :disabled="body.orderStatus != 1  " v-model="body.salesmanId"
+                                          @on-change="changeApplyUser($event);htTestChange() "
+                                          class="ht-width-input" label-in-value="true"
+                                          transfer>
+                                    <i-option v-for="item in employees" :value="item.id"
+                                              v-if="item.empStatus==1 || body.salesmanId==item.id"
+                                              :key="item.id">{{item.empCode}}-{{ item.empName}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织：">
+                                <i-input v-model="organName" disabled class="ht-width-input" transfer
+                                         label-in-value></i-input>
+                            </form-item>
+                            <form-item label="处理方式：" prop="processingMode">
+                                <i-select v-model="body.processingMode"
+                                          :disabled="body.orderStatus != 1 || body.dataSource == 2"
+                                          transfer label-in-value
+                                          @on-change="htTestChange"
+                                          style="width: 200px"
+                                          transfer>
+                                    <i-option v-for="item in processModes" :value="item.value" :key="item.value">
+                                        {{item.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="处理结果：" prop="processingResults">
+                                <i-select @on-change="changeResults($event); htTestChange()"
+                                          v-model="body.processingResults"
+                                          :disabled="body.orderStatus != 1 || body.dataSource == 2"
+                                          transfer
+                                          label-in-value
+                                          style="width: 200px"
+                                          transfer>
+                                    <i-option value="store" key="存料">存料</i-option>
+                                    <i-option value="discount" key="折现">折现</i-option>
+                                    <i-option value="return" key="返料">返料</i-option>
+                                    <i-option value="inner" key="内部旧料处理">内部旧料处理</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="客户：">
+                                <!-- <i-input v-model="body.customerName"  :disabled="body.processingResults=='inner'|| body.orderStatus != 1 || body.dataSource == 2" class="ht-width-input" icon="search"
+                                          @on-click="selectCustomer"></i-input> <span class="star"></span>-->
+                                <ht-customer-list
+                                        v-model="selectCustomerObj"
+                                        @sure="closeCustomer"
+                                        :disabled="body.processingResults=='inner'|| body.orderStatus != 1 || body.dataSource == 2"
+                                        ref="customerRef"
+                                        @on-change="htTestChange"
+                                >
+                                </ht-customer-list>
+                            </form-item>
+                            <form-item label="处理厂家：" class="ivu-form-item-required">
+                                <ht-selectsupplier
+                                        @getinfo="closeSupplier"
+                                        :disabled="body.orderStatus != 1 || body.dataSource == 2"
+                                        ref="supplier"
+                                        @on-change="htTestChange"
+                                >
+                                </ht-selectsupplier>
+                            </form-item>
+                            <form-item label="备注：">
+                                <i-input
+                                        @input="htTestChange()"
+                                        :disabled="body.orderStatus != 1"
+                                        v-model="body.remark"
+                                        class="ht-width-input"
+                                ></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="财务信息" name="name2">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="处理厂家：">
+                                <i-input
+                                        class="ht-width-input"
+                                        disabled
+                                        @input="htTestChange"
+                                        v-model="body.supperName"
+                                ></i-input>
+                            </form-item>
+                            <form-item label="实际处理工费(￥)：">
+                                <input
+                                        :disabled="body.orderStatus != 1"
+                                        @input="calcPayOrReceive('supperHandleCost'); htTestChange()"
+                                        class="ht-width-input ivu-input"
+                                        v-model="body.supperHandleCost"/>
+                            </form-item>
+                            <form-item label="其他费用(￥)：">
+                                <input
+                                        :disabled="body.orderStatus != 1"
+                                        @input="calcPayOrReceive('supperOtherCost'); htTestChange() "
+                                        class="ht-width-input ivu-input"
+                                        v-model="body.supperOtherCost"/>
+                            </form-item>
+                            <form-item label="应付合计：">
+                                <i-input disabled class="ht-width-input" v-model="total.payTotal"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="客户：">
+                                <i-input class="ht-width-input" disabled v-model="body.customerName"></i-input>
+                            </form-item>
+                            <form-item label="回收金额(￥)：">
+                                <input class="ht-width-input ivu-input" disabled
+                                       @input="calcPayOrReceive('recycleMoney')"
+                                       v-model="body.recycleMoney">
+                            </form-item>
+                            <form-item label="实际处理工费(￥)：">
+                                <input
+                                        :disabled="body.orderStatus != 1"
+                                        class="ht-width-input ivu-input"
+                                        @input="calcPayOrReceive('customerHandleCost'); htTestChange()"
+                                        v-model="body.customerHandleCost"/>
+                            </form-item>
+                            <form-item label="其他费用：">
+                                <input
+                                        :disabled="body.orderStatus != 1"
+                                        class="ht-width-input ivu-input"
+                                        @input="calcPayOrReceive('customerOtherCost'); htTestChange()"
+                                        v-model="body.customerOtherCost"/>
+                            </form-item>
+                            <form-item label="应收合计：">
+                                <i-input class="ht-width-input" disabled v-model="total.receiveTotal"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="审批信息" name="name3">
+                    <steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel"
+                              :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </steps>
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="item in approvalTableData">
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="其他" name="name4">
+                    <row class="mg-top-md">
+                        <row class="mg-top-md">
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="创建人：">
+                                        <i-input disabled v-model="body.createName" class="ht-width-input"></i-input>
+                                    </form-item>
+                                    <form-item label="创建日期：">
+                                        <i-input disabled v-model="body.createTime" class="ht-width-input"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="修改人：">
+                                        <i-input disabled v-model="body.updateName" class="ht-width-input"></i-input>
+                                    </form-item>
+                                    <form-item label="修改日期：">
+                                        <i-input disabled v-model="body.updateTime" class="ht-width-input"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="审核人：">
+                                        <i-input disabled v-model="body.auditor" class="ht-width-input"></i-input>
+                                    </form-item>
+                                    <form-item label="审核日期：">
+                                        <i-input disabled v-model="body.auditTime" class="ht-width-input"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                        </row>
+                </tab-pane>
+                <tab-pane label="附件" name="name7">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+            <tabs v-show="isTabulationHide">
+                <tab-pane label="收回明细" name="tab1">
+                    <div class="testTableWrap" style="min-height: 200px;">
+                        <div class="btn-menu">
+                            <i-button type="text" :disabled="body.orderStatus != 1" @click="addOneRow">新增行</i-button>
+                            <i-button type="text" :disabled="body.orderStatus != 1"
+                                      @click="deleteOneRow(selectedRowIndex)">删除行
+                            </i-button>
+                        </div>
+                        <table class="edit-table">
+                            <thead>
+                            <th>序号</th>
+                            <th>商品类型</th>
+                            <th><span class="star"></span>商品编码</th>
+                            <th>商品名称</th>
+                            <th>款式类别</th>
+                            <th>商品明细</th>
+                            <th>金料成色</th>
+                            <th>计数单位</th>
+                            <th><span class="star"></span>数量</th>
+                            <th>计重单位</th>
+                            <th><span class="star"></span>总重</th>
+                            <th>计价方式</th>
+                            <th>回收单价</th>
+                            <th>回收金额</th>
+                            <th>备注</th>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item,index) in body.recycleGoodList"
+                                @click="selectOneRow(index)"
+                                :class=" selectedRowIndex === index? 'ht-selected':'' ">
+                                <!--序号-->
+                                <td class="text-center">{{index+1}}</td>
+                                <!--商品类型-->
+                                <td>
+                                    {{item.goodsTypeName}}
+                                </td>
+                                <!--商品编码-->
+                                <td style="position:static;">
+                                    <ht-select
+                                            :is-disabled="body.orderStatus !== 1"
+                                            :init-model="item.goodsNo"
+                                            @getitem="getSelectedItem($event,index)"
+                                            @getinput="getInputValue($event, index)"
+                                            @on-change="htTestChange"
+                                            v-model="item.commodityId"
+                                            class="goods"
+                                            :option-data="item.options || []">
+                                    </ht-select>
+                                </td>
+                                <!--商品名称-->
+                                <td>
+                                    {{item.goodsName}}
+                                </td>
+                                <td>
+                                    {{item.styleName}}
+                                </td>
+
+                                <td v-if="item.detailMark !=2" @click="showProductDetail(index)"><a>商品明细</a></td>
+                                <td v-if="item.detailMark ==2"><span class="detail-disabled-click
+">商品明细</span></td>
+                                <!--金料成色-->
+                                <td>
+                                    {{item.goldColor}}
+                                </td>
+                                <!--计数单位-->
+                                <td>
+                                    {{item.countingUnit}}
+                                </td>
+                                <!--数量-->
+                                <td>
+                                    <input
+                                            :disabled="body.orderStatus != 1"
+                                            @input="clearNoNum(item, 'count', 2);calcMoney(item); numberChange('count');htTestChange()"
+                                            v-model="item.count"
+                                    />
+                                </td>
+                                <!--计重单位---->
+                                <td>
+                                    {{item.weightUnit}}
+                                </td>
+                                <!--总重-->
+                                <td>
+                                    <input :disabled="body.orderStatus != 1"
+                                           @input="clearNoNum(item, 'totalWeight', 2);calcMoney(item); numberChange('totalWeight');htTestChange()"
+                                           v-model="item.totalWeight"/>
+                                </td>
+                                <!--计价方式-->
+                                <td>
+                                    {{item.pricingMethod==1?"重量":"数量" }}
+                                </td>
+                                <!--回收单价-->
+                                <td>
+                                    <input :disabled="body.orderStatus != 1 || body.processingResults !== 'discount'"
+                                           @input="clearNoNum(item, 'recyclePrice', 2);htTestChange()
+                                           numberChange('recyclePrice');calcMoney(item);"
+                                           v-model="item.recyclePrice"/>
+
+                                </td>
+                                <!--回收金额-->
+                                <td>
+                                    {{item.recycleMoney}}
+                                </td>
+
+                                <!--备注-->
+                                <td>
+                                    <i-input :disabled="body.orderStatus != 1"
+                                             v-model="item.remark"
+                                             @input="htTestChange"
+                                             :disabled="tempSave"></i-input>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td>合计</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="ht-number-right">{{total.countTotal}}</td>
+                                <td></td>
+                                <td class="ht-number-right">{{total.totalWeightTotal}}</td>
+                                <td></td>
+                                <td></td>
+                                <td class="ht-number-right">{{total.recycleMoneyTotal}}</td>
+                                <td></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </tab-pane>
+                <tab-pane label="发出明细" :disabled="body.dataSource != 2" name="tab2">
+                    <div class="testTableWrap">
+                        <table class="edit-table">
+                            <thead>
+                            <th>序号</th>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>金料成色</th>
+                            <th>计数单位</th>
+                            <th>数量</th>
+                            <th>计重单位</th>
+                            <th>总重</th>
+                            <th>金重</th>
+                            <th>主石名称</th>
+                            <th>主石重</th>
+                            <th>主石颜色(ct)</th>
+                            <th>主石净度</th>
+                            <th>副石名称</th>
+                            <th>副石石重</th>
+                            <th>副石粒数</th>
+                            <th>源单类型</th>
+                            <th>源单编号</th>
+                            </thead>
+                            <tbody>
+                            <tr v-if="body.dataSource == 2 " v-for="(item,index) in body.sendGoodList">
+                                <!--序号-->
+                                <td class="text-center">{{index+1}}</td>
+                                <!--商品编码-->
+                                <td>
+                                    {{item.goodsNo}}
+                                </td>
+                                <!--商品名称-->
+                                <td>
+                                    {{item.goodsName}}
+                                </td>
+                                <!--金料成色-->
+                                <td>
+                                    {{item.goldColor}}
+                                </td>
+                                <!--计数单位-->
+                                <td>
+                                    {{item.countingUnit}}
+                                    <!--<input type="text" v-model="item.countingUnit">-->
+                                </td>
+                                <!--数量-->
+                                <td>
+                                    {{item.count}}
+                                </td>
+                                <!--计重单位-->
+                                <td>
+                                    {{item.weightUnit}}
+                                </td>
+                                <!--总重-->
+                                <td>
+                                    {{item.totalWeight}}
+                                </td>
+                                <!--金重-->
+                                <td>
+                                    {{item.goldWeight}}
+                                </td>
+                                <!--主石名称-->
+                                <td>
+                                    {{item.mainStoneName}}
+                                </td>
+                                <!--主石重-->
+                                <td>
+                                    {{item.mainStoneWeight}}
+                                </td>
+                                <!--主石颜色-->
+                                <td>
+                                    {{item.mainStoneColor}}
+                                </td>
+                                <!--主石净度-->
+                                <td>
+                                    {{item.mainStoneClarity}}
+                                </td>
+                                <!--副石名称-->
+                                <td>
+                                    {{item.viceStoneName}}
+                                </td>
+                                <!--副石石重-->
+                                <td>
+                                    {{item.viceStoneWeight}}
+                                </td>
+                                <!--副石粒数-->
+                                <td>
+                                    {{item.viceStoneCount}}
+                                </td>
+                                <!--源单类型-->
+                                <td>
+                                    <!-- {{item.sourceOrderType =='O_MATERIALS_HANDLE'?'旧料处理单':''}}-->
+                                    旧料外发单
+                                </td>
+                                <!--源单编号-->
+                                <td>
+                                    {{item.sourceOrderNo}}
+                                </td>
+                                <!--  &lt;!&ndash;备注&ndash;&gt;
+                                  <td>
+                                      {{item.remark}}
+                                  </td>-->
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td>合计</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="ht-number-right">{{sendTotal.countTotal}}</td>
+                                <td></td>
+                                <td class="ht-number-right">{{sendTotal.totalWeightTotal}}</td>
+                                <td class="ht-number-right">{{sendTotal.goldWeightTotal}}</td>
+                                <td></td>
+                                <td class="ht-number-right">{{sendTotal.mainStoneWeightTotal}}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="ht-number-right">{{sendTotal.viceStoneWeightTotal}}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </tab-pane>
+            </tabs>
+        </i-form>
+        <product-detail
+                ref="modalRef"
+                :show-modal="productDetailModal.showModal"
+                :goods-main-type="body.recycleGoodList[selectedRowIndex] && body.recycleGoodList[selectedRowIndex].goodsMainType"
+                :ids="productDetailModal.ids"
+                :over-edit="body.recycleGoodList[selectedRowIndex] && body.recycleGoodList[selectedRowIndex].overEdit"
+                :order-status="body.orderStatus"
+                :t-base-bom-entity="body.recycleGoodList[selectedRowIndex] && body.recycleGoodList[selectedRowIndex].tBaseBomEntity"
+                :my-assist-attrs="body.recycleGoodList[selectedRowIndex] && body.recycleGoodList[selectedRowIndex].assistAttrs"
+                @ok="modalSure($event)"
+                @cancel="modalCancel($event)"
+
+        ></product-detail>
+
+        <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+    </div>
+</div>
+
+<script>
+    htLoadJs([
+            '${rc.contextPath}/js/components/ht-toggle.js',
+            '${rc.contextPath}/js/quality/components/ht-btns.js',
+            '${rc.contextPath}/js/components/ht-select.js',
+            '${rc.contextPath}/js/components/ht-approve-reject.js',
+            '${rc.contextPath}/js/components/ht-customer-list.js',
+            '${rc.contextPath}/js/components/ht-product-detail.js',
+            '${rc.contextPath}/js/components/ht-close-modal.js',
+            '${rc.contextPath}/js/components/ht-selectsupplier.js',
+            '${rc.contextPath}/js/components/ht-tree.js',
+            '${rc.contextPath}/js/components/ht-product-detail.js',
+            '${rc.contextPath}/js/oldmaterial/recycle/old-recycle-add.js'],
+        'debug'
+    );
+</script>
+#parse("modules/public/footer.html")
+</body>
+
+</html>

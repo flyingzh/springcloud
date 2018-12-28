@@ -1,0 +1,18 @@
+.label60{
+    width:60px;
+}
+.w240{
+    width:240px;
+}
+.w80{
+    width:80px;
+}
+input.input-sm {
+    padding: 0 12px 0 2px;
+    height: 24px;
+    line-height: 24px;
+}
+#voucher-summary{
+    /* padding: 20px; */
+    background: #fff;
+}

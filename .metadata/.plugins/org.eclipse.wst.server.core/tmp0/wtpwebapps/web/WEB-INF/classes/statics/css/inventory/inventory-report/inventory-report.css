@@ -1,0 +1,32 @@
+.btn-pop{
+    display: block;
+    width: 100px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    outline: none;
+    background: #fff;
+}
+#form-info .ivu-tabs{
+    overflow:visible;
+}
+#form-info .ivu-poptip-body{
+    width:400px;
+}
+#form-info .text-ellipsis{
+    width:50px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap
+}
+
+#diffRecord td:not(:nth-child(2)) ,#barcode td:not(:nth-child(2)){
+    vertical-align: middle;
+    text-align: center;
+}
+
+.is-disabled{
+    pointer-events:none;
+    color:#bbbec4
+}

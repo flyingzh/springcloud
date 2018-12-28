@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/cashier/AlreadyConfirmedList/index.css">
+    <title>已勾兑列表</title>
+
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="alreadyConfirmedList" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refresh">刷新</button>
+            <button class="ht-btn" @click="filterOpen(true)">打开</button>
+            <button class="ht-btn" @click="exporting">导出</button>
+            <button class="ht-btn" @click="print">打印</button>
+            <button class="ht-btn" @click="cancelHook">取消对账</button>
+            <button class="ht-btn" @click="goBankAccountReconciliation">对账</button>
+            <button class="ht-btn" @click="quit">退出</button>
+
+        </div>
+
+        <!-- <p class="ht-tip1">期间：{{showDataForm.timeStart}} 至 {{showDataForm.timeEnd}}</p> -->
+        <div class="ht-formInfo">
+            银行：
+            <span>{{ bank }}</span>
+            银行账号：
+            <span>{{ bankAccount }}</span>
+            科目：
+            <span>{{ subName }}</span>
+            币别：
+            <span>{{ curName }}</span>
+            期间：
+
+            <span v-if="filter.qr == '1'">{{ filter.accountYear }}年{{ filter.accountPeriod}}期</span>
+            <span v-else>{{ bdt }} 至 {{ edt }}</span>
+        </div>
+        <div class="ht-padding10">
+            <div class="jqGrid_wrapper">
+                <table id="list"></table>
+                <div id="pager"></div>
+            </div>
+
+        </div>
+
+        <!-- 打开 -->
+        <Modal v-model="filterVisible" width="580px" title="查询条件与显示设置" class="filter" :mask-closable="false">
+            <div style="height:300px;overflow: auto;">
+                <Row>
+                    <label class="w60">所属组织</label>
+                    <i-select v-model="filter.sobId" style="width: 350px;">
+                        <i-option v-for="item in organisationList" :value="item.id" :key="item.id">
+                            <slot>{{ item.orgName }}</slot>
+                        </i-option>
+                    </i-select>
+                </Row>
+                <div class="ht-subtitle mt10 ml0">
+                    <div>科目及币别</div>
+                </div>
+                <Row class="mt5">
+                    <label class="w60">科目</label>
+                    <i-select @on-change="subjectChange" v-model="filter.subjectId" style="width: 350px;">
+                        <i-option v-for="item in subjectList" :value="item.accountId" :key="item.accountId">
+                            <slot>{{ item.accountCode + ' ' + item.accountName }}</slot>
+                        </i-option>
+                    </i-select>
+                </Row>
+                <Row class="mt5">
+                    <label class="w60">币别</label>
+                    <i-select v-model="filter.currencyId" style="width: 200px;">
+                        <i-option v-for="item in currencyList" :value="item.currencyId" :key="item.currencyId">
+                            <slot>{{ item.currencyName }}</slot>
+                        </i-option>
+                    </i-select>
+                </Row>
+                <div class="ht-subtitle mt10 ml0">
+                    <div>期间</div>
+                </div>
+                <Row>
+                    <label class="w60">&nbsp;</label>
+                    <label>
+                        <input type="radio" value="1" v-model="filter.qr"> 按期间查询
+                    </label>
+                    <label class="ml20">
+                        <input type="radio" value="2" v-model="filter.qr"> 按日期查询
+                    </label>
+                </Row>
+                <Row v-if="filter.qr=='1'" class="mt5">
+                    <div>
+                        <label class="w60">会计期间</label>
+                        <i-select v-model="filter.accountYear" class="inline-block w120">
+                            <i-option v-for="item in years" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select> 年
+                        <i-select v-model="filter.accountPeriod" class="inline-block w120">
+                            <i-option v-for="item in months" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select> 期
+                    </div>
+                    <!--<div class="mt5">-->
+                        <!--<label class="w60">至</label>-->
+                        <!--<i-select v-model="openData.endYear" class="inline-block w120">-->
+                            <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+                                <!--<slot>{{ item.label }}</slot>-->
+                            <!--</i-option>-->
+                        <!--</i-select> 年-->
+                        <!--<i-select v-model="openData.endPeriod" class="inline-block w120">-->
+                            <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+                                <!--<slot>{{ item.label }}</slot>-->
+                            <!--</i-option>-->
+                        <!--</i-select> 期-->
+                    <!--</div>-->
+                </Row>
+                <Row v-else class="mt5">
+                    <div>
+                        <label class="w60">开始日期</label>
+                        <date-picker type="date" v-model="filter.beginDatetime" placeholder="Select date" class="inline-block
+                        w120"></date-picker>
+                    </div>
+                    <div class="mt5">
+                        <label class="w60">结束时间</label>
+                        <date-picker type="date" v-model="filter.endDatetime" placeholder="Select date" class="inline-block
+                        w120"></date-picker>
+                    </div>
+
+                </Row>
+                <!--<div class="ht-subtitle mt10 ml0">-->
+                    <!--<div>其他查询条件</div>-->
+                <!--</div>-->
+
+                <!--<Row class="mt5">-->
+                    <!--<label class="w60">凭证字</label>-->
+                    <!--<i-select v-model="openData.voucherGroupId" class=" inline-block w180" filterable>-->
+                        <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+                            <!--<slot>{{ item.label }}</slot>-->
+                        <!--</i-option>-->
+                    <!--</i-select>-->
+                    <!--<label class="w60 ml30">凭证号</label>-->
+                    <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+                    <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+                <!--</Row>-->
+                <!--<Row class="mt5">-->
+                    <!--<label class="w60">摘要</label>-->
+                    <!--<Auto-complete v-model="openData.explains" class="ht-remark-autoComplete" icon="ios-folder" style="width:456px">-->
+                        <!--<div class="demo-auto-complete-item" v-for="item in remarklist">-->
+                            <!--<i-option :value="item.content" :key="item.content">{{ item.content }}</i-option>-->
+                        <!--</div>-->
+                    <!--</Auto-complete>-->
+                    <!--<i-button type="text" icon="ios-folder" class="ht-remark-btn" @click.stop="clickDigest"></i-button>-->
+                <!--</Row>-->
+                <!--<Row class="mt5">-->
+                    <!--<label class="w60">结算方式</label>-->
+                    <!--<i-select v-model="openData.voucherGroupId" class=" inline-block w180" filterable>-->
+                        <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+                            <!--<slot>{{ item.label }}</slot>-->
+                        <!--</i-option>-->
+                    <!--</i-select>-->
+                    <!--<label class="w60 ml30">结算号</label>-->
+                    <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+                    <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+                <!--</Row>-->
+
+                <!--<Row class="mt5">-->
+                    <!--<label class="w60">借方金额</label>-->
+                    <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+                    <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+                    <!--<label class="w60 ml30">贷方金额</label>-->
+                    <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+                    <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+                <!--</Row>-->
+
+                <!--<Row class="mt5">-->
+                    <!--<label class="w60">制单人</label>-->
+                    <!--<i-select v-model="openData.handleId" class=" inline-block w180" filterable>-->
+                        <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+                            <!--<slot>{{ item.label }}</slot>-->
+                        <!--</i-option>-->
+                    <!--</i-select>-->
+                <!--</Row>-->
+            </div>
+
+            <div slot="footer">
+                <i-button @click="save" type="primary">确定</i-button>
+                <i-button @click="cancel">取消</i-button>
+            </div>
+        </Modal>
+        <ht-remark :recmodal="remarkVisable" :remark-list="remarklist" @on-modal-change="onRemarkModalChange" @on-list-change="onRemarkListChange"
+            @on-row-dblclick="onDblclickRemarkRow"></ht-remark>
+        <form id="export_form" method="post" hidden="hidden" action="${rc.contextPath}/bankdepositstatement/hooked/export">
+
+        </form>
+
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+
+    <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-remark.js"></script>
+    <script src='${rc.contextPath}/js/basedata/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/ht-add-del-btn.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/finance/cashier/AlreadyConfirmedList/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

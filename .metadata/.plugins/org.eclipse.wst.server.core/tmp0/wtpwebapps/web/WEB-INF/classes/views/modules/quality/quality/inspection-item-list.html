@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>检验项目</title>
+</head>
+
+<body>
+<div id="inspection-itemlist" v-cloak>
+    <ht-approve-reject
+            :can-reject-when-audit="canRejectWhenAudit"
+            :status-map="statusMap"
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="inspectionItemInfo.code"
+            :receipt-status="inspectionItemInfo.testItemStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/testItemController/findUserOperation'
+            url-init-approve='${rc.contextPath}/testItemController/queryProcessByReceiptsId'
+            url-approve='${rc.contextPath}/testItemController/submitApproval'
+            url-table-data='${rc.contextPath}/testItemController/queryReceiptsById'
+            @on-auto-approve="autoSubmitOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <!--&lt;!&ndash; 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 &ndash;&gt;
+    <modal
+            title="审核"
+            v-model="approveComment"
+            :closable="false"
+            @on-ok="getApproveInfo">
+        <div>
+            <p class="mg-bm-md">
+                <span>当前节点：{{currentStep}}</span>
+                <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+            </p>
+            <span>审核意见</span>
+            <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+        </div>
+    </modal>
+    &lt;!&ndash; 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 &ndash;&gt;
+    <modal
+            title="驳回"
+            v-model="rejectComment"
+            :closable="false"
+            @on-ok="getRejectInfo">
+        <div>
+            <radio-group v-model="rejectement.approvalResult" class="mg-bm-md">
+                <radio label="0">驳回上一级</radio>
+                <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+            </radio-group>
+            <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+            <i-input type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+        </div>
+    </modal>-->
+
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="addItem">新增</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="copyData">复制</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="submit">提交</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="modifyData">修改</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="deleteData">删除</span>
+            <!--<span class="pd-rg-sm pd-lf-sm" @click="setColumn">设置列</span>-->
+            <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+        </div>
+        <div class="ht-menu-top" style="width:95%;margin:auto">
+            <div class="mg-top-md" v-show="isSearchHide">
+                <i-form :model="search" :label-width="120">
+                    <form-item label="商品类型：" >
+                        <checkbox-group v-model="checkbox" @on-change="productShow">
+                            <checkbox v-for="item in checkList" class="pd-rg-sm pd-lf-sm" :label="item.pid">
+                                {{item.name}}
+                            </checkbox>
+                        </checkbox-group>
+                    </form-item>
+                    <row>
+                        <i-col span="8">
+                            <form-item label="检验项目名称：" class="inline-block ">
+                                <i-input v-model="inspectionItem.name" style="width:200px"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="检验项目状态：" class="inline-block ">
+                                <i-select style="width:200px" v-model="inspectionItem.testItemStatus">
+                                    <i-option v-for="item in itemstatusList" :value="item.value" :key="item.value">{{ item.name
+                                        }}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item >
+                                <ht-btns  v-on:search="search" @clear="clear" :is-search="true"
+                                         :is-add="false"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+            </div>
+            <div style="height: 10px;">
+                <sapn class="chevron">
+                    <span v-show="isTabulationHide">
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </sapn>
+
+            </div>
+            <!-- 需要循环生成 -->
+            <div class="mg-bm-bg" v-for="(item,index) in productList" :key="item.pid" v-show="isTabulationHide">
+                <div class="ht-subtitle mg-top-md">
+                    <div>{{item.name}}</div>
+                </div>
+                <test-item-table :data="item.data" v-model="item.selected" :table_id="item.tableId"
+                                 :need-reload="reload"></test-item-table>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</div>
+
+<script src="${rc.contextPath}/js/quality/components/base-data-list.js"> </script>
+<script src="${rc.contextPath}/js/components/ht-approve-reject.js"></script>
+<script src='${rc.contextPath}/js/quality/test-item-table.js'></script>
+<script src='${rc.contextPath}/js/quality/inspection-item-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

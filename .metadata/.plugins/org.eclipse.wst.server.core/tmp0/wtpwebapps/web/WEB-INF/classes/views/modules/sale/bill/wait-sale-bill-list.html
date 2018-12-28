@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+	<style>
+		.form-content {
+			padding: 30px 30px 30px 0px;
+		}
+	</style>
+	<title>待销售结算列表</title>
+</head>
+
+<body>
+<div id="wait-sale-bill-list" v-cloak>
+	<div class="btn-menu">
+		<span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="addSaleBill">生成销售结算单</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+	</div>
+	<!-- 搜索部分 -->
+	<i-form class="search-menu ht-menu-top"  v-show="isHideSearch" label-width="120">
+		<!-- row代表行 -->
+		<row>
+			<i-col span="8">
+				<form-item label="单据编号：">
+					<i-input class="ht-width-md" v-model="body.outStockNo" placeholder="可模糊搜索"></i-input>
+				</form-item>
+				<form-item label="客户：" >
+					<ht-customer-list
+							v-model="customerModel"
+							@sure="closeCustomer"
+							ref="customerRef"
+					>
+					</ht-customer-list>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="业务类型：">
+					<i-select transfer class="ht-width-md" v-model="body.businessType" ref="bType" clearable @on-clear="clearItem('businessType', 'bType')">
+						<i-option value="S_CUST_ORDER_01">普通销售</i-option>
+						<i-option value="S_CUST_ORDER_02">受托加工销售</i-option>
+					</i-select>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="日期：">
+					<date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+								 placement="bottom-end" placeholder="请选择日期" class="ht-width-input"></date-picker>
+				</form-item>
+				<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+						 class="inline-block" style="margin-left:200px"></ht-btns>
+			</i-col>
+		</row>
+	</i-form>
+	<!-- 隐藏按钮 -->
+	<ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+	<!-- 列表部分 -->
+	<base-data-list :return-row-data="true" table_id="myTable" :data_config="data_config" :need-reload="reload"
+					v-model="selected"></base-data-list>
+</div>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'date-select',
+        'base-data-list',
+        'ht-select',
+        '${rc.contextPath}/js/sale/bill/wait-sale-bill-list.js']);
+</script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

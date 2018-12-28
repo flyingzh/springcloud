@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>应收应付核销单</title>
+	#parse("modules/public/header.html")
+	<link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/ReceivableWriteofflist/index.css">
+
+</head>
+
+<body>
+	<div id="receivableWriteofflist" v-cloak>
+		<div class="btn-menu ht-finance-menu-cl">
+			<button class="ht-btn" @click="actionBtnMth('addNew')">新增</button>
+			<button class="ht-btn" @click="preserve" :disabled="isDisabled">保存</button>
+			<button class="ht-btn" @click="actionBtnMth('source')">选源单</button>
+			<button class="ht-btn" @click="actionBtnMth('examine')" :disabled="examineisDisabled">审核</button>
+			<button class="ht-btn" @click="actionBtnMth('noexamine')" :disabled="noexamineisDisabled">反审核</button>
+			<button class="ht-btn" @click="actionBtnMth('delete')" :disabled="deleteisDisabled">删除</button>
+			<button class="ht-btn" @click="actionBtnMth('edit')" :disabled="editisDisabled">修改</button>
+			<button class="ht-btn" @click="logopAction">打印</button>
+			<!-- <button class="ht-btn" @click="htPrint()">打印</button> -->
+			<button class="ht-btn" @click="actionBtnMth('deleteRow')" :disabled="deleteisDisabled">删除行</button>
+			<button class="ht-btn" @click="beforeOrLast(2)">前一</button>
+			<button class="ht-btn" @click="beforeOrLast(1)">后一</button>
+			<Dropdown trigger="click" @on-click="voucherAction" placement="bottom-start">
+				<button class="ht-btn">凭证
+					<Icon type="arrow-down-b"></Icon>
+				</button>
+				<Dropdown-menu slot="list" style="z-index: 102;">
+					<Dropdown-item name="addVoucher" :disabled="voucherisDisabled">生成凭证</Dropdown-item>
+					<Dropdown-item name="showVoucher" :disabled="showVoucherDisabled">查看凭证</Dropdown-item>
+				</Dropdown-menu>
+			</Dropdown>
+			<Dropdown trigger="click" @on-click="optionAction" placement="bottom-start">
+				<button class="ht-btn">选项
+					<Icon type="arrow-down-b"></Icon>
+				</button>
+				<Dropdown-menu slot="list">
+					<Dropdown-item name="saveAdd">
+						<Icon type="checkmark-circled" v-if="isSaveAdd"></Icon>
+						保存后自动新增
+					</Dropdown-item>
+				</Dropdown-menu>
+			</Dropdown>
+			<button class="ht-btn" @click="autoWriteoff">自动核销</button>
+			<button class="ht-btn" class="ht-btn" @click="closeWindow">退出</button>
+		</div>
+		<div class="ht-receivableW-form pl20 pr20 mt10 ht-paddingTop30">
+			<div class="col-sm-12 ht-formTitle">核销单</div>
+			<img src="${rc.contextPath}/images/audit.png" v-if="formData.auditStatus === 2" class="ht-audit">
+			<i-row class="pt10">
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">核销类型：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select @on-change="cancellationType" filterable name="a1" class="required inline-block calc-right-w140" ref="verificationType"
+					 v-model="formData.verificationType">
+						<i-option v-for="item in formDataInit.verificationType" :value="item.id" :key="item.id">
+							<slot>{{ item.name }}</slot>
+						</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">单据日期：
+						<!-- <span class="star"></span> -->
+					</label>
+					<Date-picker transfer type="date" name="a2" class="required inline-block calc-right-w140" v-model="formData.documentDate"
+					 disabled placeholder="选择日期">
+					</Date-picker>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">单据编号：
+						<!-- <span class="star"></span> -->
+					</label>
+					<input v-model="formData.billNumber" name="a3" class="form-control required inline-block calc-right-w140" type="text" />
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w100 ht-star2">{{for3Title}}：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select @on-change="occurrenceObjectOne" filterable class="required inline-block calc-right-w155" ref="occurrenceObjectOneId"
+					 v-model="formData.occurrenceObjectOneId" :disabled="formData.verificationType === 2">
+						<template v-if="formData.verificationType === 6">
+							<i-option v-for="item in formDataInit.supplier" :value="item.id" :key="item.name">{{ item.name }}</i-option>
+						</template>
+						<template v-else>
+							<i-option v-for="item in formDataInit.client" :value="item.id" :key="item.name">{{ item.name }}</i-option>
+						</template>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w100 ht-star2">{{for4Title}}：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select @on-change="occurrenceObjectTwo" filterable class="required inline-block calc-right-w155" ref="occurrenceObjectTwoId"
+					 v-model="formData.occurrenceObjectTwoId" :disabled="formData.verificationType === 1">
+						<template v-if="formData.verificationType === 5">
+							<i-option v-for="item in formDataInit.client" :value="item.id" :key="item.name">{{ item.name }}</i-option>
+						</template>
+						<template v-else>
+							<i-option v-for="item in formDataInit.supplier" :value="item.id" :key="item.name">{{ item.name }}</i-option>
+						</template>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85 ht-star2">币别：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select @on-change="currencyType" filterable class="required inline-block calc-right-w140" ref="coinStopId"
+					 v-model="formData.coinStopId">
+						<i-option v-for="item in formDataInit.coinStop" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<!--<i-col :span="8" class="ht-lineHeight30 mt5">-->
+				<!--<label class="w85">币别：-->
+				<!--<span class="star"></span>-->
+				<!--</label>-->
+				<!--<i-select @on-change="currencyType" filterable class="required inline-block calc-right-w140" ref="coinStopId" v-model="formData.coinStopId">-->
+				<!--<i-option v-for="item in formDataInit.coinStop" :value="item.id" :key="item.id">{{ item.name }}</i-option>-->
+				<!--</i-select>-->
+				<!--</i-col>-->
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85">摘要：</label>
+					<i-input v-model="formData.summary" class="inline-block calc-right-w140" type="text" />
+					<!--<i-select v-model="formData.summary" filterable >-->
+					<!--<i-option v-for="item in formDataInit.summary" :value="item.id" :key="item.id">{{ item.name }}</i-option>-->
+					<!--</i-select>-->
+				</i-col>
+			</i-row>
+		</div>
+
+		<div class="ht-receivableW-table">
+			<div class="pt5 pb5">{{tb1Title}}</div>
+			<div class="ht-wrapper-tbl" id="receivableTableOne">
+				<table class="table tablediv">
+					<thead>
+						<tr>
+							<td class="wt30"></td>
+							<td class="wt45">选择</td>
+							<td class="wt130">源单编号</td>
+							<td class="wt100">单据日期</td>
+							<td class="wt100">源单类型</td>
+							<td class="wt80">币别</td>
+							<td class="wt45">汇率</td>
+							<td class="wt100">单据金额</td>
+							<td class="wt130">单据金额（本位币）</td>
+							<td class="wt100">已核销金额</td>
+							<td class="wt100">未核销金额</td>
+							<td class="wt100">核销金额</td>
+							<td class="wt130">核销金额（本位币）</td>
+							<td class="wt100">备注</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr lay-size="sm" v-for="(item,idx) in table1DataList" @click="table1ChickTr(item)" :class="{success: table1CurrentSelectRow === item.id}">
+							<td class="wt30">{{ idx+1 }}</td>
+							<td class="wt45"></td>
+							<td class="wt130">{{ item.sourceListNumber }}</td>
+							<td class="wt100">{{ item.documentDate | filtersTableDate }}</td>
+							<td class="wt100">{{ item.sourceSingleType }}</td>
+							<td class="wt80">{{ item.coinStop }}</td>
+							<td class="wt45">{{item.surfaceExchangeRate | filtersTableNumber}}</td>
+							<td class="wt100">{{item.documentaryAmountFor | filtersTableNumber}}</td>
+							<td class="wt130">{{item.documentaryAmount | filtersTableNumber}}</td>
+							<td class="wt100">{{item.cancellationAmountFor | filtersTableNumber}}</td>
+							<td class="wt100">{{item.notCancellationAmountFor | filtersTableNumber}}</td>
+							<td class="wt100 ht-nopadding" style="background-color: #ffffff ">
+								<input type="number" class="form-control input-sm ht-input ht-commTxtContent" @blur="blur_money(item,'thisTiemCancellation')"
+								 v-model="item.thisTiemCancellationFor" />
+							</td>
+							<td class="wt130">{{item.thisTiemCancellation | filtersTableNumber}}</td>
+							<td class="wt100">{{item.remark}}</td>
+						</tr>
+
+						<tr @click="table1ChickTr1('1')" :class="{success: curTable === '1'}">
+							<td class="wt30">{{table1DataList.length + 1}}</td>
+							<td class="wt45"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt80"></td>
+							<td class="wt45"></td>
+							<td class="wt100"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+						</tr>
+					<tfoot>
+						<tr>
+							<td class="wt30"></td>
+							<td class="wt45"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt80"></td>
+							<td class="wt45"></td>
+							<td class="wt100">{{totalDocumentaryAmountFort}}</td>
+							<td class="wt130">{{totalDocumentaryAmount}}</td>
+							<td class="wt100">{{totalCancellationAmount}}</td>
+							<td class="wt100">{{totalNotCancellationAmount}}</td>
+							<td class="wt100">{{totalThisTiemCancellationFor}}</td>
+							<td class="wt130">{{totalThisTiemCancellation}}</td>
+							<td class="wt100"></td>
+						</tr>
+					</tfoot>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="ht-receivableW-table">
+			<div class="pt5 pb5">{{tb2Title}}</div>
+			<div class="ht-wrapper-tbl">
+				<table class="table tablediv">
+					<thead>
+						<tr>
+							<td class="wt30"></td>
+							<td class="wt45">选择</td>
+							<td class="wt130">源单编号</td>
+							<td class="wt100">单据日期</td>
+							<td class="wt100">源单类型</td>
+							<td class="wt80">币别</td>
+							<td class="wt45">汇率</td>
+							<td class="wt100">单据金额</td>
+							<td class="wt130">单据金额（本位币）</td>
+							<td class="wt100">已核销金额</td>
+							<td class="wt100">未核销金额</td>
+							<td class="wt100">核销金额</td>
+							<td class="wt130">核销金额（本位币）</td>
+							<td class="wt100">备注</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr lay-size="sm" v-for="(item,idx) in table2DataList" @click="table2ChickTr(item)" :class="{success: table2CurrentSelectRow === item.id}">
+							<td class="wt30">{{ idx+1 }}</td>
+							<td class="wt45"></td>
+							<td class="wt130">{{ item.sourceListNumber }}</td>
+							<td class="wt100">{{ item.documentDate | filtersTableDate }}</td>
+							<td class="wt100">{{ item.sourceSingleType }}</td>
+							<td class="wt80">{{ item.coinStop }}</td>
+							<td class="wt45">{{item.surfaceExchangeRate | filtersTableNumber}}</td>
+							<td class="wt100">{{item.documentaryAmountFor | filtersTableNumber}}</td>
+							<td class="wt130">{{item.documentaryAmount | filtersTableNumber}}</td>
+							<td class="wt100">{{item.cancellationAmountFor | filtersTableNumber}}</td>
+							<td class="wt100">{{item.notCancellationAmountFor | filtersTableNumber}}</td>
+							<td class="wt100 ht-nopadding" style="background-color: #ffffff ">
+								<input type="number" class="form-control input-sm ht-input ht-commTxtContent" @blur="blur_money(item,'thisTiemCancellation')"
+								 v-model="item.thisTiemCancellationFor" />
+							</td>
+							<td class="wt130">{{item.thisTiemCancellation | filtersTableNumber}}</td>
+							<td class="wt100">{{item.remark}}</td>
+						</tr>
+
+						<tr @click="table2ChickTr2('2')" :class="{success: curTable === '2'}">
+							<td class="wt30">{{table2DataList.length + 1}}</td>
+							<td class="wt45"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt80"></td>
+							<td class="wt45"></td>
+							<td class="wt100"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+						</tr>
+					<tfoot>
+						<tr>
+							<td class="wt30"></td>
+							<td class="wt45"></td>
+							<td class="wt130"></td>
+							<td class="wt100"></td>
+							<td class="wt100"></td>
+							<td class="wt80"></td>
+							<td class="wt45"></td>
+							<td class="wt100">{{total2DocumentaryAmountFort}}</td>
+							<td class="wt130">{{total2DocumentaryAmount}}</td>
+							<td class="wt100">{{total2CancellationAmount}}</td>
+							<td class="wt100">{{total2NotCancellationAmount}}</td>
+							<td class="wt100">{{total2ThisTiemCancellationFor}}</td>
+							<td class="wt130">{{total2ThisTiemCancellation}}</td>
+							<td class="wt100"></td>
+						</tr>
+					</tfoot>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="ht-receivableW-form pl20 pr20 clearfix">
+			<i-row class="pt10">
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">主管：</label>
+					<i-select v-model="formData.directorId" class="inline-block calc-right-w140" filterable ref="directorId">
+						<i-option v-for="item in formDataInit.director" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">部门：</label>
+					<i-select v-model="formData.departmentId" filterable ref="departmentId" class="inline-block calc-right-w140">
+						<i-option v-for="item in formDataInit.department" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">业务员：</label>
+					<i-select v-model="formData.salesmanId" filterable ref="salesmanId" class="inline-block calc-right-w140">
+						<i-option v-for="item in formDataInit.salesman" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">制单人：</label>
+					<div class="inline-block calc-right-w140">{{formData.createName}}</div>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">审核人：</label>
+					<div class="inline-block calc-right-w140">{{formData.auditorName}}</div>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">审核日期：</label>
+					<div class="inline-block calc-right-w140">{{formData.auditorDate}}</div>
+				</i-col>
+			</i-row>
+		</div>
+
+		<Modal v-model="detailVisible" width="800" :title="detailTitle" :mask-closable="false">
+			<div class="ht-detailModalContent">
+				<ht-detailed-table v-bind:detail_table="detailTable1" v-on:close-modal="detailTableModal" v-on:callback-info="callBackInfo"></ht-detailed-table>
+			</div>
+			<div slot="footer"> </div>
+		</Modal>
+		<Modal v-model="deleteVisible" title="信息提示" class-name="ht-deleteModal" :loading="deleteLoading" @on-ok="deleteOK">
+			<p>确认要删除记录？</p>
+		</Modal>
+
+		<ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+		<div v-if="!writeIsChange || formData.auditStatus === 2 " class="ht-writeIsChangeDiv"></div>
+	</div>
+
+	<!-- <script type="text/javascript" src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/utils.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/http.js"></script> -->
+	<script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+	<script src="${rc.contextPath}/js/finance/report/money.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/report/ReceivableWriteofflist/ht-detailed-table.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/report/ReceivableWriteofflist/index.js"></script>
+
+	#parse("modules/public/footer.html")
+</body>

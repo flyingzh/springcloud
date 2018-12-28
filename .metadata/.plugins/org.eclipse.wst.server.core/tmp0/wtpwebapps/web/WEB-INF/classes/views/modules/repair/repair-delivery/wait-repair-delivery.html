@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>待维修发货列表</title>
+    <style>
+        .selectInp{
+            width: 50%
+        }
+        .form-content{
+            padding: 30px 0 0 50px;
+        }
+    </style>
+</head>
+<body>
+<div id="wait-goods" v-cloak>
+    <div class="btn-menu" style="margin-bottom: 30px">
+        <span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="produce">生成维修发货单</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+    </div>
+    <i-form class="form-content" v-show="isHideSearch" >
+        <row>
+            <i-col span="8">
+                <form-item label="源单编号：">
+                    <i-input class="ht-width-md" v-model="body.inOrderNo" placeholder="可模糊搜索"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="日期：">
+                    <date-picker v-model="body.returnTime" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+                                 placement="bottom-end" placeholder="Select date" class="ht-width-md"></date-picker>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="客户：">
+                    <ht-customer-list
+                            v-model="selectCustomerObj"
+                            @sure="closeCustomer"
+                            is-check="no"
+                            ref="customerRef"
+                    >
+                    </ht-customer-list>
+                </form-item>
+                <form-item>
+                    <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false"
+                             class="inline-block" style="margin-left:50px"></ht-btns>
+                </form-item>
+            </i-col>
+        </row>
+    </i-form>
+    <!-- 折叠按钮开始 -->
+    <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+    <!-- 折叠按钮结束 -->
+     <base-data-list v-show="isHideList"  :data_config="data_user_list" :need-reload="reload" table_id="tabId"
+                    v-model="selected" :return-row-data="true"></base-data-list>
+</div>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script src="${rc.contextPath}/js/repair/repair-delivery/wait-repair-delivery.js"></script>
+</body>
+</html>

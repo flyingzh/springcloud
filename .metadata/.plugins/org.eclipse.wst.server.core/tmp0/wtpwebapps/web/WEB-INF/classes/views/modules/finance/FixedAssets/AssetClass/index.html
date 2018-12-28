@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>资产类别</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w350{
+        width:350px;
+    }
+    .ht-writeIsChangeDiv{    
+        width: 80%;
+        height: 100%;
+        position: absolute;
+        top: 35px;
+        z-index: 100;
+        right: 0px;
+        background-color: rgba(0,0,0,0.01);
+    }
+    .ht-commFloatLeft{float:left}
+    .ht-left-content{width:250px; z-index: 101}
+    .ht-right-content{width:calc(100% - 290px); z-index: 99}
+    .ht-input-width{width:200px;}
+    .ivu-form-item.cashier{position: relative;}
+    .ivu-form-item.cashier .star{position:absolute;left: -10px;}
+    .tips{color:#888}
+    </style>
+</head>
+
+<body>
+    <div id="asset-class" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshFun">刷新</button>
+            <button class="ht-btn" @click="modify('add')">新增</button>
+            <button class="ht-btn" @click="modify('edit')">修改</button>
+            <button class="ht-btn" @click="delFun">删除</button>
+            <button class="ht-btn" @click="saveFun">保存</button>
+            <button class="ht-btn" @click="cancelFun">退出</button>
+        </div>
+        <div class="clearfix mt10">
+            <div v-if="writeIsChange" class="ht-writeIsChangeDiv"></div>
+            <div class="ht-left-content ht-commFloatLeft" style="overflow: auto;">
+                <ht-structure-tree :node-data="nodes" :setting="setting" :tid="tid"></ht-structure-tree>
+            </div>
+            <div class="ht-right-content ht-commFloatLeft ml20 mr20 ">
+                <i-form :model="addData" :label-width="120">
+                    <row>
+                        <i-col span="9">
+                            <form-item label="所属组织：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-select v-model="baseData.sobId" class="ht-input-width" disabled>
+                                    <i-option v-for="item in organizationList" :value="item.id" :key="item.id">
+                                        <slot>{{ item.orgName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="名称：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-input class="ht-input-width" v-model="addData.className"></i-input>
+                            </form-item>
+
+                            <form-item label="使用年限：">
+                                <i-input class="ht-input-width" v-model="addData.durableYears"></i-input>
+                            </form-item>
+                            <form-item label="计量单位：">
+                                <div class="ht-input-width">
+                                    <i-select v-model="addData.measureGroupId" class="inline-block" @on-change="measureChange"
+                                        style="width: 100px" filterable>
+                                        <i-option v-for="item in baseData.measureGroupList" :value="item.id" :key="item.id">
+                                            <slot>{{ item.name }}</slot>
+                                        </i-option>
+                                    </i-select>
+                                    <i-select v-model="addData.measurementsId" class="inline-block" name="addMeasurementsId"
+                                        ref="addMeasurementsId" style="width: 95px" filterable>
+                                        <i-option v-for="item in baseData.measurementsList" :value="item.id" :key="item.id">
+                                            <slot>{{ item.name }}</slot>
+                                        </i-option>
+                                    </i-select>
+                                </div>
+                            </form-item>
+                            <form-item label="固定资产科目：">
+                                <!--<i-input class="ht-input-width" icon="search"-->
+                                <!--v-model="formData.for6"-->
+                                <!--@on-click="showdepreciationTree(true)"-->
+                                <!--&gt;</i-input>-->
+                                <!--<div v-show="showdepreciation" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">-->
+                                <!--<ht-tree :url=treeUrl :setting="treeSetting"></ht-tree>-->
+                                <!--</div>-->
+                                <i-input class="inline-block ht-input-width" v-model="addData.fixedAssetsSubjectName"
+                                    @on-click="showSubjectVisable(1)" icon="ios-list-outline" type="text"></i-input>
+                            </form-item>
+                            <form-item label="减值准备科目：">
+                                <!--<i-input class="ht-input-width" icon="search"-->
+                                <!--v-model="formData.for7"-->
+                                <!--@on-click="showdepreciationTree(true)"-->
+                                <!--&gt;</i-input>-->
+                                <!--<div v-show="showdepreciation" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">-->
+                                <!--<ht-tree :url=treeUrl :setting="treeSetting"></ht-tree>-->
+                                <!--</div>-->
+                                <i-input class="inline-block ht-input-width" v-model="addData.impairmentPreparationSubjectName"
+                                    @on-click="showSubjectVisable(2)" icon="ios-list-outline" type="text"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="2">&nbsp;</i-col>
+                        <i-col span="9">
+                            <form-item label="编码：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-input class="ht-input-width" v-model="addData.classCode" @on-change="classCodeChange"></i-input>
+                            </form-item>
+                            <form-item label="上级类别：" class="depreciationTreeWrap ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-input class="ht-input-width" icon="search" v-model="addData.parentCode" @on-click="showAssetClassTree(true)"
+                                    :disabled="parentNoNeeded"></i-input>
+                                <div v-show="showAssetClass" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                    <ht-input-tree url="${rc.contextPath}/assetsclassescontroller/assetsClassesList"
+                                        :setting="treeSetting"></ht-input-tree>
+                                </div>
+                            </form-item>
+                            <form-item label="净残值率（%）：">
+                                <input-number :min="0" :step="0" v-model="addData.netResidualRate" @on-blur="()=> inputNumberF(this,'addData','netResidualRate')"
+                                    class="ht-input-number-nobtn ht-input-width"></input-number>
+                            </form-item>
+                            <form-item label="预设折旧方法：" class="depreciationTreeWrap" style="position: relative;">
+                                <i-select v-model="addData.advancedMethod" class="ht-input-width" filterable>
+                                    <i-option v-for="item in advancedMethodList" :value="item.value" :key="item.value">
+                                        <slot>{{ item.name }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+
+                            <form-item label="累计折旧科目：">
+                                <i-input class="inline-block ht-input-width" v-model="addData.cumulativeDiscountSubjectName"
+                                    @on-click="showSubjectVisable(3)" icon="ios-list-outline" type="text"></i-input>
+                            </form-item>
+                            <form-item label="卡片编码规则：">
+                                <i-input class="ht-input-width" v-model="addData.cardCodeRule"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+                <p class="mt10 tips">
+                    说明：请将编码规则设置为“前缀”+“000”，后面“0”的个数可根据该类固定资产大约的个数来确定，<br />
+                    例：办公设备类固定资产，在100个以内，设置为“BGSB00”,系统可以自动从BGSB01编码，并自动按最大号加1
+                </p>
+                <div class="ht-subtitle mt10 ml0">
+                    <div>折旧规律: 不管使用状态如何一定提折旧 </div>
+                </div>
+               <!-- <div>
+                    <label>
+                        <input type="radio" value="1" v-model="addData.isDepreciate" disabled> 由使用状态决定是否提折旧
+                    </label>
+                    <label class="ml20">
+                        <input type="radio" value="2" v-model="addData.isDepreciate" disabled> 不管使用状态如何一定提折旧
+                    </label>
+                    <label class="ml20">
+                        <input type="radio" value="3" v-model="addData.isDepreciate" disabled> 不管使用状态如何一定不提折旧
+                    </label>
+                </div>-->
+            </div>
+        </div>
+
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject1"></ht-modal-subject>
+    </div>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-input-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-structure-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/AssetClass/index.js"></script>
+    <script src='${rc.contextPath}/js/finance/util/decimal.js'></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

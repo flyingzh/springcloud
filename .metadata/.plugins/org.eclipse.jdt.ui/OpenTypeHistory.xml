@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<typeInfoHistroy>
+<typeInfo handle="=common-core/D:\/application\/java\/Repository\/com\/google\/j2objc\/j2objc-annotations\/1.1\/j2objc-annotations-1.1.jar&lt;com.google.j2objc.annotations(RetainedLocalRef.class[RetainedLocalRef" modifiers="9729" timestamp="1527756169059"/>
+<typeInfo handle="=common-core/D:\/application\/java\/Repository\/org\/mybatis\/mybatis\/3.4.4\/mybatis-3.4.4.jar&lt;org.apache.ibatis.session(SqlSessionFactoryBuilder.class[SqlSessionFactoryBuilder" modifiers="33" timestamp="1527756170147"/>
+<typeInfo handle="=common-core/D:\/application\/java\/Repository\/org\/mybatis\/mybatis\/3.4.4\/mybatis-3.4.4.jar&lt;org.apache.ibatis.session(SqlSession.class[SqlSession" modifiers="1537" timestamp="1527756170147"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.lang(ThreadLocal.class[ThreadLocal" modifiers="33" timestamp="1527046265034"/>
+<typeInfo handle="=doraemon-service-finance/src\/main\/java&lt;com.htrfid.finance.service{WmTaxRateService.java[WmTaxRateService" modifiers="513" timestamp="1545217859631"/>
+<typeInfo handle="=doraemon-service-finance/src\/main\/java&lt;com.htrfid.finance.service{WmPersonalTaxInitService.java[WmPersonalTaxInitService" modifiers="513" timestamp="1545046986401"/>
+<typeInfo handle="=common-remote/src\/main\/java&lt;com.htrfid.remote.sysmanager{EmployeeRemoteService.java[EmployeeRemoteService" modifiers="513" timestamp="1544429111857"/>
+<typeInfo handle="=web/src\/main\/java&lt;com.htrfid.sysapp.remote{EmployeeRemoteService.java[EmployeeRemoteService" modifiers="513" timestamp="1545101551531"/>
+<typeInfo handle="=web/src\/main\/java&lt;com.htrfid.financeapp.service{WmEmployeeIncomeTaxService.java[WmEmployeeIncomeTaxService" modifiers="513" timestamp="1545719644813"/>
+<typeInfo handle="=doraemon-service-finance/src\/main\/java&lt;com.htrfid.finance.controller{WmEmployeeItemsController.java[WmEmployeeItemsController" modifiers="1" timestamp="1545875430797"/>
+<typeInfo handle="=doraemon-service-finance/src\/main\/java&lt;com.htrfid.finance.dao{WmIncomeItemDao.java[WmIncomeItemDao" modifiers="513" timestamp="1544859169348"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.util.concurrent(Executor.class[Executor" modifiers="1537" timestamp="1527046265034"/>
+<typeInfo handle="=web/src\/main\/java&lt;com.htrfid.financeapp.service.impl{VoucherServiceImpl.java[VoucherServiceImpl" modifiers="1" timestamp="1545877427326"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.util(HashMap.class[HashMap" modifiers="33" timestamp="1527046265034"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.util.concurrent.locks(AbstractQueuedSynchronizer.class[AbstractQueuedSynchronizer" modifiers="1057" timestamp="1527046265034"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.util.stream(Collectors.class[Collectors" modifiers="49" timestamp="1527046265034"/>
+<typeInfo handle="=common-entity/src\/main\/java&lt;com.htrfid.finance.vo{VoucherVO.java[VoucherVO" modifiers="1" timestamp="1544003365552"/>
+<typeInfo handle="=common-config/C:\/Program Files\/Java\/jre1.8.0_172\/lib\/rt.jar&lt;java.util.concurrent(ConcurrentHashMap.class[ConcurrentHashMap" modifiers="33" timestamp="1527046265034"/>
+<typeInfo handle="=interactmq-activemq/D:\/application\/java\/Repository\/org\/apache\/activemq\/activemq-all\/5.15.0\/activemq-all-5.15.0.jar&lt;org.apache.xbean.spring.context(ClassPathXmlApplicationContext.class[ClassPathXmlApplicationContext" modifiers="33" timestamp="1527756171031"/>
+<typeInfo handle="=common-config/D:\/application\/java\/Repository\/org\/springframework\/spring-context\/4.3.12.RELEASE\/spring-context-4.3.12.RELEASE.jar&lt;org.springframework.context.support(ClassPathXmlApplicationContext.class[ClassPathXmlApplicationContext" modifiers="33" timestamp="1529890352871"/>
+<typeInfo handle="=interactmq-activemq/D:\/application\/java\/Repository\/io\/netty\/netty-all\/4.0.25.Final\/netty-all-4.0.25.Final.jar&lt;io.netty.channel.nio(NioEventLoopGroup.class[NioEventLoopGroup" modifiers="33" timestamp="1527756170194"/>
+<typeInfo handle="=common-core/D:\/application\/java\/Repository\/io\/netty\/netty-transport\/4.0.27.Final\/netty-transport-4.0.27.Final.jar&lt;io.netty.channel.nio(NioEventLoopGroup.class[NioEventLoopGroup" modifiers="33" timestamp="1527492265631"/>
+<typeInfo handle="=common-core/D:\/application\/java\/Repository\/io\/netty\/netty-transport\/4.0.27.Final\/netty-transport-4.0.27.Final.jar&lt;io.netty.bootstrap(Bootstrap.class[Bootstrap" modifiers="33" timestamp="1527492265631"/>
+<typeInfo handle="=interactmq-activemq/D:\/application\/java\/Repository\/io\/netty\/netty-all\/4.0.25.Final\/netty-all-4.0.25.Final.jar&lt;io.netty.bootstrap(Bootstrap.class[Bootstrap" modifiers="33" timestamp="1527756170194"/>
+<typeInfo handle="=common-exception/src\/main\/java&lt;com.htrfid.exception{MyException.java[MyException" modifiers="1" timestamp="1542703663187"/>
+</typeInfoHistroy>

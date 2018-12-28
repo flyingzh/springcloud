@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>待维修列表</title>
+    <style>
+        .selectInp{
+            width: 50%
+        }
+        .form-content{
+            padding: 30px 0 0 50px;
+        }
+    </style>
+</head>
+<body>
+<div id="wait-order" v-cloak>
+    <div class="btn-menu" style="margin-bottom: 30px">
+        <span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="orderMerger">生成维修订单</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+    </div>
+    <i-form class="form-content" v-show="isHideSearch" >
+        <row>
+            <i-col span="8">
+                <form-item label="源单类型：">
+                    <i-select v-model="body.sourceType"  clearable @on-clear="clearType"  placeholder="---请选择---" class="ht-width-md" ref="payWay">
+                        <i-option value="1">维修登记单</i-option>
+                        <i-option value="2">销售退货通知单</i-option>
+                        <i-option value="3">库存退库单</i-option>
+                    </i-select>
+                </form-item>
+                <form-item label="商品类型：">
+                    <ht-commodity-type :show-tip="false" @change="changeProductType" ref="gtype"></ht-commodity-type>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="客户：">
+                    <ht-customer-list
+                            v-model="selectCustomerObj"
+                            @sure="closeCustomer"
+                            is-check="no"
+                            ref="customerRef"
+                    >
+                    </ht-customer-list>
+                </form-item>
+                <form-item label="日期：">
+                    <date-picker v-model="dateArr" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+                                 placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="源单编号：">
+                    <i-input class="ht-width-md"  placeholder="可模糊搜索" v-model="body.documentNo"></i-input>
+                </form-item>
+                <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false"
+                         class="inline-block" style="margin-left:72px"></ht-btns>
+            </i-col>
+        </row>
+    </i-form>
+    <!-- 折叠按钮开始 -->
+    <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+    <!-- 折叠按钮结束 -->
+    <base-data-list v-show="isHideList"  :data_config="data_user_list" :need-reload="reload" :return-row-data="true"
+                    v-model="selected"></base-data-list>
+</div>
+<script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/date-select.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-img-magnifier.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-commodity-type.js"></script>
+<script src="${rc.contextPath}/js/repair/repair-order/wait-repair-order.js"></script>
+</body>
+</html>

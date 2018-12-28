@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>系统数据字典</title>
+	#parse("modules/public/header.html")
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<!--.container （固定宽度）或 .container-fluid （100% 宽度）-->
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-4">
+					<button class="layui-btn layui-btn-small" type="button" @click="add"><i class="layui-icon">&#xe61f;</i> 新 增</button>
+					<button class="layui-btn layui-btn-danger layui-btn-small" type="button" @click="del"><i class="layui-icon">&#xe640;</i>删 除</button>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-4">
+				<input class="layui-input" v-model="organ.searchContent" style="display: inline-block; width: 40%">
+                <button class="layui-btn layui-btn-normal" type="button" @click="search">搜索</button>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-3">
+				<div style="font-size: 20px;margin-bottom: 10px">
+					<i class="layui-icon" style="font-size: 20px; color: #009688">&#xe62e;</i> 基础数据树
+				</div>
+				<div class="col-sm-10">
+					<ul id="allorganTree" class="ztree"></ul>
+				</div>
+			</div>
+			<div v-show="showInfo" class="col-md-5 col-sm-10">
+				<div class="panel panel-default">
+					<div class="panel-heading"><i class="layui-icon" style="font-size: 20px; color: #009688;">&#xe63c;</i> {{title}}</div>
+					<form class="form-horizontal" id="organFrom">
+						<div  class="form-group" hidden="hidden">
+							<div class="col-sm-2 control-label">类型</div>
+							<div class="col-sm-10">
+								<label class="radio-inline">
+									<input type="radio" name="type" value="0" v-model="organ.type"/> 目录
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="type" value="1" v-model="organ.type"/> 字典码
+								</label>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-sm-2 control-label">父节点名</div>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" v-model="organ.parentName" readonly="readonly" placeholder="自动获取"/>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<div class="col-sm-2 control-label">字典标识</div>
+							<div class="col-sm-10">
+								<input type="text" class="form-control" v-model="organ.mark" readonly="readonly"/>
+							</div>
+						</div>
+						<div  class="form-group">
+							<div class="col-sm-2 control-label">码值</div>
+							<div class="col-sm-10">
+								<input type="tex" id="codeValue" class="form-control" v-model="organ.value"/>
+							</div>
+						</div>
+                        <div  class="form-group">
+							<div class="col-sm-2 control-label">码值名</div>
+							<div class="col-sm-10">
+								<input type="tex" class="form-control" v-model="organ.name" />
+							</div>
+						</div>
+						<div  class="form-group">
+							<div class="col-sm-2 control-label">显示顺序</div>
+							<div class="col-sm-10">
+								<input type="number" class="form-control" v-model="organ.sort" />
+							</div>
+						</div>
+						<div  class="form-group">
+							<div class="col-sm-2 control-label">字典描述</div>
+							<div class="col-sm-10">
+								<textarea v-model="organ.remark" class="form-control" rows="3"></textarea>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-sm-2 control-label"></div>
+							<button class="layui-btn" @click="saveOrUpdate" type="button">保 存</button>
+							<button class="layui-btn layui-btn-warm" @click="reload" type="button">重 置</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 选择菜单 -->
+<div id="organLayer" style="display: none;padding:10px;">
+	<ul id="organTree" class="ztree"></ul>
+</div>
+
+<script src="${rc.contextPath}/js/basedata/dictionary.js"></script>
+<script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

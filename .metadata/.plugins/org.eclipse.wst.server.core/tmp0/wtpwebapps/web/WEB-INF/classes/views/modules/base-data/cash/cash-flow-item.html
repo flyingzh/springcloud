@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script>var contextPath = '${rc.contextPath}'; var rcContextPath = '${rc.contextPath}';</script>
+    <title>A015现金流量项目</title>
+</head>
+
+<body>
+    <div id="cash-flow-item" v-cloak>
+        <div v-if="!isShow">
+            <!--按钮栏-->
+            <div class="btn-menu">
+                #if($shiro.hasPermission("basedata:tbasecashflow:add"))
+                <span @click="add">新增</span>
+                #end #if($shiro.hasPermission("basedata:tbasecashflow:update"))
+                <span @click="modify(false)">修改</span>
+                #end #if($shiro.hasPermission("basedata:tbasecashflow:delete"))
+                <span @click="del">删除</span>
+                #end
+                <span @click="exit">退出</span>
+            </div>
+            <!--搜索栏-->
+            <i-form label-width="120" v-show="isSearchHide" class="mg-top-md">
+                <row>
+                    <i-col span="8">
+                        <form-item label="全名：">
+                            <i-input v-model='body.fullname' placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="代码：">
+                            <i-input v-model='body.code' placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="有效状态：">
+                            <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                                <i-option v-for="item in state" :value="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+            <!--隐藏按钮-->
+            <div style="height: 25px;">
+                <sapn class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </sapn>
+            </div>
+            <!--树和列表-->
+            <div class="row">
+                <div class="col-xs-3">
+                    <ht-tree :setting="setting1" :node-data="banks" tid='tree' ref="my_tree"></ht-tree>
+                </div>
+                <div class="col-xs-9">
+                    <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                </div>
+            </div>
+
+        </div>
+        <div v-if="isShow">
+            <div class="btn-menu">
+                <span @click="save" v-if="!isLook" v-show="isSave">保存</span>
+                <span @click="cancel">取消</span>
+            </div>
+            <form id="addForm" class="form-horizontal">
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">
+                        <span class="star"></span>
+                        编码：
+                    </label>
+                    <div class="col-xs-9">
+                        <div style="float:left;font-size: 18px;">{{addBody.parentCode}}</div>
+                        <input :disabled="isUpdate" class="form-control ht-width-md" style="float:left;width: 142px;" required name="code" type="text"
+                            v-model="addBody.code">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">
+                        <span class="star"></span>
+                        名称：
+                    </label>
+                    <div class="col-xs-9">
+                        <input class="form-control ht-width-md" :disabled="isLook" required name="name" type="text" v-model="addBody.name">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">全名：</label>
+                    <div class="col-xs-9">
+                        <input class="form-control ht-width-md" :disabled="isLook" type="text" name="fullname" v-model="addBody.fullname">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label"> 
+                        <span class="star"></span>
+                        是否有效：
+                    </label>
+                    <div class="col-xs-9">
+                        <label class="radio-inline" v-for="item in status">
+                            <input type="radio" :disabled="isLook" required name="status" :value="item.value" v-model="addBody.status"> {{item.label}}
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">创建人：</label>
+                    <div class="col-xs-9">
+                        <p class="form-control-static">{{addBody.createName}}</p>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">创建时间：</label>
+                    <div class="col-xs-9">
+                        <p class="form-control-static">{{addBody.createTime}}</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="hide-render" style="position: absolute;left: 10000px;top:0;">
+            <div id="addUnitGroup" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">
+                    <span class="star"></span>
+                    新增单位组:
+                </label>
+                <div class="col-xs-8">
+                    <input type="text" class="form-control input-sm">
+                </div>
+            </div>
+            <div id="modifyUnitGroup" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">
+                    <span class="star"></span>
+                    修改单位组:
+                </label>
+                <div class="col-xs-8">
+                    <input v-model='tmpUnit' type="text" class="form-control input-sm">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src='${rc.contextPath}/ktc/js/app.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <!--<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>-->
+    <!--<script src='${rc.contextPath}/js/basedata/components/ht-btns.js'></script>-->
+    <!--<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>-->
+    <!--<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>-->
+    <script src='${rc.contextPath}/js/components/ht-btns.js'></script>
+    <script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/cash-flow-item.js"></script>
+
+    <script>
+
+    </script> #parse("modules/public/footer.html") </body>
+
+</html>

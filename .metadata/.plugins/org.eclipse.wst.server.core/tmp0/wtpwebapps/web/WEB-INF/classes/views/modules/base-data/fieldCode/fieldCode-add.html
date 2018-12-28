@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>自动编码 - 新增</title>
+	#parse("modules/public/header.html")
+	<style>
+		.tr-back {
+			background: #DFF0D8 !important;
+		}
+	</style>
+</head>
+<body>
+<div id="orderNum" v-cloak>
+	<div class="btn-menu">
+		<i-button type="text" class="pd-rg-md" @click="saveInfo">保存</i-button>
+	</div>
+	<i-form label-width="100">
+		<tabs value="base" :animated="false">
+			<tab-pane label="基本信息" name="base">
+				<row>
+					<i-col span="8">
+						<form-item label="单据名称">
+							<i-select v-if="addEntity.id!=null && addEntity.id!=''"
+									  v-model="addEntity.docEntity.docName" class="ht-width-md" transfer
+									  :disabled="true">
+								<i-option v-for="item in docListData"
+										  :value="item.docName">
+									{{item.docName}}
+								</i-option>
+							</i-select>
+							<i-select v-else
+									  v-model="addEntity.docEntity.docName" class="ht-width-md" transfer>
+								<i-option v-for="item in docListData"
+										  :value="item">
+									{{item.docName}}
+								</i-option>
+							</i-select>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item label="单据分类" :disabled="temp">
+							<i-select v-model="addEntity.category" class="ht-width-md" transfer>
+								<i-option v-for="item in docCategory" :value="item.value">{{item.name}}
+								</i-option>
+							</i-select>
+						</form-item>
+					</i-col>
+				</row>
+				<row>
+					<i-col span="8">
+						<form-item label="单据编号预览">
+							<i-input v-model="documentNo"></i-input>
+						</form-item>
+					</i-col>
+				</row>
+			</tab-pane>
+		</tabs>
+	</i-form>
+	<tabs value="base" :animated="false">
+		<tab-pane label="编码规则信息" name="base">
+			<div class="btn-menu tabinfo">
+				<i-button type="text" @click="addRow">新增行</i-button>
+				<i-button style="width:5%" type="text" @click="del">删除行</i-button>
+			</div>
+			<table class="edit-table">
+				<thead>
+				<th style="width:5%">序号</th>
+				<th>类型</th>
+				<th>格式</th>
+				<th>设置值</th>
+				<th>长度</th>
+				<th>开始值</th>
+				<th>步长</th>
+				<th>结束值</th>
+				<th>分隔符</th>
+				<th>是否补位</th>
+				</thead>
+				<tbody>
+				<tr v-for="(item,index) in ruleList" class="tdInfo" @click="getIndex(index)">
+					<td>
+						{{index+1}}
+					</td>
+					<!--类型-->
+					<td>
+						<i-select @on-change="changeEmp(index)" v-model="item.type"
+								  :disabled="temp" transfer>
+							<i-option v-for="item in sourceType" :value="item.value">{{item.label}}</i-option>
+						</i-select>
+					</td>
+					<!--日期-->
+					<td>
+						<i-select :disabled="item.type != 2" @on-change="changeDate(index)" v-model="item.value"
+								  transfer>
+							<i-option v-for="item in dateType" :value="item.value">{{item.label}}</i-option>
+						</i-select>
+					</td>
+					<!--设置值-->
+					<td>
+						<input type="text" v-model="item.value" class="tab-center" :disabled="item.type != 1"
+							   @input="clearNum(index)" @blur="numInput(index)">
+					</td>
+					<!--长度-->
+					<td>
+						<input type="text" v-model="item.length" class="tab-center" :disabled="item.type != 3"
+							   @input="clearInput(index)" @blur="lenInput(index)">
+					</td>
+					<!--开始值-->
+					<td>
+						<input type="text" v-model="item.numStart" @input="delNum(item,'numStart',0)"
+							   @blur="actStart(index)"
+							   class="tab-center" :disabled="item.type != 3">
+					</td>
+					<!--步长-->
+					<td>
+						<input type="text" v-model="item.numStep" @input="delNum(item,'numStep',0)"
+							   @blur="actStep(index)"
+							   class="tab-center" :disabled="item.type != 3">
+					</td>
+					<!--结束值-->
+					<td>
+						<input type="text" v-model="item.numStop" @input="delNum(item,'numStop',0)" class="tab-center"
+							   @blur="actStop(index)" :disabled="item.type != 3">
+					</td>
+					<!--分隔符-->
+					<td>
+						<input type="text" v-model="item.splitSymbol" class="tab-center">
+					</td>
+					<!--是否补位-->
+					<td>
+						<i-select :disabled="item.type != 3" v-model="item.autoZeroFill" transfer>
+							<i-option :value="1">是</i-option>
+							<i-option :value="0">否</i-option>
+						</i-select>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</tab-pane>
+	</tabs>
+</div>
+<script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/basedata/fieldCode/fieldCode-add.js"></script>
+#parse("modules/public/footer.html")
+</body>
+
+</html>

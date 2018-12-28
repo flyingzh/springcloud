@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>2.3 - 仓库模块</title>
+    #parse("modules/public/header.html")
+    <!--<script src='${rc.contextPath}/js/components/base-data-list.js'></script>-->
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/picking-goods/picking-goods.css'>
+    <style>
+        .can {
+            height: 50px;
+            width: 50px;
+            margin: 0 auto;
+        }
+
+        .bigimg {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border: 1px solid #BFC2C7;
+        }
+
+        .mirror {
+            position: fixed;
+            left: calc(50% - 90px);
+            top: 50%;
+            background: #fff;
+            display: none;
+            z-index: 999;
+        }
+
+        .jqGrid_wrapper table tbody tr.jqgrow td[role='gridcell'] {
+            white-space: normal;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="search">刷新</span>
+            <span class="pd-rg-md" v-if="!isEdit" @click="productPickConfirm">拣货确认</span>
+            <span class="pd-rg-md" v-if="!isEdit" @click="print">字印确认</span>
+            <span class="pd-rg-md" v-if="!isEdit" @click="entQuality">完成送检</span>
+            <span class="pd-rg-md" v-if="!isEdit" @click="close">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="客户订单编号：">
+                        <i-input type="text" v-model='body.saleOrderNo' style="width: 200px"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                    <form-item label="商品名称：">
+                        <i-input type="text" v-model='body.goodsName' style="width: 200px"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品编码：">
+                        <i-input type="text" v-model='body.goodsCode' style="width: 200px"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader @on-change="changeProductType" transfer
+                                  :data="productTypeList" trigger="hover"
+                                  v-model="typeValue" :clearable="false"
+                                  class="ht-width-md inline-block" ref="typeValue" style="width: 200px">
+                        </cascader>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                 class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </i-form>
+    </div>
+    <div style="height:35px"></div>
+    <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <!--待捡货和完成拣货-->
+            <div class="list-btn" v-show="isTabulationHide">
+                <tabs type="card" :animated="false">
+                    <tab-pane label="待捡货" class="wait-pick">
+                        <base-data-list table_id="tblUnpicked" :data_config="data_config_unpicked"
+                                        :need-reload="reload_unpicked" v-model="selectedUnpicked"></base-data-list>
+                    </tab-pane>
+                    <tab-pane label="捡货完成" class="finish-pick">
+                        <base-data-list table_id="tblPicked" :data_config="data_config_picked" :need-reload="reload_picked"
+                                        v-model="selectedPicked"></base-data-list>
+                    </tab-pane>
+                </tabs>
+            </div>
+            <!--弹框-->
+            <modal v-model="frameTab" :mask-closable="false" title="拣货确认" @on-ok="modalPickDone"
+                   @on-cancel="modalPickCancel" class="vertical-center-modal">
+                <table class="table table-bordered" id="barcodeList">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>条码号</th>
+                        <th>详细信息</th>
+                        <th>
+                            <input type="checkbox" @click="checkedAll($event)" id="quan">
+                            拣货确认
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(item, idx) in barcodeProduct">
+                        <td>{{idx + 1}}</td>
+                        <td>{{item.goodsBarcode}}</td>
+                        <td>明细信息</td>
+                        <td style="text-align: center">
+                            <input type="checkbox" v-model="item.picked" :disabled="item.disabledStatus" class="checkItem"
+                                   :value="item.goodsBarcode">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </modal>
+        </div>
+    </div>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-select',
+        'ht-approve-reject',
+        'ht-img-magnifier',
+        'ht-product-detail',
+        'ht-toggle',
+        'access',
+        '${rc.contextPath}/js/warehouse/picking-goods/picking-goods.js'
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>核算项目余额表</title>
+	<link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+	<link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+	<link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+	<link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+	<link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+	<link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+	<link rel="stylesheet" href="${rc.contextPath}/css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+	<!--<link rel="stylesheet" href="./index.css">-->
+
+	#parse("modules/public/header.html")
+	<style>
+		.form-horizontal{
+			width: 300px !important;
+		}
+		.calc-right-w80{
+			width: calc(100% - 90px);
+		}
+	</style>
+</head>
+
+<body>
+	<div id="app" :class="{'js-keep-poptip': isFilterVisible == true}" v-cloak>
+		<div class="btn-menu">
+			<poptip content="content" placement="bottom-start" ref="filter" class="ht-poptip" @on-popper-show="isFilterVisible = true">
+				<button class="ht-btn">过滤</button>
+				<div class="ht-filterPoptipContent form-horizontal width-auto" slot="content">
+					<div class="form-group form-group-sm">
+						<label class="w80 text-right">币别：</label>
+						<div class="inline-block calc-right-w80">
+							<!--<select v-model="formData.currency" class="form-control input-sm">
+							<option v-for="(val, key) in currencyList" :value="key">{{val}}</option>
+						</select>-->
+							<i-select v-model="formData.currencyId">
+								<i-option v-for="item in currencyList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+							</i-select>
+							<span style="display: none">Selected: {{ formData.currencyId }}</span>
+							<input class="form-control" type="hidden" id="formGroupInputSmall" placeholder="Small input">
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">开始会计年度：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.accountYear">
+								<i-option v-for="item in accountingYear" :value="item" :key="item">{{ item }}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">开始会计期间：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.accountPeriod">
+								<i-option v-for="item in accountingPeriod" :value="item" :key="item">{{ item }}</i-option>
+							</i-select>
+						</div>
+					</div>
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">结束会计年度：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.accountYearEnd">
+								<i-option v-for="item in accountingYear" :value="item" :key="item">{{ item }}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">结束会计期间：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.accountPeriodEnd">
+								<i-option v-for="item in accountingPeriod" :value="item" :key="item">{{ item }}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">会计科目：</label>
+						<div class="inline-block calc-right-w80">
+							<!--<i-select v-model="formData.subjectIds"  style="width:120px">-->
+							<!--<i-option v-for="item in subjectList" :value="item.value" :key="item.value">{{ item.label }}</i-option>-->
+							<!--</i-select>-->
+							<input type="text" v-model="formDate.subjectCode" class="form-control inline-block w120" @focus="openModalSubject" />
+							<i-button size="mini" @click="resetting">重置科目</i-button>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">项目类别：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.projectId"  @on-change="projectCodeShow()">
+								<i-option v-for="item in projectList" :value="item.id" :key="item.value">{{ item.projectAccountName }}</i-option>
+							</i-select>
+							<!--<i-select v-model="formData.accountingCategory" >
+							<i-option v-for="(val, key) in accountingCategory" :value="key">{{val}}</i-option>
+						</i-select>-->
+						</div>
+					</div>
+
+					<!--<div class="form-group form-group-sm mb10">
+					<label class="w80 text-right">项目代码：</label>
+					<div class="inline-block calc-right-w80">
+						<i-select v-model="formData.accountingCode" >
+							<i-option v-for="(val, key) in accountingCode" :value="key">{{val}}</i-option>
+						</i-select>
+					</div>
+				</div>-->
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">辅助项目：</label>
+						<div class="inline-block calc-right-w80">
+							<i-select v-model="formData.itemIds" multiple class="auxiliaryListsSelect"  clearable="true" ref="test">
+								<i-option v-for="item in projectCodeList" :value="item.itemId" :key="item.itemId">{{ item.itemCode+'|'+item.itemName }}</i-option>
+							</i-select>
+						</div>
+					</div>
+					<!--<div class="form-group form-group-sm mb10">-->
+						<!--<label class="w80 text-right">项目代码：</label>-->
+						<!--<div class="inline-block calc-right-w80">-->
+							<!--&lt;!&ndash;<i-select v-model="formData.projectCodeBegin" class="form-control input-sm width-auto inline">-->
+							<!--<i-option v-for="(val, key) in accountCode" :value="key">{{val}}</i-option>-->
+						<!--</i-select>&ndash;&gt;-->
+							<!--<i-select v-model="formData.projectCodeBegin" style="width:120px">-->
+								<!--<i-option v-for="item in projectCodeList" :value="item.value" :key="item.value">{{ item.name }}</i-option>-->
+							<!--</i-select>-->
+							<!--<p>至</p>-->
+							<!--<i-select v-model="formData.projectCodeEnd" style="width:120px">-->
+								<!--<i-option v-for="item in projectCodeList" :value="item.value" :key="item.value">{{ item.name }}</i-option>-->
+							<!--</i-select>-->
+							<!--&lt;!&ndash;<i-select v-model="formData.projectCodeEnd" class="width-auto inline">-->
+							<!--<i-option v-for="(val, key) in accountCode" :value="key">{{val}}</i-option>-->
+						<!--</i-select>&ndash;&gt;-->
+						<!--</div>-->
+					<!--</div>-->
+
+					<div class="form-group form-group-sm mb0">
+						<row>
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.includeVoucher" :true-value="1" :false-value="0"> 包括未过账凭证
+								</label>
+							</div>
+
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.balanceZeroBlank" :true-value="1" :false-value="0"> 余额为零不显示
+								</label>
+							</div>
+
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.showAccruaZero" :true-value="1" :false-value="0"> 显示发生额为零的记录
+								</label>
+							</div>
+						</row>
+					</div>
+
+					<div class="mt10 ht-commTxtRight">
+						<i-button type="primary" @click="save">确定</i-button>
+						<i-button type="primary" @click="cancel">取消</i-button>
+					</div>
+				</div>
+			</poptip>
+			<button class="ht-btn" @click="refresh">刷新</button>
+			<button class="ht-btn" @click="print">打印</button>
+			<button class="ht-btn" @click="lookAtTheDetails">查看明细</button>
+			<button class="ht-btn" @click="exporting">引出</button>
+			<button class="ht-btn" @click="closeWindow">退出</button>
+
+			<!--<Dropdown trigger="click" @on-click="more" placement="bottom-start">-->
+			<!--<i-button type="text">-->
+			<!--更多-->
+			<!--<Icon type="arrow-down-b"></Icon>-->
+			<!--</i-button>-->
+			<!--<Dropdown-menu slot="list">-->
+			<!--<Dropdown-item name="Print" >打印</Dropdown-item>-->
+			<!--<Dropdown-item name="Preview" >预览</Dropdown-item>-->
+			<!--<Dropdown-item name="Derivation" >引出</Dropdown-item>-->
+			<!--</Dropdown-menu>-->
+			<!--</Dropdown>-->
+		</div>
+
+		<div class="inline-block pl20 pr20 mt10">
+			<label class="inline-block">开始期间：</label>
+			<span class="mr20">{{formDate.accountYearPeriodStrat}}</span>
+
+			<label class="inline-block">结束期间：</label>
+			<span class="mr20">{{formDate.accountYearPeriodEnd}}</span>
+
+			<label class="inline-block ml30">科目：</label>
+			<span class="mr20">{{formDate.subjectTypeName}}</span>
+
+			<label class="inline-block ml30">项目类别：</label>
+			<span class="mr20">{{formDate.projectTypeName}}</span>
+
+			<label class="inline-block ml30">币别：</label>
+			<span class="mr20">{{formDate.currencytypeName}}</span>
+		</div>
+
+		<div class="jqGrid_wrapper ht-jqgrid mt10 pl20 pr20">
+			<table id="my_report"></table>
+			<div id="my_pager"></div>
+		</div>
+		<ht-modal-subject v-model="subjectVisible" url="tree-duli.json" @close="subjectClose" @save="saveSubjectData" ref="modalSubject"></ht-modal-subject>
+	</div>
+
+	<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+	<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+	<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+	<script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+	<script src='${rc.contextPath}/js/vue.min.js'></script>
+	<script src='${rc.contextPath}/js/utils.js'></script>
+	<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+	<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+	<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+	<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+	<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+	<script src="${rc.contextPath}/js/finance/book-accounting-balance/ht-tree.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/book-accounting-balance/ht-modal-subject.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/book-accounting-balance/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,46 @@
+
+.ui-jqgrid .jqgrow td[aria-describedby="my_table_amount1"],
+.ui-jqgrid .jqgrow td[aria-describedby="my_table_amount2"]{
+    padding: 0 !important;
+}
+
+
+.ht-common-list input {
+    width: 100%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.fieldName:hover{
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+html, body {background-color: #fff; height: 100%;}
+#receivableWriteofflist{background-color: #fff !important;}
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-nopadding{padding: 0px !important;}
+.ht-fontWeight100{font-weight: 100}
+.ht-title{    
+  height: 80px;
+  padding-top: 20px;
+}
+.ht-title .ht-titleName1{line-height: 35px;}
+.ht-title .ht-titleRefresh{border: 1px solid #dddee1;}
+.ht-title .ht-titleBtn{margin-right: 20px}
+.ht-tableList{padding: 20px 0px;}
+.ht-tableList .ht-tabGooter{border-top: 1px solid #e9eaec;padding-right: 20px;}
+.pd-md {
+  padding: 20px;
+}

@@ -1,0 +1,918 @@
+﻿/* base */
+h1,h2,h3,h4,h5,h6,ul,li,dd,dt,th,tr,td{
+    margin: 0;
+    padding: 0;
+}
+/* text-align */
+body{
+    min-height: 100%;
+}
+body > div:first-child{
+    min-height: calc(100% - 78px) !important;
+    position: relative;
+}
+.text-lf{
+    text-align: left;
+}
+.text-rg{
+    text-align: right;
+}
+/*input-width */
+.ht-width-md{
+    width:200px;
+}
+.ht-width-lg{
+    width:240px;
+}
+
+/* padding */
+.pd-lf-sm{
+    padding-left:10px;
+}
+.pd-rg-sm{
+    padding-right:10px;
+}
+.pd-top-sm{
+    padding-top:10px;
+}
+.pd-bm-sm{
+    padding-bottom:10px;
+}
+/********************/
+.pd-lf-md{
+    padding-left:20px;
+}
+.pd-rg-md{
+    padding-right:20px;
+}
+.pd-top-md{
+    padding-top:20px;
+}
+.pd-bm-md{
+    padding-bottom:20px;
+}
+/********************/
+.pd-sm {
+    padding: 10px;
+}
+.pd-md{
+    padding: 20px;
+}
+/* margin */
+.mg-lf-sm{
+    margin-left:10px;
+}
+.mg-rg-sm{
+    margin-right:10px;
+}
+.mg-top-sm{
+    margin-top:10px;
+}
+.mg-bm-sm{
+    margin-bottom:10px;
+}
+/********************/
+.mg-lf-md{
+    margin-left:20px;
+}
+.mg-rg-md{
+    margin-right:20px;
+}
+.mg-top-md{
+    margin-top:20px;
+}
+.mg-bm-md{
+    margin-bottom:20px;
+}
+/********************/
+.mg-sm{
+    margin: 10px;
+}
+.mg-md{
+    margin: 20px;
+}
+.mg-lf-sbg{
+    margin-left: 120px;
+}
+/* 多行文本域（如输入地址）的宽度 */
+.ht-calc-width{
+    width:calc(33.3% + 320px);
+}
+/*修改iview .ivu-form-item 下边距*/
+.ivu-form-item{
+    margin-bottom: 15px;
+}
+/* mouse */
+.mouse-point{
+    cursor: pointer;
+}
+
+/* display */
+.inline-block{
+    display: inline-block;
+}
+.flex{
+    display: flex;
+}
+.flex-bwn{
+    display: flex;
+    justify-content: space-between;
+}
+
+/* background-color */
+.bg-gray{
+    background: #F2F2F2;
+}
+.bg-gray-less{
+    background: #E8E8E8;
+}
+.bg-tree {
+    background:#f8f8f8;
+}
+/* 按钮栏 */
+/* 生成分割线 */
+.split-line::after {
+    content: '|';
+    margin: 0 5px;
+}
+/* 按钮栏 */
+/*body.has-menu{margin-top:31px;}*/
+.btn-menu {
+    padding:5px 10px;
+    background: #F2F2F2;
+    width:100%;
+    position: relative;
+    /*position: fixed;*/
+    /*top:0;*/
+    /*right:0;*/
+    /*left:0;*/
+    /*z-index: 1;*/
+    /*border-bottom:solid 1px #fff;*/
+}
+/*按钮栏*/
+.btn-menu .ht-btn{
+    border: none;
+    background: none;
+}
+.btn-menu .ht-btn[disabled]{
+    color: #bbbec4;
+    cursor: default;
+}
+
+.btn-menu>span,
+.btn-menu .ht-btn{
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+.btn-menu .ivu-input-wrapper{
+    width: auto;
+}
+/* 顶部菜单栏i-button */
+.btn-menu>button.ivu-btn{
+    font-size:14px;   
+    padding:0px 10px 0px 20px;
+    border:none;
+}
+/* 菜单栏按钮i-button激活时的边框取消 */
+.btn-menu>button.ivu-btn.ivu-btn:not([disabled]):focus{
+    box-shadow:0 0 0 2px transparent;
+}
+/* 按钮栏下过滤框 */
+.btn-menu .filter{
+    padding: 20px 0;
+    background: #FFF;
+    min-width: 380px;
+    border: 1px solid #ccc;
+    position: absolute;
+    top: 10px;
+    left: -4px;
+    z-index: 1;
+}
+.btn-menu .level{
+    display: block;
+}
+.btn-menu .level input{
+    width: 60px;
+}
+.btn-menu .check{
+    display: block;
+}
+.btn-menu .ivu-form-item-content{
+    margin-left: 14px !important;
+}
+.btn-menu .ivu-form-item{
+    margin-bottom: 12px;
+}
+.btn-menu .code input{
+    width: 100px;
+}
+/* 菜单栏顶部固定 */
+.ht-menu-fix{
+    position:fixed;
+    z-index: 999;
+}
+/* 菜单栏顶部固定占位 */
+div.ht-menu-top{
+    padding-top:45px;
+    margin-top:0px;
+}
+/* 小标题 */
+.title-font{
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 5px;
+}
+/* 搜索框 */
+.search-menu{
+    margin:20px 0;
+}
+.search-menu>label{
+    font-size: 14px;
+    margin:0 10px;
+    font-weight: normal;
+}
+
+.search-menu>select{
+    width:200px;
+    display: inline-block;
+}
+/*输入框宽度*/
+.ht-width-input{
+    width: 200px;
+}
+/* 数据列表页折叠按钮 */
+.chevron{
+    display: inline-block;
+    /*position: relative;*/
+    position: absolute;
+    left: 50%;
+    border: 1px solid #cabcbc;
+    padding-left: 5px;
+    /*width: 43px;*/
+    height: 18px;
+    font-size: 8px;
+    color: #999999;
+    border-radius:5px 5px 0 0;
+    margin-bottom: 10px;
+}
+.chevron span i{
+    display: initial;
+    font-size: 10px;
+    width: 30px;
+    cursor: pointer;
+    padding-right: 6px;
+    line-height: 17px;
+}
+.chevron span :hover {
+    color: #ebe3e3;
+}
+/* 审核章 */
+.ht-approve-stamp{
+    position: absolute;
+    color:#f00;
+    width:55px;
+    height: 30px;
+    border:1px solid #f00;
+    border-radius:48%;
+    transform:rotate(-25deg);
+    top:36px;
+    right:30%;
+    padding:0px 8px;
+    font-size: 18px;
+    z-index: 9999;
+}
+/* 可输入表格 */
+/* 普通样式 宽度120px*/
+.edit-table td,
+.edit-table th {
+    width: 120px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #C9C9C9;
+    position: relative;
+}
+.edit-table td:not(ul){
+    text-align: center;
+    padding: 5px;
+}
+.table>thead>tr>th{vertical-align: middle;background-color: #f5f5f5;}
+
+.edit-table td>input:not([type=checkbox]),
+select {
+    width: 100%;
+    height: 40px;
+    border: none;
+    font-size: 14px;
+    padding-left: 5px;
+    padding-right: 10px;
+}
+.edit-table input.ivu-input{
+    display: inline-block;
+    width: 100% !important;
+    height: 32px !important;
+    line-height: 1.5;
+    padding: 4px 7px;
+    font-size: 12px;
+    border: 1px solid #dddee1 !important;
+    border-radius: 4px;
+    color: #495060;
+    background-color: #fff;
+    background-image: none;
+    position: relative;
+    cursor: text;
+    transition: border .2s ease-in-out,background .2s ease-in-out,box-shadow .2s ease-in-out;
+}
+/* 分录行中输入框禁用时样式 */
+.edit-table .ivu-input[disabled]{
+    background-color: #f3f3f3 !important;
+    cursor: not-allowed !important;
+    opacity:1;
+}
+/* 表头样式 */
+.edit-table th {
+    text-align: center;
+    background: #F2F2F2;
+}
+/* 合计样式 */
+.edit-table>tfoot>tr>td{
+    background: #F2F2F2;
+}
+/*.edit-table tr>th:first-child,*/
+/*.edit-table tr>td:first-child {*/
+    /*text-align: center;*/
+    /*width: 50px;*/
+/*}*/
+/* 用于表格内序号、操作的列，class名： width-xs */
+.edit-table th.width-xs,
+.edit-table td.width-xs{
+    width:50px;
+}
+/* 用于表格内较窄的列，class名： width-sm */
+.edit-table th.width-sm,
+.edit-table td.width-sm{
+    width:80px;
+}
+/* 用于表格内一般宽度的列，class名： width-md */
+.edit-table th.width-md,
+.edit-table td.width-md{
+    width: 120px;
+}
+/* 用于表格内较宽的列，class名： width-lg */
+.edit-table th.width-lg,
+.edit-table td.width-lg{
+    width:240px;
+}
+/*表格内蓝色字体（如商品明细）*/
+.edit-table .ht-blue-font{
+    color: #5D66FF;
+    cursor: pointer;
+}
+/* 表格内输入框聚焦时取消蓝色边框 */
+.edit-table .ivu-input:focus {
+    box-shadow: none;
+}
+/*表格行点击选中背景颜色*/
+.ht-selected{
+    background:rgb(247, 242, 242) ;
+}
+.ht-selected select,
+.ht-selected input,
+.ht-selected .ivu-input{
+    background:rgb(247, 242, 242) ;
+}
+.clearfix:after{
+    display: block;
+    content: '';
+    clear: both;
+}
+
+/* 表格内放大镜 */
+.search-icon{
+    position: absolute;
+    font-size: 20px;
+    top:30%;
+    right:5px;
+    z-index: 5;
+    cursor: pointer;
+}
+/* 小标题 */
+/*.ht-subtitle{*/
+    /*width: 250px;*/
+    /*border-bottom: 1px solid #999;*/
+    /*margin: 10px 0;*/
+    /*margin-left: 10px;*/
+/*}*/
+/*.ht-subtitle>div{*/
+    /*width:150px;*/
+    /*background:#999;*/
+    /*color:#fff;*/
+    /*border-top-left-radius: 5px;*/
+    /*border-top-right-radius: 5px;*/
+    /*font-size:16px;*/
+    /*text-align: center;*/
+    /*height: 25px;*/
+    /*line-height: 25px;*/
+/*}*/
+.ht-title-font>tr>th{
+    font-size: 14px;
+    font-weight: 700
+}
+/* 菜单栏禁用 */
+.ht-disabled{
+    color:#999 !important;
+    cursor: not-allowed !important;
+}
+/*商品明细置灰禁用*/
+.detail-disabled-click{
+    pointer-events:none;
+    color: #bbbec4;
+}
+/* 验证隐藏input样式 */
+.hidden-input{
+    visibility: hidden;
+    width:0;
+    height: 0;
+}
+.hidden-input~label{
+    position: absolute;
+    top:0;
+    right:8% ;
+}
+
+/* 数字右对齐 */
+.ht-number-right{
+    text-align: right;
+}
+/* 必填项星星 */
+span.star:after{
+    content: '*';
+    display: inline-block;
+    line-height: 1;
+    font-family: SimSun;
+    font-size: 12px;
+    color: #ed3f14;
+}
+/* 必填项提示文字 */
+label.error{
+    color:#FF5722;
+    font-weight:400;
+}
+/*组件ht-select样式*/
+.ht-select ul {
+    z-index: 9999;
+    width: 500px;
+}
+
+.ht-select ul>li {
+    padding: 5px 10px;
+    text-align: left;
+}
+
+.ht-select ul>li:hover {
+    background: #f8f8f8;
+}
+/*组件商品类型样式，隐藏label*/
+.ht-hidden-label label.ivu-form-item-label {
+    display: none;
+}
+/*滚动条*/
+::-webkit-scrollbar {
+    width:6px;
+    height:10px;
+}
+::-webkit-scrollbar-button:vertical {
+    display:none
+}
+::-webkit-scrollbar-corner, ::-webkit-scrollbar-track {
+    background-color:#e2e2e2;
+}
+::-webkit-scrollbar-thumb {
+    border-radius:0;
+    background-color:#bebebe;
+}
+::-webkit-scrollbar-thumb:vertical:hover {
+    background-color:rgba(0, 0, 0, .35)
+}
+::-webkit-scrollbar-thumb:vertical:active {
+    background-color:rgba(0, 0, 0, .38)
+}
+/* .ui-jqgrid, .ui-jqgrid .ui-jqgrid-view, .ui-jqgrid .ui-jqgrid-hdiv, .ui-jqgrid .ui-jqgrid-bdiv, .ui-jqgrid .ui-jqgrid-pager, .ui-jqgrid .ui-jqgrid-toppager {
+    width: auto !important;
+} */
+
+/* display */
+.inline{display:inline;}
+.inline-block{display:inline-block;}
+
+/* margin & padding */
+.mg0{margin:0;}
+.mg10{margin:10px;}
+.mt0{margin-top:0;}
+.mt5{margin-top:5px;}
+.mt10{margin-top:10px;}
+.mt20{margin-top:20px;}
+.mt30{margin-top:30px;}
+.mr0{margin-right:0;}
+.mr10{margin-right:10px;}
+.mr20{margin-right:20px;}
+.mr30{margin-right:30px;}
+.ml0{margin-left:0;}
+.ml10{margin-left:10px;}
+.ml20{margin-left:20px;}
+.ml30{margin-left:30px;}
+.pd0{padding:0;}
+.pd5{padding:5px;}
+.pd10{padding:10px;}
+.pl0{padding-left:0;}
+.pl5{padding-left:5px;}
+.pl10{padding-left:10px;}
+.pl20{padding-left:20px;}
+.pl30{padding-left:30px;}
+.pd5{padding:5px;}
+.pd10{padding:10px;}
+.pd20{padding:20px;}
+.pd30{padding:30px;}
+.pr0{padding-right:0;}
+.pr5{padding-right: 5px;}
+.pr10{padding-right:10px;}
+.pr20{padding-right:20px;}
+.pr30{padding-right:30px;}
+.pt0{padding-top:0;}
+.pt5{padding-top:5px;}
+.pt10{padding-top:10px;}
+.pt20{padding-top:20px;}
+.pt30{padding-top:30px;}
+.pl30{padding-left:30px;}
+.pb0{padding-bottom:0;}
+.pb5{padding-bottom:5px;}
+.pb10{padding-bottom:10px;}
+.pb20{padding-bottom:20px;}
+.pb30{padding-bottom:30px;}
+.pd-sm{padding:10px;}
+.pd-md{padding:20px;}
+.pd-lg{padding: 30px;}
+
+.ht-float-right{float: right;}
+.w110{width:110px;}
+.w120{width:120px;}
+.w85{width:85px;}
+.w100{width:100px;}
+.w130{width:130px;}
+.w60 {
+    width: 60px;
+}
+.w80 {
+    width: 80px;
+}
+.w180 {
+    width: 180px;
+}
+.w200 {
+    width: 200px;
+}
+.w320 {
+    width: 320px;
+}
+.mr5{
+    margin-right: 5px;
+}
+.calc-right-w65{
+    width:calc(100% - 65px);
+}
+/*计算减去140px后的宽度*/
+.calc-right-w140{
+    width:calc(100% - 140px);
+}
+.calc-right-w155{
+    width:calc(100% - 155px);
+}
+/*计算减去140px后的宽度*/
+.calc-right-w185{
+    width:calc(100% - 185px);
+}
+.ht-set-table .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > * {
+    float: right;
+}
+.ht-set-table .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > table {
+    display: none;
+}
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+.clearfix{
+    zoom:1;
+}
+
+
+/*span.star:after{*/
+    /*content: '*';*/
+    /*color: red;*/
+    /*font-size: 13px;*/
+    /*width:10px;*/
+    /*display:inline-block;*/
+/*}*/
+.form-control{
+    padding: 0 3px;
+}
+
+
+/* iview poptip 和 modal 同时显示时的调整 */
+.js-keep-poptip .ivu-poptip-popper{z-index:960 !important;display:block !important;}
+.js-keep-poptip .fade-leave-active{-webkit-animation-name:none;animation-name:none;}
+
+.ht-poptip .form-horizontal{margin-top:0;}
+.ht-poptip .ivu-poptip-body-content{margin-bottom:10px;}
+
+/* 财务模块 start  */
+
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;text-align: -webkit-left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-paddingTop30{padding-top: 30px !important;}
+.ht-nopadding{padding: 0px !important;}
+.ht-marginTop35{margin-top: 35px !important;}
+.ht-backgroundF2{background: #F2F2F2;}
+
+/* 财务模块头部菜单 背景样式等  */
+.ht-finance-top-menu,.ht-finance-top-menu-span{
+    width: 100%;position: fixed;top: 0px;z-index: 102;background-color: #DDDDDD;
+}
+
+.ht-finance-menu-cl{
+    width: 100%;
+    position: fixed;
+    top: 0px;
+    z-index: 102;
+}
+.ht-finance-top-menu button.ivu-btn-text{padding: 6px 5px !important; font-size: 14px !important;}
+
+.ht-finance-top-menu-span .ht-menu-span{padding: 6px 5px !important;}
+
+.ht-remark-btn{
+    margin-left: -44px;
+    position: absolute;
+    z-index: 100;
+    background-color: #fff !important;
+    height: 28px;
+    margin-top: 1px;
+}
+.ht-remark-autoComplete .ivu-auto-complete{
+    height: 200px !important;
+}
+/* 财务模块 end  */
+
+
+/* .ui-jqgrid, .ui-jqgrid .ui-jqgrid-view, .ui-jqgrid .ui-jqgrid-hdiv, .ui-jqgrid .ui-jqgrid-bdiv, .ui-jqgrid .ui-jqgrid-pager, .ui-jqgrid .ui-jqgrid-toppager {
+    width: auto !important;
+} */
+.ui-jqgrid{border-radius:0;}
+/*.ui-jqgrid .ui-jqgrid-view {top:1px;}*/
+.ui-jqgrid .ui-jqgrid-htable .ui-th-div {
+    margin-top: 0;
+}
+
+.ui-jqgrid-view, .ui-jqgrid,.ui-jqgrid-hdiv,.ui-jqgrid-sdiv,.ui-jqgrid-bdiv,.ui-jqgrid-pager{
+    width: auto !important; 
+}
+
+.ui-jqgrid th[id$=_cb], .ui-jqgrid td[aria-describedby$=_cb] {
+    padding-left:0 !important;
+    padding-right:0 !important;
+    text-align: center;
+}
+.ui-jqgrid th input[type=checkbox].cbox {margin-left:2px;}
+.ui-jqgrid td input[type=checkbox].cbox{display:inline;vertical-align: middle;margin:0;}
+
+/* 隐藏jqGrid 排序按钮 */
+.ui-jqgrid-labels .s-ico{display: none !important;}
+
+[v-cloak] {
+    display: none;
+}
+hide-render{
+    display:none;
+}
+/* 商品明细公共样式 */
+.productProperty table.edit-table td, .productProperty table.edit-table th {
+    min-width: 77px;
+    padding: 0 6px;
+    max-width: 160px;
+}
+.productProperty table .ht-width-input{
+    width: auto;
+}
+.productProperty_material{
+    overflow-y: scroll;
+}
+.productProperty_material th, .productProperty_material .ht-width-input{
+    width: 140px;
+    min-width: 140px;
+}
+.productProperty .ivu-checkbox-disabled .ivu-checkbox-inner {
+    border-color: #2d8cf0 !important;
+    background-color: #2d8cf0 !important;
+}
+.ht-tabs{
+    overflow: scroll;
+    padding-bottom: 100px;
+}
+
+/*财务模块数字输入框不要按钮*/
+.ht-input-number-nobtn .ivu-input-number-handler-wrap{
+    display: none;
+}
+
+/*iview下拉框和input框disabled颜色*/
+.ivu-select-disabled .ivu-select-selection,
+.ivu-select-disabled .ivu-select-selection input.ivu-select-input[disabled] {
+    color: #555;
+}
+.ivu-input[disabled], fieldset[disabled] .ivu-input {
+    color: #555;
+}
+.copyright_content{
+    min-height: calc(100% - 78px) !important;
+}
+.foot_copyright{
+    width: 100%;
+    height: 38px;
+    line-height: 40px;
+    font-size: 13px;
+    background-color: #eee;
+    text-align: center;
+    margin-top: 40px;
+	display:none;
+}
+/*供应商组件公共样式*/
+.ht-supplier .ivu-icon-ios-search{
+    position: absolute;
+    left: 180px;
+    top: 10px;
+    z-index: 10;
+    font-size: 16px;
+    cursor: pointer;
+}
+/*根据UI进行的页面调整*/
+/* 必填星星 */
+.ivu-form .ht-star label.ivu-form-item-label::before {
+    content: '*';
+    display: inline-block;
+    margin-right: 4px;
+    line-height: 1;
+    font-family: SimSun;
+    font-size: 12px;
+    color: #ed3f14;
+}
+/* 必填星星 */
+.ht-star2::before {
+    content: '*';
+    display: inline-block;
+    margin-right: 4px;
+    line-height: 1;
+    font-family: SimSun;
+    font-size: 12px;
+    color: #ed3f14;
+}
+
+/* 必填提示边框为红色jq */
+
+/* input[type=text].error,
+input[type=number].error,
+textarea.error,
+select.error {
+    border: solid 1px #F00F00;
+} */
+
+/* 全局更改色调 */
+
+/* 按钮 */
+
+.ivu-btn-primary {
+    background-color: #D8AE29;
+    border-color: #D8AE29;
+}
+.ivu-btn-primary:hover {
+    background-color: rgb(241, 202, 72);
+    border-color: #D8AE29;
+}
+/* 取消点击按钮时的蓝色阴影 */
+.ivu-btn-primary:focus{
+    box-shadow:none;
+}
+.ivu-btn-text:hover {
+    color:#D8AE29
+}
+/* tab标签 */
+
+.ivu-tabs-nav .ivu-tabs-tab-active {
+    color: #D8AE29;
+}
+
+.ivu-tabs-nav .ivu-tabs-tab:hover {
+    color: #D8AE29;
+}
+
+.ivu-tabs-ink-bar {
+    background: #D8AE29;
+}
+
+/* 提示弹框图标颜色 */
+
+.ivu-modal-confirm-body-icon-info {
+    content: "\F35B";
+    color: #FF8C00;
+}
+
+.ivu-modal-confirm-body-icon-success {
+    color: #14CCA3;
+}
+
+.ivu-modal-confirm-body-icon-warning {
+    color: #D0021B;
+}
+.ivu-icon-help-circled:before {
+    content: "\F35B";
+    color: #D0021B;
+}
+/* radio样式 */
+.ivu-radio-checked .ivu-radio-inner{
+    border-color: #D8AE29;
+}
+.ivu-radio-inner:after{
+    background-color:#D8AE29;
+}
+.ivu-radio：hover .ivu-radio-inner{
+    background-color:#D8AE29;
+}
+/*步骤条的颜色*/
+.ivu-steps-item.ivu-steps-status-finish .ivu-steps-head-inner>.ivu-steps-icon, .ivu-steps-item.ivu-steps-status-finish .ivu-steps-head-inner span{
+    color:#D8AE29;
+}
+.ivu-steps-item.ivu-steps-status-finish .ivu-steps-tail>i:after{
+    background:#D8AE29;
+}
+.ivu-steps-item.ivu-steps-custom.ivu-steps-status-process .ivu-steps-head-inner>.ivu-steps-icon{
+    color:#D8AE29;
+}
+/* 分页控件 */
+.ivu-page-item-active{
+    background-color:#D8AE29;
+}
+/* 消除提示文字，和UI已经确认 */
+
+label.error {
+    display: none !important;
+}
+
+div.ivu-form-item-error-tip {
+    display: none !important;
+}
+
+/* 分录行里面的颜色 */
+
+.edit-table .ht-font-color {
+    color: #D8AE29;
+    cursor: pointer;
+}
+
+.ht-subtitle {
+    margin: 15px;
+    font-size: 16px;
+    color: #D8AE29;
+    font-family:"Microsoft YaHei";
+    font-weight: bold;
+    padding-left: 5px;
+    border: transparent;
+    border-left: 4px solid #D8AE29;
+}
+/*jqGrid表头居中*/
+.ui-jqgrid .ui-jqgrid-htable th.ui-th-column, .ui-jqgrid .ui-jqgrid-htable th.ui-th-column-header, .ui-th-column, .ui-th-column-header {
+    text-align:center;
+}
+
+/*jqGrid文字靠左对齐间距，数字靠右对齐间距，一行显示不下省略号*/
+/* jqgrid中哪些列靠左/靠右，需在colModel中自行更改 */
+.ui-jqgrid .ui-jqgrid-btable tbody tr.jqgrow td{
+    padding-right:10px !important;
+    padding-left:10px !important;
+    overflow:hidden;
+    white-space: nowrap;
+    text-overflow:ellipsis;
+}
+.small .ui-jqgrid .ui-pager-control .ui-pager-table td:nth-of-type(1){
+    width: 60px !important;
+}
+
+/*差异对比*/
+.font-color{
+    color:red;
+}

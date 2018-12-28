@@ -1,0 +1,20 @@
+.label60{
+    display: inline-block;
+    width: 60px !important
+}
+.ml10{
+    margin-left:30px !important;
+}
+.form-control{
+    display: inline-block;
+}
+
+/*.ui-jqgrid td[aria-describedby="my_report_accountCode"],*/
+/*.ui-jqgrid td[aria-describedby="my_report_accountName"]{*/
+    /*border-bottom:none;*/
+/*}*/
+
+/*.ui-jqgrid td[aria-describedby="my_report_accountCode"],*/
+/*.ui-jqgrid td[aria-describedby="my_report_accountName"]{*/
+    /*border-top: 1px solid #e2e2e2;border-bottom: none;*/
+/*}*/

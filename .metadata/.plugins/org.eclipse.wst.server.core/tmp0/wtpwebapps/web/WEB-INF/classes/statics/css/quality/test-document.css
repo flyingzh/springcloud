@@ -1,0 +1,46 @@
+/*.ivu-form-item-content {*/
+    /*width: 200px;*/
+
+/*}*/
+
+/*.search {*/
+    /*display: inline-block;*/
+    /*position: relative;*/
+    /*height: 90px;*/
+
+/*}*/
+
+/*.search .ivu-form-item {*/
+    /*display: inline-block;*/
+    /*padding-top: 20px;*/
+/*}*/
+
+.source-list .ivu-modal {
+    width: 73% !important;
+}
+
+.source-list .ivu-form-item {
+    display: inline-block;
+}
+.source-list .ivu-modal-footer{
+    display: none;
+}
+.testTableWrap{
+    padding-left: 20px;
+    margin-bottom: 100px;
+    width: 96%;
+    overflow-x: scroll;
+}
+.testTableWrap .edit-table th {
+    min-width: 100px;
+    padding: 0 6px;
+}
+.testTableWrap .edit-table td {
+    line-height: 100%;
+}
+.testTableWrap .edit-table td input{
+    display: inline-block;
+    border: 1px solid #ccc;
+    width: 85%;
+    height: 30px;
+}

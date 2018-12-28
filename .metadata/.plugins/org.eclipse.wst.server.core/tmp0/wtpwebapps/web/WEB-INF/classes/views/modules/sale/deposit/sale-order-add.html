@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+	<style>
+		.tablist {
+			border: 1px solid #ccc
+		}
+
+		.tab-center {
+			text-align: center;
+			border: 1px solid #000;
+			width: 50% !important;
+			margin-left: 4px;
+		}
+
+		.tablist tr, .tabModal tr {
+			height: 40px;
+		}
+
+		.prohibited {
+			color: #ccc
+		}
+
+		#inp {
+			width: 732px
+		}
+
+		.tabinfo {
+			padding-left: 36px
+		}
+
+		.ivu-input[disabled] {
+			color: black
+		}
+
+		.tr-back {
+			background: #dff0d8 !important;
+		}
+		.edit-table th{
+			width: 230px;
+		}
+		.tabModal {
+			border: 1px solid #ccc;
+			width: 400px;
+			margin: 0 auto;
+		}
+		.btn-gray{
+			color:#999999;
+			pointer-events: none
+		}
+		.btn-menu button.ivu-btn{
+			font-size:14px;
+			padding:0px 20px;
+		}
+	</style>
+	<title>2.2销售定金单 - 新增</title>
+</head>
+
+<body>
+<div id="sale-settlement" v-cloak>
+	<ht-approve-reject
+			:trigger="modalTrigger"
+			:modal-type="modalType"
+			:receipt-id="saleDeposit.depositNo"
+			:receipt-status="saleDeposit.status"
+			:step-list.sync="steplist"
+			:table-data.sync="approvalTableData"
+			url-check='${rc.contextPath}/deposit/findUserOperation'
+			url-init-approve='${rc.contextPath}/deposit/queryProcessInfoByReceiptsId'
+			url-table-data='${rc.contextPath}/deposit/queryReceiptsById'
+			url-approve='${rc.contextPath}/deposit/submitApproval'
+			@on-auto-approve="approvalOrRejectCallBack"
+			@on-approve="approvalOrRejectCallBack"
+			@on-reject="approvalOrRejectCallBack"
+			ref="ar">
+	</ht-approve-reject>
+	<div class="btn-menu">
+		<i-button type="text" class="pd-rg-md" @click="saveinfo(0)" :disabled="saleDeposit.status != 1">保存</i-button>
+		<i-button type="text" class="pd-rg-md" @click="saveinfo(1)" :disabled="saleDeposit.status != 1">提交</i-button>
+		<i-button type="text" class="pd-rg-md" @click="audit" :disabled="saleDeposit.status==1  || saleDeposit.status==4">审核</i-button>
+		<i-button type="text" class="pd-rg-md" @click="reject" :disabled="saleDeposit.status==1 || saleDeposit.status==4">驳回</i-button>
+		<i-button type="text" class="pd-rg-md" :disabled="true">预览</i-button>
+		<i-button type="text" class="pd-rg-md" :disabled="true">打印</i-button>
+		<i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+	</div>
+	<div class="ht-approve-stamp" v-show="saleDeposit.status==4">
+		审核
+	</div>
+
+	<!--  单号弹框开始   -->
+	<modal class="modalContent" v-model="orderShow" :mask-closable="false" width="800">
+		<p slot="header" style="color:#000;padding: 0 20px">
+			<span>选择客户订单单号</span>
+		</p>
+		<div class="modalCon">
+			<!--<p class="btn-menu">-->
+				<!--<span @click="orderSave">返回</span>-->
+				<!--<span @click="exitModal">退出</span>-->
+			<!--</p>-->
+			<base-data-list :data_config="data_order_list" :need-reload="orderReload" :table_id="orderId"
+							v-model="orderSelected"></base-data-list>
+		</div>
+		<div slot="footer">
+			<i-button size="large" small @click="exitModal">取消</i-button>
+			<i-button type="primary" size="large" small @click="orderSave">确定</i-button>
+		</div>
+	</modal>
+	<!--  单号弹框结束   -->
+	<i-form label-width="100" ref="formValidate" :model="saleDeposit" :rules="ruleValidate" >
+		<tabs value="base" :animated="false">
+			<tab-pane label="基本信息" name="base">
+				<row>
+					<i-col span="8">
+						<form-item class="ht-star" label="单据编号:">
+							<i-input class="ht-width-md" :disabled="isDisable" v-model="saleDeposit.depositNo"
+									 placeholder="根据单据编码规则自动生成"></i-input>
+						</form-item>
+						<form-item class="ht-star" label="日期:" prop="depositDate">
+							<date-picker v-if="!viewShow" @on-change="htTestChange()" transfer type="date" v-model="saleDeposit.depositDate" format="yyyy-MM-dd" class="ht-width-md"></date-picker>
+							<i-input class="ht-width-md" v-else :disabled="viewShow"  v-model="saleDeposit.depositDate"/>
+						</form-item>
+						<form-item class="ht-star" label="支付方式:" prop="payWay">
+							<i-select v-model="saleDeposit.payWay" @on-change="htTestChange()" multiple placement="top" style="width:200px"
+									  :disabled="viewShow">
+								<i-option v-for="item in payList" :value="item.value" :key="item.value">{{ item.value}}
+								</i-option>
+							</i-select>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item class="ht-star" label="所属组织:">
+							<i-input class="ht-width-md" v-model="saleDeposit.organizationName"
+									 :disabled="isDisable"></i-input>
+							<input type="text" name="name5" required class="hidden-input">
+						</form-item>
+						<form-item class="ht-star" label="应收总定金(￥):" prop="totalReceDepositAmount">
+							<i-input class="ht-width-md" id="inpval" :disabled="isDisable"
+									 v-model="saleDeposit.totalReceDepositAmount" @input="htTestChange()"></i-input>
+							<input type="text" name="name5" required class="hidden-input">
+						</form-item>
+						<form-item  label="备注:" prop="remark">
+							<i-input class="ht-width-md" v-model="saleDeposit.remark" :disabled="viewShow" @input="htTestChange()"></i-input>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item class="ht-star" label="客户:">
+							<!--<i-input v-if="viewShow" class="ht-width-md" :disabled="viewShow"-->
+									 <!--v-model="saleDeposit.customerName"></i-input>-->
+							<!--<i-input v-else-if="!temp" class="ht-width-md" :disabled="!temp"-->
+									 <!--v-model="saleDeposit.customerName"></i-input>-->
+							<!--<i-input v-else class="ht-width-md" icon="search" @on-click="userInfo"-->
+									 <!--v-model="saleDeposit.customerName"></i-input>-->
+							<ht-customer-list
+									v-model="selectCustomerObj"
+									@sure="closeCustomer"
+									:disabled="viewShow||!temp||saleDeposit.status>1"
+									ref="customerRef"
+									@on-change="htTestChange()"
+							>
+							</ht-customer-list>
+						</form-item>
+						<form-item class="ht-star" label="实收总定金(￥):" prop="totalPaidDepositAmount">
+							<i-input class="ht-width-md" :disabled="isDisable"
+									 v-model="saleDeposit.totalPaidDepositAmount" @input="htTestChange()"></i-input>
+						</form-item>
+					</i-col>
+				</row>
+			</tab-pane>
+			<tab-pane label="客户信息" name="userinfo">
+				<row>
+					<i-col span="8">
+						<form-item class="ht-star" label="客户:">
+							<i-input class="ht-width-md" v-model="saleDeposit.customerName"
+									 :disabled="isDisable||viewShow"></i-input>
+						</form-item>
+						<form-item label="邮箱:">
+							<i-input class="ht-width-md" v-model="saleCustInfo.email" :disabled="isDisable"></i-input>
+
+						</form-item>
+						<form-item label="地址:">
+							<area-select v-model="area" :init="areaInit"
+										 url="${rc.contextPath}/baseaddress/queryAddress"
+										 :disabled="isDisable"></area-select>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item label="联系人:">
+							<i-input class="ht-width-md" v-model="saleCustInfo.name" :disabled="isDisable"></i-input>
+						</form-item>
+						<form-item label="邮编:">
+							<i-input class="ht-width-md" v-model="saleCustInfo.zipCode" :disabled="isDisable"></i-input>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item label="联系方式:">
+							<i-input class="ht-width-md" v-model="saleCustInfo.phone" :disabled="isDisable"></i-input>
+						</form-item>
+						<form-item label="微信号:">
+							<i-input class="ht-width-md" v-model="saleCustInfo.weChatNo"
+									 :disabled="isDisable"></i-input>
+						</form-item>
+					</i-col>
+				</row>
+			</tab-pane>
+			<tab-pane label="审批信息" name="name2">
+				<steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+					<step icon="checkmark-circled" v-for="item in steplist"
+						  :title="item.processLevel"
+						  :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+				</steps>
+				<table class="table edit-table" style="width: 1100px;">
+					<tr>
+						<th>操作类型</th>
+						<th>开始级次</th>
+						<th>目的级次</th>
+						<th>审批人</th>
+						<th>审批意见</th>
+						<th>审批时间</th>
+					</tr>
+					<tr v-for="item in approvalTableData">
+						<td>{{item.approvalResult}}</td>
+						<td>{{item.currentLevel}}</td>
+						<td>{{item.nextLevel}}</td>
+						<td>{{item.createName}}</td>
+						<td>{{item.approvalInfo}}</td>
+						<td>{{item.createTime}}</td>
+					</tr>
+				</table>
+			</tab-pane>
+			<tab-pane label="其他" name="other">
+				<row>
+					<i-col span="8">
+						<form-item label="创建人:">
+							<i-input class="ht-width-md" :disabled="isDisable" v-model="saleDeposit.createName"
+									 placeholder="创建人"></i-input>
+
+						</form-item>
+						<form-item label="创建日期:">
+							<i-input class="ht-width-md" :disabled="isDisable"  v-model="saleDeposit.createTime"/>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item label="最后修改人:">
+							<i-input class="ht-width-md" v-model="saleDeposit.updateName"
+									 placeholder="最后修改人" :disabled="isDisable"></i-input>
+						</form-item>
+						<form-item label="修改日期:">
+							<i-input class="ht-width-md" v-model="saleDeposit.updateTime"
+									 :disabled="isDisable"></i-input>
+						</form-item>
+					</i-col>
+					<i-col span="8">
+						<form-item label="审核人:">
+							<i-input class="ht-width-md" v-model="saleDeposit.auditName"
+									 placeholder="审核人" :disabled="isDisable"></i-input>
+						</form-item>
+						<form-item label="审核日期:">
+							<i-input class="ht-width-md" v-model="saleDeposit.auditTime"
+									 :disabled="isDisable"></i-input>
+						</form-item>
+					</i-col>
+				</row>
+			</tab-pane>
+			<tab-pane label="附件" name="name4">
+				#parse("modules/public/access.html")
+			</tab-pane>
+
+		</tabs>
+	</i-form>
+	<i-form label-width="100">
+		<tabs :animated="false">
+			<tab-pane label="明细信息" name="base">
+				<div class="btn-menu tabinfo">
+					<span class="pd-rg-sm pd-lf-sm" v-if="!viewShow&&temp" @click="addRow">新增行</span>
+					<span class="pd-rg-sm pd-lf-sm  prohibited" v-else >新增行</span>
+					<span class="pd-rg-sm pd-lf-sm" v-if="!viewShow&&temp" @click="delRow">删除行</span>
+					<span class="pd-rg-sm pd-lf-sm  prohibited" v-else>删除行</span>
+					<table class="edit-table" style="width:100%">
+						<thead>
+						<th style="width:5%">序号</th>
+						<th>订单单号</th>
+						<th>订单金额(¥)</th>
+						<th>应收定金(¥)</th>
+						<th>已收定金(¥)</th>
+						<th><span class="star"></span>实收定金(¥)</th>
+						<th><span class="star"></span>定金完成确认</th>
+						</thead>
+						<tbody>
+						<tr v-for="(item,index) in saleDepositDetailList" class="tdInfo"@click="getIndex(index)">
+							<td style="width:5%">{{index+1}}</td>
+							<td style="text-align: center">
+								<a v-if="viewShow" class="ht-width-md"  @click="goToCustOrder(item.custOrderNo)"
+										 v-model="item.custOrderNo">{{item.custOrderNo}}</a>
+								<i-input v-else-if="temp" :disabled="viewShow" placeholder="请选择订单单号"
+										 v-model="item.custOrderNo" icon="search" @on-click="getGoodsList" style="width: 100% !important;"></i-input>
+								<a @click="goToCustOrder(item.custOrderNo)" v-else>{{item.custOrderNo}}</a>
+							</td>
+							<td>
+								<input type="text" v-model="item.orderAmount" @input="htTestChange()"class="tab-center" :disabled="isDisable">
+							</td>
+							<td>
+								<input type="text" v-model="item.receDepositAmount" class="tab-center"
+									   :disabled="isDisable">
+							</td>
+							<td>
+								<input type="text" v-model="item.alreadyReceivedDepaosit" class="tab-center"
+									   :disabled="isDisable">
+							</td>
+							<td>
+								<input v-if="viewShow" type="text" maxlength="16" v-model="item.paidDepositAmount" class="tab-center"
+									   :disabled="viewShow"@input="htTestChange()">
+								<input v-else maxlength="16" type="text" v-model="item.paidDepositAmount" class="tab-center"
+									   @blur="act(index)" @input="clearNum(item,'paidDepositAmount',2);htTestChange()">
+							</td>
+							<td>
+								<i-select class="goods" transfer v-model="item.depaositFinishStatus" @on-change="htTestChange()":disabled="viewShow">
+									<i-option :value="1">未完成</i-option>
+									<i-option :value="2">已完成</i-option>
+								</i-select>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</tab-pane>
+		</tabs>
+	</i-form>
+	<ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+<script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+<script src='${rc.contextPath}/js/components/area-select.js'></script>
+<script src="${rc.contextPath}/js/access/access.js"></script>
+<script src='${rc.contextPath}/js/components/ht-close-modal.js'></script>
+<script src='${rc.contextPath}/js/components/ht-customer-list.js'></script>
+<script src="${rc.contextPath}/js/sale/deposit/sale-order-add.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> #parse("modules/public/header.html")
+    <title>普通销售石价表 - 新增</title>
+    <style>
+        .edit-table>thead>tr>th,
+        .edit-table>tbody>tr>td {
+            width: 60px;
+        }
+
+        .edit-table caption {
+            border: 1px solid #C9C9C9;
+            border-bottom: none;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sale-price-add" v-cloak>
+
+        <div class="btn-menu">
+            <span class="pd-rg-sm pd-lf-sm" @click="save">保存</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="exportTemplate">引出模板</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="importExcel">引入</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="toForm">列表</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="">预览</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="">打印</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <Modal
+                v-model="showUpload"
+                title="上传文件"
+                @on-ok="modalOk"
+                @on-cancel="modalCancel">
+            <Upload
+                    ref="upload"
+                    :on-success="handleSuccess"
+                    :max-size="5120000"
+                    :on-format-error="handleFormatError"
+                    :on-exceeded-size="handleMaxSize"
+                    :before-upload="handleBeforeUpload"
+                    :format="['xlsx']"
+                    action="${rc.contextPath}/saleStonePriceController/importExcel">
+                <i-button type="ghost" icon="ios-cloud-upload-outline">导入</i-button>
+            </Upload>
+        </Modal>
+        <div class="ht-subtitle">
+            <div>基本信息</div>
+        </div>
+        <i-form label-width="120" ref="formValidate" :model="addBody" :rules="ruleValidate">
+            <row>
+                <i-col span="8">
+                    <form-item label="石价表编号：">
+                        <i-input class="ht-width-md" v-model="addBody.stonePriceEntity.stonePriceNo" :disabled="isDisable"></i-input>
+                    </form-item>
+                    <form-item label="石价表名称：" prop="stonePriceEntity.name">
+                        <i-input required class="ht-width-md" v-model="addBody.stonePriceEntity.name"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="所属组织：">
+                        <i-input class="ht-width-md" v-model="addBody.stonePriceEntity.organizationName" :disabled="isDisable"></i-input>
+                    </form-item>
+                    <!--<form-item label="适用客户">
+                        <i-input class="ht-width-md" v-model="addBody.stonePriceEntity.stonePriceNo"></i-input>
+                    </form-item>-->
+                </i-col>
+                <i-col span="8">
+                    <form-item label="创建日期：">
+                        <date-picker @on-change="addBody.stonePriceEntity.createTime=$event" format="yyyy-MM-dd" type="date"
+                                     v-model="addBody.stonePriceEntity.createTime" :key="addBody.stonePriceEntity.createTime" transfer
+                                     placement="bottom-end" placeholder="Select date" class="ht-width-md" :disabled="timeIsDisable">
+                        </date-picker>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <div class="ht-subtitle">
+            <div>明细信息</div>
+        </div>
+        <row>
+            <i-col span="12" v-for="(item,index) in addBody.stonePriceList" :key="index">
+                <table class="edit-table" style="margin: 10px;">
+                    <caption v-if="index < 9">{{item['A0'+(index+1)][0].stoneSectionName}}</caption>
+                    <caption v-else>{{item['A'+(index+1)][0].stoneSectionName}}</caption>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>D-E</th>
+                            <th>F-G</th>
+                            <th>H</th>
+                            <th>I-J</th>
+                            <th>K-L</th>
+                            <th>M-N</th>
+                            <th>&lt;N</th>
+                            <th>白</th>
+                        </tr>
+                    </thead>
+                    <tbody v-if="index < 9">
+                        <tr v-for="(row,i) in item['A0'+(index+1)]" :key="i">
+                            <td class="text-center">{{row.stoneClarity}}</td>
+                            <td>
+                                <input type="text" v-model="row.dAndE" @input="clearNum(row,'dAndE',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.fAndG" @input="clearNum(row,'fAndG',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.h" @input="clearNum(row,'h',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.iAndJ" @input="clearNum(row,'iAndJ',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.kAndL" @input="clearNum(row,'kAndL',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.mAndN" @input="clearNum(row,'mAndN',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.smallN" @input="clearNum(row,'smallN',6)">
+                            </td>
+                            <td>
+                                <input type="text" v-model="row.white" @input="clearNum(row,'white',6)">
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody v-else>
+                        <tr v-for="(row,i) in item['A'+(index+1)]" :key="i">
+                            <td class="text-center">{{row.stoneClarity}}</td>
+                            <td>
+                                <input type="number" v-model="row.dAndE">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.fAndG">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.h">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.iAndJ">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.kAndL">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.mAndN">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.smallN">
+                            </td>
+                            <td>
+                                <input type="number" v-model="row.white">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </i-col>
+        </row>
+
+    </div>
+    <script src='${rc.contextPath}/js/sale/sale-price/sale-price-add.js'></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

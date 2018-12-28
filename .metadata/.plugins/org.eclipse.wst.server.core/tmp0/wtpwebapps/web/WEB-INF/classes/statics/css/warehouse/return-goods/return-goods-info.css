@@ -1,0 +1,28 @@
+.control-label{
+    margin-bottom: 15px;
+}
+.ui-jqgrid .ui-jqgrid-pager .ui-pager-table{
+    display: block;
+}
+.active{
+    background: #f1f1f1;
+}
+.table{
+    text-align: center;
+}
+.table-responsive img{
+    display: block;
+    width:50px;
+    height: 30px;
+    text-align: center;
+    transform: scale(1);
+    transition: all ease 0.5s;
+}
+.table-responsive img.active{
+    transform: scale(3);
+    position: absolute;
+    z-index: 100;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+    line-height: 2;
+}

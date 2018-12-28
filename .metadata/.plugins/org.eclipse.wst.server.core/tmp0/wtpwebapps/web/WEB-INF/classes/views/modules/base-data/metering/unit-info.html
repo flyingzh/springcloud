@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-for="http://www.w3.org/1999/xhtml">
+
+<head>
+
+    <title>计量单位维护</title>
+    #parse("modules/public/header.html")
+    <style>
+        .pvw-group {
+            font-weight: 400;
+            font-size: medium;
+            margin-bottom: 1px;
+            cursor: pointer;
+            margin-left: 5px;
+            text-decoration: none;
+            color: royalblue;
+        }
+
+        div.row {
+            padding: 0;
+        }
+
+        .col-xs-2,
+        .col-xs-10 {
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+    <div id="unit-info" v-cloak style="min-height:100%">
+        <div v-if="!isShow">
+
+            <!--树和列表-->
+            <div class="row" style="height:100%;">
+                <div class="col-xs-2 bg-tree" style="height:100%;">
+                    <div class="btn-menu">
+                        #if($shiro.hasPermission("basedata:tbaseunit:add"))
+                        <span @click="addUnitGroup">新增</span>
+                        #end #if($shiro.hasPermission("basedata:tbaseunit:update"))
+                        <span @click="modifyUnitGroup">修改</span>
+                        #end #if($shiro.hasPermission("basedata:tbaseunit:delete"))
+                        <span @click="delUnitGroup">删除</span>
+                        #end
+                        <span @click="exit">退出</span>
+                    </div>
+                    <ht-tree :url="treeUrl" :setting="setting1" tid='tree'></ht-tree>
+                </div>
+                <div class="col-xs-10" style="padding-left:10px">
+                    <div class="btn-menu">
+                        #if($shiro.hasPermission("basedata:tbaseunit:add"))
+                        <span @click="add">新增</span>
+                        #end #if($shiro.hasPermission("basedata:tbaseunit:add"))
+                        <span @click="copy">复制</span>
+                        #end #if($shiro.hasPermission("basedata:tbaseunit:update"))
+                        <span @click="modify">修改</span>
+                        #end #if($shiro.hasPermission("basedata:tbaseunit:delete"))
+                        <span @click="del">删除</span>
+                        #end
+                    </div>
+                    <!--搜索栏-->
+                    <i-form v-show="isSearchHide" class="mg-top-md" label-width="120">
+                        <row>
+                            <i-col span="8">
+                                <form-item label="单位名称:">
+                                    <i-input placeholder="可模糊搜索" v-model='body.name' class="ht-width-md"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="代码:">
+                                    <i-input placeholder="可模糊搜索" v-model='body.code' class="ht-width-md"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item>
+                                    <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </i-form>
+                    <!--隐藏按钮-->
+                    <div style="height: 25px;">
+                        <span class="chevron">
+                            <span>
+                                <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                                <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                            </span>
+                        </span>
+                    </div>
+                    <base-data-list table_id="mytable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                </div>
+            </div>
+        </div>
+
+        <div v-show="isShow">
+            <div class="btn-menu">
+                <span @click="save" v-show="buttonFlag">保存</span>
+                <span @click="cancel">退出</span>
+            </div>
+            <!-- <i-form label-width="120" class="mg-top-md">
+                <row>
+                    <i-col span='8'>
+                        <form-item label="编码：">
+                            <i-input class="ht-width-md" disabled=true v-model="unitInfo.code"></i-input>
+                        </form-item>
+                        <form-item label="是否默认：">
+                            {{unitInfo.isDefault}}
+                            <checkbox-group v-model="unitInfo.isDefault">
+                                <checkbox label="1">
+                                </checkbox>
+                            </checkbox-group>
+                        </form-item>
+                    </i-col>
+                    <i-col span='8'>
+                        <form-item label="单位名称：">
+                            <i-input class="ht-width-md" :disabled="isLook" v-model="unitInfo.name"></i-input>
+                        </form-item>
+                        <form-item label="创建时间：">
+                            <i-input class="ht-width-md" disabled=true v-model="unitInfo.createTime"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span='8'>
+                        <form-item label="换算率：">
+                            <i-input class="ht-width-md" :disabled="isLook" v-model="unitInfo.conversionRate"></i-input>
+                        </form-item>
+                        <form-item label="创建人：">
+                            <i-input class="ht-width-md" disabled=true v-model="unitInfo.createName"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form> -->
+            <form id="my_from" class="form-horizontal">
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label">
+                        <span class="star"></span>
+                        编码
+                    </label>
+                    <div class="col-sm-10">
+                        <!--<input class="form-control ht-width-lg" type="text" v-model="unitInfo.code">-->
+                        <input class="form-control ht-width-lg"  placeholder="保存时自动生成"   :disabled="true"  type="text" v-model="unitInfo.code">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label">
+                        <span class="star"></span>
+                        单位名称
+                    </label>
+                    <div class="col-sm-10">
+                        <input class="form-control ht-width-lg" :disabled="isLook" name="unitName" type="text" v-model="unitInfo.name">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label">换算率</label>
+                    <div class="col-sm-10">
+                        <input class="form-control ht-width-lg" type="text" :disabled="isLook" v-model="unitInfo.conversionRate">
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label"> 是否默认</label>
+                    <div class="col-sm-10">
+                        <label>
+                            <input type="checkbox" :disabled="isLook" v-model="unitInfo.isDefault">
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label">创建时间</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">{{unitInfo.createTime}}</p>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-sm-2 control-label">创建人</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static" v-model="unitInfo.createName">{{unitInfo.createName}}</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <modal title="新增单位组" v-model="openAddUnitGroup" width="400" @on-cancel="addCancel">
+            <i-form label-width="100" :model="unitGroupBody" ref="addUnitGroup" :rules="ruleUnitPopup">
+                <form-item label="单位组编码：" class="ht-star">
+                    <i-input v-model="unitGroupBody.code" :disabled="true" placeholder="保存时自动生成"></i-input>
+                </form-item>
+                <form-item label="单位组名称：" class="ht-star" prop="name">
+                    <i-input v-model="unitGroupBody.name"></i-input>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" @click="addCancel">取消</i-button>
+                <i-button type="primary" @click="addSure('addUnitGroup')">确定</i-button>
+            </div>
+        </modal>
+        <modal title="修改单位组" v-model="openModifyUnitGroup" width="400" @on-cancel="modifyCancel">
+            <i-form label-width="100" :model="unitGroupBody" ref="modifyUnitGroup" :rules="ruleUnitPopup">
+                <form-item label="单位组编码：" class="ht-star" prop="code">
+                    <i-input v-model="unitGroupBody.code" :disabled="true"></i-input>
+                </form-item>
+                <form-item label="单位组名称：" class="ht-star" prop="name">
+                    <i-input v-model="unitGroupBody.name"></i-input>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" @click="modifyCancel">取消</i-button>
+                <i-button type="primary" @click="modifySure('modifyUnitGroup')">确定</i-button>
+            </div>
+        </modal>
+        <!-- <div class="hide-render" style="position: absolute;left: 10000px;top:0;">
+            <form id="groupFrom">
+                <div id="addUnitGroup" class="mg-top-md">
+                    <label class="col-xs-4 text-right control-label">单位组编码
+                        <span class="star"></span>
+                    </label>
+                    <div class="col-xs-8">
+                        <input type="text" placeholder="保存时自动生成"  v-model="unitGroupBody.code"
+                               :disabled="true"  class="form-control input-sm">
+                    </div>
+                    <label class="col-xs-4 text-right control-label">单位组名称
+                        <span class="star"></span>
+                    </label>
+                    <div class="col-xs-8">
+                        <input type="text" name="unitGroupName"  v-model='unitGroupBody.name' class="form-control input-sm">
+                    </div>
+                </div>
+                <div id="modifyUnitGroup" class="mg-top-md">
+                    <label class="col-xs-4 text-right control-label">单位组编码
+                        <span class="star"></span>
+                    </label>
+                    <div class="col-xs-8">
+                        <input type="text" v-model="unitGroupBody.code" placeholder="保存时自动生成"
+                               :disabled="true"  class="form-control input-sm">
+                    </div>
+                    <p class="col-xs-12" style="height: 10px"></p>
+                    <label class="col-xs-4 text-right control-label">单位组名称
+                        <span class="star"></span>
+                    </label>
+                    <div class="col-xs-8">
+                        <input name="unitGroupName" v-model='unitGroupBody.name' type="text" class="form-control input-sm">
+                    </div>
+                </div>
+            </form>
+
+        </div> -->
+    </div>
+
+    <script src="${rc.contextPath}/js/basedata/unit-info.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+    <script>
+
+    </script> #parse("modules/public/footer.html") </body>
+
+</html>

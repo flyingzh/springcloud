@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>下级经营者服务器登记——新增</title>
+    <style>
+        .upload-box img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .infoBtn {
+            display: inline-block;
+            width: 5px;
+            height: 30px;
+            background-color: #D0B64C;
+        }
+
+        .info-font {
+            font-family: '微软雅黑 Bold', '微软雅黑';
+            font-weight: 700;
+            font-style: normal;
+            font-size: 18px;
+            color: #D8AE29;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: top;
+        }
+
+        .content {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+        }
+
+        .demo-upload-list {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            line-height: 60px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+            position: relative;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
+            margin-right: 4px;
+        }
+
+        .upload {
+            display: inline-block;
+            position: absolute;
+            bottom: -7px;
+            left: 210px;
+        }
+
+        .upload-box {
+            display: inline-block;
+            width: 200px;
+            height: 226px;
+            border: 1px solid #D6D6D6;
+            border-radius: 4px;
+        }
+
+        .demo-upload-list img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .demo-upload-list-cover {
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, .6);
+        }
+
+        .demo-upload-list:hover .demo-upload-list-cover {
+            display: block;
+        }
+
+        .demo-upload-list-cover i {
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+
+        .form-content {
+            padding: 30px;
+        }
+
+        .tr-back {
+            background: #DFF0D8;
+        }
+    </style>
+</head>
+
+<body>
+<div id="nextServer-register-add" v-cloak>
+    <div class="btn-menu">
+        <span @click="save">保存</span>
+        <span @click="createLicenseFile">生成许可文件</span>
+        <span @click="downloadLicenseFile">下载许可文件</span>
+        <span @click="exit">退出</span>
+    </div>
+    <div class="info-class">
+        <span class="infoBtn"></span>
+        <p class="info-font">公司信息</p>
+    </div>
+    <!-- 所属组织树弹窗 -->
+    <modal v-model="oriTemp" :mask-closable="false" scrollable='true' title="选择组织" id="barcode" @on-cancel="cancelTree"
+           @on-ok="enteringBarCode">
+        <ul id="tree" class="ztree" style="width:230px; overflow:auto;"></ul>
+    </modal>
+    <i-form class="form-content" label-position="right" :label-width="130" ref="formValidate" :model="dataInfo" :rules="ruleValidate">
+        <row>
+            <i-col span="8">
+                <form-item label="公司名称：" class="ht-star" prop="companyName">
+                    <i-input class="ht-width-md" v-model="dataInfo.companyName" maxlength="30" @input="htTestChange()" @on-blur="checkName('companyName','公司名称')"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="公司简称：">
+                    <i-input class="ht-width-md" v-model="dataInfo.companyNameShort" maxlength="30" @input="htTestChange()"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="联系人：" class="ht-star" prop="contact">
+                    <i-input class="ht-width-md" v-model="dataInfo.contact" maxlength="30" @input="htTestChange()"></i-input>
+                </form-item>
+            </i-col>
+            </i-col>
+        </row>
+        <row>
+            <i-col span="24">
+                <form-item label="地址：" class="ht-star">
+                    <area-select v-model="area" is-check="true" ref="area" :init="areaInit" area-temp="true"
+                                 url="${rc.contextPath}/baseaddress/queryAddress"></area-select>
+                </form-item>
+            </i-col>
+        </row>
+        <row>
+            <i-col span="8">
+                <form-item label="联系电话：" class="ht-star" prop="contactNumber">
+                    <i-input class="ht-width-md" v-model="dataInfo.contactNumber" @on-blur="checkPhone(dataInfo.contactNumber)" maxlength="11" @input="htTestChange();clearPhone()"></i-input>
+                </form-item>
+                <form-item label="营业执照：">
+                    <div class="upload-box">
+                        <img :src="dataInfo.businessLicenseUrl" alt="">
+                    </div>
+                    <upload ref="upload" action="${rc.contextPath}/pricture/upload" :show-upload-list="false"
+                            :on-success="uploadSuccess"
+                            :format="['jpg','jpeg','png']"
+                            :max-size="2048" class="upload">
+                        <i-button type="primary" class="upload-btn">选择文件</i-button>
+                    </upload>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="公司法人：">
+                    <i-input class="ht-width-md" v-model="dataInfo.corporate" maxlength="30" @input="htTestChange()"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="统一社会信用代码：">
+                    <i-input class="ht-width-md" v-model="dataInfo.creditCode" maxlength="30" @input="htTestChange()"></i-input>
+                </form-item>
+            </i-col>
+        </row>
+        <div>
+            <span class="infoBtn"></span>
+            <p class="info-font">数据来源组织</p>
+        </div>
+        <div style="height:300px;margin-left: 5px">
+            <row>
+                <i-col span="6">
+                    <div class="btn-menu">
+                        <span @click="addRow">新增行</span>
+                        <span @click="delRow">删除行</span>
+                        <!--<span @click="searchOri">搜索占股组织</span>-->
+                    </div>
+                    <div class="content">
+                        <table class="edit-table" style="width: 100%">
+                            <thead>
+                            <th style="width:10%"></th>
+                            <th>所属组织</th>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item,index) in dataInfo.serverInfoEntity.ownOrgEntityList" class="tdInfo">
+                                <td>
+                                    <Checkbox v-model="item.temp" @on-change="checkStatus(index)"></Checkbox>
+                                </td>
+                                <td>
+                                    <i-input type="text" icon="search" v-model="item.orgName"
+                                             @on-click="secOrganization(index)"></i-input>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </i-col>
+                <i-col span="1">
+                    <div style="height:300px;text-align: center;line-height: 300px;font-size: 30px">
+                        <a>
+                            <Icon type="ios-arrow-forward"></Icon>
+                        </a>
+                    </div>
+                </i-col>
+                <i-col span="6">
+                    <div style="height: 30px;"></div>
+                    <div class="content">
+                        <table class="edit-table" style="width: 100%">
+                            <thead>
+                            <th style="width:10%">
+
+                            </th>
+                            <th style="width: 90%">占股组织</th>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item,index) in equityList">
+                                <td style="font-size: 23px;color: #F2F2F2;">
+                                    <Icon type="leaf"></Icon>
+                                </td>
+                                <td>
+                                    {{item.orgName}}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </i-col>
+            </row>
+        </div>
+        <div style="margin-top: 50px">
+            <span class="infoBtn"></span>
+            <p class="info-font">服务器信息</p>
+        </div>
+        <row>
+            <i-col span="8">
+                <form-item label="服务器编号：" class=" " prop="serverInfoEntity.globalServerNo">
+                    <i-input class="ht-width-md" maxlength="30" v-model="dataInfo.serverInfoEntity.globalServerNo"  @on-blur="checkName('globalServerNo','服务器编号')" @input="htTestChange();" ></i-input>
+                </form-item>
+                <form-item label="许可期限：" class="ht-star" prop="serverInfoEntity.licenseStartTime">
+                    <date-picker v-model="dateValue" format="yyyy-MM-dd" type="daterange" :options="optionsDate"  placement="bottom-end" placeholder="请选择日期" class="ht-width-md"
+                                 @on-change="changeDate"></date-picker>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="服务器IP地址：" class="ht-star" prop="serverInfoEntity.serverIp">
+                    <i-input class="ht-width-md" v-model="dataInfo.serverInfoEntity.serverIp"  maxlength="15" @on-blur="checkName('serverIp','服务器IP')" @input="htTestChange();checkTwoDecimal('serverIp')"></i-input>
+                </form-item>
+                <form-item label="预警提前期：" class="ht-star" prop="serverInfoEntity.earlyWarnTime">
+                    <i-input class="ht-width-md" v-model="dataInfo.serverInfoEntity.earlyWarnTime" @input="htTestChange();checkMonth('earlyWarnTime')" ></i-input>
+                    <span>月</span>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="服务器端口号：" class="ht-star" prop="serverInfoEntity.port">
+                    <i-input class="ht-width-md" maxlength="5" v-model="dataInfo.serverInfoEntity.port" @input="htTestChange();checkTwoDecimal('port')"></i-input>
+                </form-item>
+                <form-item label="MAC地址：" class="ht-star" prop="serverInfoEntity.serverMac">
+                    <i-input class="ht-width-md" maxlength="30" v-model="dataInfo.serverInfoEntity.serverMac"  @on-blur="checkName('serverMac','MAC地址')" @input="htTestChange()"></i-input>
+                </form-item>
+            </i-col>
+        </row>
+    </i-form>
+
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+<script type="text/javascript" src='${rc.contextPath}/js/components/area-select.js'></script>
+<script src="${rc.contextPath}/js/server/manage-server/nextServer-register-add.js"></script>
+</body>
+
+</html>

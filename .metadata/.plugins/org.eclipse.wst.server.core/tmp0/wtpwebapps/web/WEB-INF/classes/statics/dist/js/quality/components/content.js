@@ -1,0 +1,1 @@
+"use strict";Vue.component("content",{methods:{},watch:{},template:" <div>\n\n</div>"});

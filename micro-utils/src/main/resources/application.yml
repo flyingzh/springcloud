@@ -1,0 +1,8 @@
+server:
+  port: 9001
+
+spring:  application:    name: micro-utils
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.50.160:9000/eureka/

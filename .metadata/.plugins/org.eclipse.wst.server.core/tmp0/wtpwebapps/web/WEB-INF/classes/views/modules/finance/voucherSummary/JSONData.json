@@ -1,0 +1,109 @@
+{
+  "code":"100100",
+    "msg":"成功",
+    "data":[
+      {
+        "fieldName": "一、营业收入",
+        "lineNum": 1,
+        "amount1": 101,
+        "amount2": 102,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "二、营业收入",
+        "lineNum": 11,
+        "amount1": 103,
+        "amount2": 104,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "三、营业收入",
+        "lineNum": 21,
+        "amount1": 105,
+        "amount2": 106,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "四、营业收入",
+        "lineNum": 21,
+        "amount1": 107,
+        "amount2": 108,
+        "id": 6,
+        "parentLine": 10,
+        "computeType": "+"
+      }
+    ,
+      {
+        "fieldName": "二、营业收入",
+        "lineNum": 11,
+        "amount1": 103,
+        "amount2": 104,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "三、营业收入",
+        "lineNum": 21,
+        "amount1": 105,
+        "amount2": 106,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "四、营业收入",
+        "lineNum": 21,
+        "amount1": 107,
+        "amount2": 108,
+        "id": 6,
+        "parentLine": 10,
+        "computeType": "+"
+      }
+    ,
+      {
+        "fieldName": "二、营业收入",
+        "lineNum": 11,
+        "amount1": 103,
+        "amount2": 104,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "三、营业收入",
+        "lineNum": 21,
+        "amount1": 105,
+        "amount2": 106,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      },
+      {
+        "fieldName": "四、营业收入",
+        "lineNum": 21,
+        "amount1": 107,
+        "amount2": 108,
+        "id": 6,
+        "parentLine": 10,
+        "computeType": "+"
+      }
+    ,
+      {
+        "fieldName": "二、营业收入",
+        "lineNum": 11,
+        "amount1": 103,
+        "amount2": 104,
+        "id": 1,
+        "parentLine": 10,
+        "computeType": "+"
+      }
+    ]
+  
+}

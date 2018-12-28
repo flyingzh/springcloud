@@ -1,0 +1,287 @@
+<!DOCTYPE html>  <!--工资模块的 职员页面-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>职员</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .filter .ivu-form-item{margin-bottom: 5px;}
+    </style>
+</head>
+
+<body>
+<div id="employee" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="openFun" class="ht-btn">过滤</button>
+        <button @click="importFun" class="ht-btn">导入</button>
+        <button @click="delFun" class="ht-btn">删除</button>
+        <button @click="exitPrevent" class="ht-btn">退出</button>
+    </div>
+    <p class="mt10">
+        <label class="w80 ht-star2 text-right">类别名称：</label>
+        <i-select class="w200" v-model="formData.categoryId" @on-change="categoryChange">
+            <i-option v-for="item in categoryList" :value="item.id" :label="item.categoryName" :key="item.id" />
+        </i-select>
+    </p>
+    <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
+        <table id="grid"></table>
+    </div>
+    <!-- 过滤 -->
+    <Modal v-model="filterVisible" width="700px" title="过滤" class="filter" :mask-closable="false">
+        <i-form :model="formData" label-width="90">
+            <row>
+                <form-item label="所属组织：">
+                    <i-input class="calc-w80" v-model="orgName" disabled> </i-input>
+                </form-item>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="员工工号：">
+                        <i-select v-model="formData.empCode" filterable ref="empCodeRef">
+                            <i-option v-for="item in empCodeList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="员工姓名：">
+                        <i-select v-model="formData.empName"  filterable ref="empNameRef">
+                            <i-option v-for="item in empNameList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="身份证号码：">
+                        <i-select v-model="formData.idCard" filterable ref="idCardRef">
+                            <i-option v-for="item in idCardList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="所属部门：">
+                        <i-input class="ht-input-width" icon="search" v-model="formData.deptName"
+                             @on-click="showTrees(true,'showFilterDept')" clearable></i-input>
+                            <div v-show="showFilterDept" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                <ht-input-tree ref="depTreeRef" url="${rc.contextPath}/dept/imported"
+                                    :setting="filterDeptTreeSetting">
+                                </ht-input-tree>
+                            </div>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="邮箱：">
+                        <i-select v-model="formData.mailbox" filterable ref="mailboxRef">
+                            <i-option v-for="item in mailboxList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="手机号码：">
+                        <i-select v-model="formData.phone" filterable ref="phoneRef">
+                            <i-option v-for="item in phoneList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="员工岗位：">
+                        <i-select v-model="formData.station" filterable ref="stationRef">
+                            <i-option v-for="item in stationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="职级：">
+                        <i-select v-model="formData.rank" filterable ref="rankRef">
+                            <i-option v-for="item in rankList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="岗位级别：">
+                        <i-select v-model="formData.stationLevel" filterable ref="stationLevelRef">
+                            <i-option v-for="item in stationLevelList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="学历：">
+                        <i-select v-model="formData.education" filterable ref="educationRef">
+                            <i-option v-for="item in educationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="入职日期：">
+                        <Date-picker transfer type="date" class="inline-block w110" v-model="formData.entryDateStart"
+                                     ref="entryDateStartRef"
+                            placeholder="选择日期">
+                        </Date-picker> 至
+                        <Date-picker transfer type="date" class="inline-block w110" v-model="formData.entryDateEnd"
+                                     ref="entryDateEndRef"
+                            placeholder="选择日期">
+                        </Date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="员工状态：">
+                        <i-select v-model="formData.empStatus" filterable ref="empStatusRef">
+                            <i-option v-for="item in empStatusList" :value="item.value" :key="item.value">
+                                <slot>{{ item.name }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <div slot="footer">
+            <i-button @click="saveFun" type="primary">确定</i-button>
+            <i-button @click="saveCancelFun">取消</i-button>
+        </div>
+    </Modal>
+
+    <!-- 导入 -->
+    <Modal v-model="importVisible" width="700px" title="导入职员" class="filter" :mask-closable="false">
+        <i-form :model="importData" label-width="90">
+            <row>
+                <i-col span="12">
+                    <form-item label="员工工号：">
+                        <i-select v-model="importData.empCode" filterable ref="importEmpCodeRef">
+                            <i-option v-for="item in empCodeList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="职员名称：">
+                        <i-select v-model="importData.empName" filterable ref="importEmpNameRef">
+                            <i-option v-for="item in empNameList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="所属部门：">
+                        <i-input class="ht-input-width" icon="search" v-model="importData.deptName"
+                                 @on-click="showTrees(true,'showImportDept')" clearable></i-input>
+                        <div v-show="showImportDept" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                            <ht-input-tree ref="depTreeRef" url="${rc.contextPath}/dept/imported"
+                                           :setting="importDeptTreeSetting">
+                            </ht-input-tree>
+                        </div>
+                    </form-item>
+                </i-col>
+                <i-col span="12" class="text-right">
+                    <i-button @click="importSerach" type="primary" class="mr10">搜索</i-button>
+                    <i-button @click="importClear">清空</i-button>
+                </i-col>
+            </row>
+        </i-form>
+        <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
+            <table id="importGrid"></table>
+        </div>
+        <div slot="footer">
+            <i-button @click="importSaveFun" type="primary">导入</i-button>
+            <i-button @click="importCancelFun">取消</i-button>
+        </div>
+    </Modal>
+    <!-- 详情 -->
+    <Modal v-model="detailVisible" width="700px" title="职员基本工资设置" class="filter" :mask-closable="false">
+        <i-form :model="detailData" label-width="120">
+            <row>
+                <i-col span="12">
+                    <form-item label="员工工号：">
+                        <i-input class="calc-w80" v-model="detailData.empCode" disabled> </i-input>
+                        <!--<i-select v-model="addData.empCode">
+                            <i-option v-for="item in organizationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>-->
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="员工姓名：">
+                        <i-input class="calc-w80" v-model="detailData.empName" disabled> </i-input>
+                        <!--<i-select v-model="addData.empName">
+                            <i-option v-for="item in organizationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>-->
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="基本工资：">
+                        <input-number :min="0" :step="0" v-model="detailData.basicWage" @on-blur="()=> inputNumberF(this,'detailData','basicWage')" class="calc-w80 ht-input-number-nobtn"></input-number>
+                    </form-item>
+                </i-col>
+                <i-col span="12">
+                    <form-item label="个人公积金金额：">
+                        <input-number :min="0" :step="0" v-model="detailData.publicFunds" @on-blur="()=> inputNumberF(this,'detailData','publicFunds')" class="calc-w80 ht-input-number-nobtn"></input-number>
+                        <!--<i-select v-model="formData.for5">
+                            <i-option v-for="item in organizationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>-->
+                    </form-item>
+                </i-col>
+            </row>
+            <row>
+                <i-col span="12">
+                    <form-item label="个人社保金额：">
+                        <input-number :min="0" :step="0" v-model="detailData.socialSecurity" @on-blur="()=> inputNumberF(this,'detailData','socialSecurity')" class="calc-w80 ht-input-number-nobtn"></input-number>
+                        <!--<i-select v-model="formData.for5">
+                            <i-option v-for="item in organizationList" :value="item" :key="item">
+                                <slot>{{ item }}</slot>
+                            </i-option>
+                        </i-select>-->
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <div slot="footer">
+            <i-button @click="detailSaveFun" type="primary">保存</i-button>
+            <i-button @click="detailCancelFun">取消</i-button>
+        </div>
+    </Modal>
+</div>
+<script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
+<script src="${rc.contextPath}/js/finance/Wages/employee/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

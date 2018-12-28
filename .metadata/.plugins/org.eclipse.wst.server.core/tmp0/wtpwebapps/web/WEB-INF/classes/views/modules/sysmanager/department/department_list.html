@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>部门管理</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/sysmanager/department/department.css">
+<style>
+        div.row {
+            padding: 0;
+        }
+
+        div.row .col-xs-2,
+        div.row .col-xs-10 {
+            padding: 0;
+        }
+
+        #subjectPopup #my_pager_id_left {
+            display: none;
+        }
+
+        #subjectPopup #my_pager_id_right>div {
+            margin-left: 30px
+        }
+
+        html,
+        body,
+        div#paraLevel {
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="paraLevel" v-cloak>
+        <div  v-if="!isEdit">
+            <div class="btn-menu ">
+                <span class="pd-rg-md" @click="refurbish">刷新</span>
+                <span class="pd-rg-md" @click="exit">退出</span>
+            </div>
+            <i-form label-width="80" v-show="isSearchHide" class="mg-top-md">
+                <row>
+                    <i-col span="8">
+                        <form-item label="部门代码：">
+                            <i-input v-model="body.depCode" class="ht-width-md" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="部门名称：">
+                            <i-input v-model="body.depName" class="ht-width-md" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="部门主管：">
+                            <i-input v-model="body.depChargeName" class="ht-width-md" style="width: 200px"></i-input>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="sure" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+
+        <div v-if="!isEdit" style="height: 100%;">
+            <div style="height: 35px;"></div>
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+            <div class="row" style="height: 100%;">
+                <div class="col-xs-2 bg-tree" style="height: 100%;">
+                    <div class="btn-menu">
+                        <span @click="addCategoty" class="is-disabled_add">新增</span>
+                         <span @click="modifyCategoty" class="is-disabled">修改</span>
+                         <span @click="delDeptGroup" class="is-disabled">删除</span>
+                    </div>
+                    <ht-tree :reload="false"  url="/web/dept/getDeptInfoTree" :setting="setting1" :list-reload="reload"
+                             tid='tree' ref="mytree"></ht-tree>
+                </div>
+                <div class="col-xs-10" style="padding-left:10px">
+                    <div class="btn-menu">
+                        <span @click="add_click">新增</span>
+                        <span @click="modify">修改</span>
+                        <span @click="del_click">删除</span>
+                    </div>
+                    <base-data-list return-row-data = "true" table_id="mytable" :data_config="data_config" :need-reload="reload"
+                                     v-model="selected"></base-data-list>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!--新建部门组弹框-->
+        <Modal v-model="showDepartmentAdd" :mask-closable="false" title="新增部门组" @on-ok="adddepartmentDone()">
+            <i-form>
+                <row>
+                    <i-col>
+                        <form-item label="部门组名称:">
+                            <i-input style="width: 200px;" v-model="parentData.deptName"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </Modal>
+
+        <!--修改部门组弹框-->
+        <Modal v-model="showDepartmentUpdate" :mask-closable="false" title="修改部门组" @on-ok="deptUpdateName()">
+            <i-form>
+                <row>
+                    <i-col>
+                        <form-item label="部门组名称:">
+                            <i-input style="width: 200px;" v-model="parentData.deptName"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </Modal>
+
+    </div>
+    #parse("modules/public/footer.html")
+</body>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        '${rc.contextPath}/js/sysmanager/department/department_list.js'
+    ])
+</script>
+</html>

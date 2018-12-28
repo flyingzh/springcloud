@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>下级经营者服务器登记——列表</title>
+    <style>
+        .form-content {
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="nextServer-register-list" v-cloak>
+        <div class="btn-menu">
+            <span @click="refresh">刷新</span>
+            <span @click="add">新增</span>
+            <span @click="del">删除</span>
+            <span @click="exit">退出</span>
+        </div>
+        <i-form class="form-content" v-show="isHideSearch">
+            <row>
+                <i-col span="8">
+                    <form-item label="公司名称：">
+                        <i-input class="ht-width-md" v-model="body.companyName"></i-input>
+                    </form-item>
+                    <form-item label="所属区域：">
+                        <i-select v-model="body.area" ref="area" placeholder="-&#45;&#45;请选择-&#45;&#45;" class="ht-width-md">
+                            <i-option :value="1">华南区</i-option>
+                            <i-option :value="2">华北区</i-option>
+                            <i-option :value="3">华中区</i-option>
+                            <i-option :value="4">华东区</i-option>
+                            <i-option :value="5">西北区</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="公司简称：">
+                        <i-input class="ht-width-md" v-model="body.companyNameShort"></i-input>
+                    </form-item>
+                    <form-item label="联系人：" style="padding-left:10px">
+                        <i-input class="ht-width-md" v-model="body.contact"></i-input>
+                    </form-item>
+
+                </i-col>
+                <i-col span="8">
+                    <!--<form-item label="服务器类型：">
+                        <i-select v-model="body.serverType" placeholder="-&#45;&#45;请选择-&#45;&#45;" class="ht-width-md">
+                            <i-option :value="1">正常</i-option>
+                            <i-option :value="2">异常</i-option>
+                        </i-select>
+                    </form-item>-->
+                    <form-item label="服务器状态：">
+                        <i-select v-model="body.serverStatus" ref="mType" placeholder="-&#45;&#45;请选择-&#45;&#45;" class="ht-width-md">
+                            <i-option :value="1">正常</i-option>
+                            <i-option :value="2">已过期</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false" class="inline-block"
+                            style="margin-left:85px"></ht-btns>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <!-- 隐藏按钮 -->
+        <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+        <!-- 列表部分 -->
+        <div v-show="isHideList">
+            <base-data-list table_id="myTable" :data_config="data_user_list" :need-reload="reload"
+                            v-model="selected"></base-data-list>
+        </div>
+    </div>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+
+<script src="${rc.contextPath}/js/server/manage-server/nextServer-register-list.js"></script>
+</body>
+
+</html>

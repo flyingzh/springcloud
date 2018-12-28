@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge">
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" type="text/css"
+          href="${rc.contextPath}/css/finance/cashier/BankAccountReconciliation/index.css">
+    <title>银行存款对账</title>
+</head>
+
+<body>
+<div id="bankAccountReconciliation" v-cloak>
+    <div class="btn-menu">
+        <button class="ht-btn" @click="refresh">刷新</button>
+        <button class="ht-btn" @click="filterOpen(true)">打开</button>
+        <button class="ht-btn" @click="autoCheck(true)">自动对账</button>
+        <button class="ht-btn" @click="manualCheck">手工对账</button>
+        <button class="ht-btn" @click="accountSetting(true)">对账设置</button>
+        <button class="ht-btn" @click="goAlreadyConfirmedList">已勾兑列表</button>
+        <button class="ht-btn" @click="exporting">导出</button>
+        <button class="ht-btn" @click="print">打印</button>
+        <button class="ht-btn" @click="quit">退出</button>
+
+    </div>
+
+    <!-- <p class="ht-tip1">期间：{{showDataForm.timeStart}} 至 {{showDataForm.timeEnd}}</p> -->
+    <div v-if="showFormInfo" class="ht-formInfo">
+        银行：
+        <span>{{ bank }}</span>
+        银行账号：
+        <span>{{ bankAccount }}</span>
+        科目：
+        <span>{{ subName }}</span>
+        币别：
+        <span>{{ curName }}</span>
+        期间：
+        <span v-if="filter.qr == '1'">{{ filter.accountYear }}年{{ filter.accountPeriod}}期</span>
+        <span v-else>{{ bdt }} 至 {{ edt }}</span>
+
+    </div>
+    <div class="ht-padding10">
+        <div class="jqGrid_wrapper">
+            <table id="list" v-model="selectedStatement"></table>
+            <div id="pager"></div>
+        </div>
+
+        <div class="jqGrid_wrapper" style="padding-top: 20px;">
+            <table id="list2" v-model="selectedJournal"></table>
+            <div id="pager2"></div>
+        </div>
+    </div>
+
+    <!-- 打开 -->
+    <Modal v-model="filterVisible" width="500px" title="查询条件与显示设置" class="filter" :mask-closable="false">
+        <Row>
+            <label class="w60">所属组织：</label>
+            <i-select v-model="filter.sobId" class=" inline-block calc-right-w65" filterable>
+                <i-option v-for="item in organisationList" :value="item.id" :key="item.id">
+                    <slot>{{ item.orgName }}</slot>
+                </i-option>
+            </i-select>
+        </Row>
+        <div class="ht-subtitle mt10 ml0">
+            <div>科目及币别</div>
+        </div>
+        <Row class="mt5">
+            <label class="w60">科目：</label>
+            <i-select @on-change="subjectChange" v-model="filter.subjectId" style="width: 200px;" filterable>
+                <i-option v-for="item in subjectList" :value="item.accountId" :key="item.accountId">
+                    <slot>{{ item.accountCode+' '+item.accountName }}</slot>
+                </i-option>
+            </i-select>
+            <!--<i-input class="required inline-block calc-right-w140" v-model="openData.subjectName" readonly="true" @on-click="showSubjectVisable"-->
+            <!--icon="ios-list-outline" type="text"></i-input>-->
+        </Row>
+        <Row class="mt5">
+            <label class="w60">币别：</label>
+            <i-select v-model="filter.currencyId" style="width: 200px;" filterable>
+                <i-option v-for="item in currencyList" :value="item.currencyId" :key="item.currencyId">
+                    <slot>{{ item.currencyName }}</slot>
+                </i-option>
+            </i-select>
+        </Row>
+        <div class="ht-subtitle mt10 ml0">
+            <div>期间</div>
+        </div>
+        <Row>
+            <label class="w60">&nbsp;</label>
+            <label>
+                <input type="radio" value="1" v-model="filter.qr"> 按期间查询
+            </label>
+            <label class="ml20">
+                <input type="radio" value="2" v-model="filter.qr"> 按日期查询
+            </label>
+        </Row>
+        <Row v-if="filter.qr==='1'" class="mt5">
+            <div>
+                <label class="w60">会计期间：</label>
+                <i-select v-model="filter.accountYear" class="inline-block w120" filterable>
+                    <i-option v-for="item in years" :value="item" :key="item">
+                        <slot>{{ item }}</slot>
+                    </i-option>
+                </i-select>
+                年
+                <i-select v-model="filter.accountPeriod" class="inline-block w120" filterable>
+                    <i-option v-for="item in months" :value="item" :key="item">
+                        <slot>{{ item }}</slot>
+                    </i-option>
+                </i-select>
+                期
+            </div>
+            <!--<div class="mt5">-->
+            <!--<label class="w60">至</label>-->
+            <!--<i-select v-model="openData.endYear" class="inline-block w120" filterable>-->
+            <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+            <!--<slot>{{ item.label }}</slot>-->
+            <!--</i-option>-->
+            <!--</i-select> 年-->
+            <!--<i-select v-model="openData.endPeriod" class="inline-block w120" filterable>-->
+            <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+            <!--<slot>{{ item.label }}</slot>-->
+            <!--</i-option>-->
+            <!--</i-select> 期-->
+            <!--</div>-->
+        </Row>
+        <Row v-else class="mt5">
+            <div>
+                <label class="w60">开始日期：</label>
+                <date-picker type="date" v-model="filter.beginDatetime" placeholder="Select date"
+                             class="inline-block w120"></date-picker>
+                <!--<date-picker type="date" v-model="filter.beginDatetime" :value="filter.beginDatetime" placeholder="Select date" class="inline-block w120"></date-picker>-->
+            </div>
+            <div class="mt5">
+                <label class="w60">结束时间：</label>
+                <date-picker type="date" v-model="filter.endDatetime" placeholder="Select date"
+                             class="inline-block w120"></date-picker>
+                <!--<date-picker type="date" v-model="filter.endDatetime" :value="filter.endDatetime" placeholder="Select date" class="inline-block w120"></date-picker>-->
+            </div>
+
+        </Row>
+
+        <!--<div class="ht-subtitle mt10 ml0">-->
+        <!--<div>其他查询条件</div>-->
+        <!--</div>-->
+        <!--<Row class="mt5">-->
+        <!--<label class="w60">摘要</label>-->
+        <!--&lt;!&ndash; <i-input type="text" class="inline-block calc-right-w65" v-model="openData.explains"></i-input> &ndash;&gt;-->
+        <!--<Auto-complete v-model="openData.explains" class="ht-remark-autoComplete" icon="ios-folder" style="width:396px">-->
+        <!--<div class="demo-auto-complete-item" v-for="item in remarklist">-->
+        <!--<i-option :value="item.content" :key="item.content">{{ item.content }}</i-option>-->
+        <!--</div>-->
+        <!--</Auto-complete>-->
+        <!--<i-button type="text" icon="ios-folder" class="ht-remark-btn" @click.stop="clickDigest"></i-button>-->
+        <!--</Row>-->
+        <!--<Row class="mt5">-->
+        <!--<label class="w60">结算方式</label>-->
+        <!--<i-select v-model="openData.voucherGroupId" class=" inline-block w120" filterable>-->
+        <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+        <!--<slot>{{ item.label }}</slot>-->
+        <!--</i-option>-->
+        <!--</i-select>-->
+        <!--<label class="w60 ml30">结算号</label>-->
+        <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+        <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+        <!--</Row>-->
+
+
+        <!--<Row class="mt5">-->
+        <!--<label class="w60">制单人</label>-->
+        <!--<i-select v-model="openData.handleId" class=" inline-block w120" filterable>-->
+        <!--<i-option v-for="item in organisationList" :value="item.value" :key="item.value">-->
+        <!--<slot>{{ item.label }}</slot>-->
+        <!--</i-option>-->
+        <!--</i-select>-->
+        <!--<label class="w60 ml30">借方金额</label>-->
+        <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+        <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+        <!--</Row>-->
+
+        <!--<Row class="mt5">-->
+        <!--<label class="w60">贷方金额</label>-->
+        <!--<Input-number class="w80" v-model="openData.startVoucherGroupNumber"></Input-number> 至-->
+        <!--<Input-number class="w80" v-model="openData.endVoucherGroupNumber"></Input-number>-->
+        <!--</Row>-->
+
+        <div class="ht-subtitle mt10 ml0">
+            <div>显示选项</div>
+        </div>
+        <Row>
+            <label>
+                <input type="checkbox" v-model="filter.containTicked"> 包含已勾兑记录
+            </label>
+        </Row>
+
+        <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="cancel">取消</i-button>
+        </div>
+    </Modal>
+
+    <!-- 银行存款对账设置 -->
+    <Modal v-model="asModal" title="银行存款对账设置" class-name="ht-deleteModal" width="400" @on-ok="accountSettingOK"
+           @on-cancel="accountSetting(false)"
+           closable="false" :mask-closable="false">
+        <div class="ht-modal-center" style="position: relative;">
+            <Tabs value="name1">
+                <Tab-pane label="自动对账设置" name="name1">
+                    <div class="ht-subtitle mt10 ml0">
+                        <div>自动对账条件</div>
+                    </div>
+                    <Checkbox v-model="arcGroup.date" style="width: 100%;">日期相同</Checkbox>
+                    <Checkbox v-model="arcGroup.abstract" style="width: 100%;">摘要相同</Checkbox>
+                    <!--<Checkbox v-model="arcGroup.settlement" style="width: 100%;">结算方式相同</Checkbox>-->
+                    <!--<Checkbox v-model="arcGroup.settlementNumber" style="width: 100%;">结算号相同</Checkbox>-->
+
+                    <div class="ht-subtitle mt10 ml0">
+                        <div>对账限制</div>
+                    </div>
+                    <!--<Checkbox v-model="arcGroup.accountRestriction">结算方式及结算号都为空不允许对账</Checkbox>-->
+                    <p>说明：自动对账的基本条件是金额相等</p>
+                </Tab-pane>
+                <Tab-pane label="手工对账设置" name="name2" v-bind:disabled="auto">
+                    <div class="ht-subtitle mt10 ml0">
+                        <div>查找记录</div>
+                    </div>
+                    <Radio-group v-model="findRecord" @on-change="manualOptions">
+                        <Radio label="1" style="width: 100%;">根据对账单记录自动查找日记账记录</Radio>
+                        <Radio label="2" style="width: 100%;">根据日记账记录自动查找对账单记录</Radio>
+                        <Radio label="3" style="width: 100%;">不进行自动查找</Radio>
+                    </Radio-group>
+                    <div class="ht-subtitle mt10 ml0">
+                        <div>自动查找条件</div>
+                    </div>
+                    <Checkbox v-if="noAutoFind" v-model="manualGroup.date" style="width: 20%;" disabled="disabled">
+                        日期相同
+                    </Checkbox>
+                    <Checkbox v-else v-model="manualGroup.date" style="width: 20%;">日期相同</Checkbox>
+                    <Checkbox v-if="noAutoFind" v-model="manualGroup.abstract" style="width: 20%;" disabled="disabled">
+                        摘要相同
+                    </Checkbox>
+                    <Checkbox v-else v-model="manualGroup.abstract" style="width: 20%;">摘要相同</Checkbox>
+                    <!--<Checkbox v-model="manualGroup.settlement" style="width: 30%;">结算方式相同</Checkbox>-->
+                    <!--<Checkbox v-model="manualGroup.settlementNumber" style="width: 30%;">结算号相同</Checkbox>-->
+                    <Checkbox v-if="noAutoFind" v-model="manualGroup.amount" style="width: 20%;" disabled="disabled">
+                        金额相等
+                    </Checkbox>
+                    <Checkbox v-else v-model="manualGroup.amount" style="width: 20%;">金额相等</Checkbox>
+
+                    <!-- <div class="ht-subtitle mt10 ml0">
+                        <div>查找设置</div>
+                    </div>
+                    <Checkbox v-model="manualGroup.accountRestriction">自动改变表格位置</Checkbox> -->
+                </Tab-pane>
+            </Tabs>
+
+        </div>
+    </Modal>
+
+    <ht-remark :recmodal="remarkVisable" :remark-list="remarklist" @on-modal-change="onRemarkModalChange"
+               @on-list-change="onRemarkListChange"
+               @on-row-dblclick="onDblclickRemarkRow"></ht-remark>
+    <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData"
+                      ref="modalSubject"></ht-modal-subject>
+
+    <form id="export_form" method="post" hidden="hidden" action="${rc.contextPath}/bankdepositstatement/hooking/export">
+
+    </form>
+    <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"></ht-print-choose>
+</div>
+<script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+<script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+<script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/finance/components/ht-remark.js"></script>
+<script src='${rc.contextPath}/js/basedata/components/ht-btns.js'></script>
+<script src='${rc.contextPath}/js/basedata/components/ht-add-del-btn.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/finance/cashier/BankAccountReconciliation/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

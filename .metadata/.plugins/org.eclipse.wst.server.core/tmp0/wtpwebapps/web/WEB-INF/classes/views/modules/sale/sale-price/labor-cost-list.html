@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>工费表</title>
+    <style>
+        #labor th,
+        #labor td {
+            border: 1px solid #CCCCCC;
+            height: 40px;
+            width: 80px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+<div id="labor-cost-list" v-cloak>
+    <div class="btn-menu">
+        <span class="pd-rg-sm pd-lf-sm" @click="save">保存</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="exportTemplate">引出模板</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="importExcel">引入</span>
+        <span class="pd-rg-sm pd-lf-sm" @click="quit">退出</span>
+    </div>
+    <Modal
+            v-model="showUpload"
+            title="上传文件"
+            @on-ok="modalOk"
+            @on-cancel="modalCancel">
+        <Upload
+                ref="upload"
+                :on-success="handleSuccess"
+                :max-size="5120000"
+                :on-format-error="handleFormatError"
+                :on-exceeded-size="handleMaxSize"
+                :before-upload="handleBeforeUpload"
+                :format="['xlsx']"
+                action="${rc.contextPath}/saleLaborController/importExcel">
+            <i-button type="ghost" icon="ios-cloud-upload-outline">导入</i-button>
+        </Upload>
+    </Modal>
+    <div class="ht-subtitle mg-lf-md">工费表：</div>
+    <table id="labor" class="edit-table" style="margin-left: 30px;">
+        <thead>
+        <tr>
+            <th colspan="7">基本工费</th>
+            <th colspan="4">其他工费</th>
+        </tr>
+        <tr>
+            <th rowspan="2">类别</th>
+            <th rowspan="2">工艺难度</th>
+            <th colspan="2">PT</th>
+            <th colspan="2">18K白/红/黄</th>
+            <th rowspan="2">18K分色</th>
+            <th rowspan="2">喷砂/拉砂</th>
+            <th rowspan="2">钉沙/钩丝</th>
+            <th rowspan="2">手工批花</th>
+            <th rowspan="2">CNC批花</th>
+        </tr>
+        <tr>
+            <th>损耗%</th>
+            <th>工费</th>
+            <th>损耗%</th>
+            <th>工费</th>
+        </tr>
+        </thead>
+        <tbody v-for="item in saleLaborVo.saleLaborDetailList">
+        <tr>
+            <td>
+                <input type="text" v-model="item.category" >
+            </td>
+            <td>
+                <input type="text" v-model="item.difficulty" >
+            </td>
+            <td>
+                <input type="text" v-model="item.ptLoss" >
+            </td>
+            <td>
+                <input type="text" v-model="item.ptLaborCost" >
+            </td>
+            <td>
+                <input type="text" v-model="item.kingLoss" >
+            </td>
+            <td>
+                <input type="text" v-model="item.kingLaborCost" >
+            </td>
+            <td>
+                <input type="text" v-model="item.kingFenColor" >
+            </td>
+            <td>
+                <input type="text" v-model="item.sandBlast" >
+            </td>
+            <td>
+                <input type="text" v-model="item.nailSand" >
+            </td>
+            <td>
+                <input type="text" v-model="item.batchFlower" >
+            </td>
+            <td>
+                <input type="text" v-model="item.cncBatchFlower" >
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="ht-subtitle mg-lf-md">备注说明:</p>
+    <textarea style="width:880px;margin-left: 30px;font-size: 14px;" cols="30" rows="10"
+              v-model="saleLaborVo.remark"></textarea>
+</div>
+<script src='${rc.contextPath}/js/sale/sale-price/labor-cost-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

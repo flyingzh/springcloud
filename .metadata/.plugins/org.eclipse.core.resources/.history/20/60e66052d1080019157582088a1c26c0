@@ -1,0 +1,142 @@
+package com.htrfid.financeapp.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.util.TextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.htrfid.exception.MyException;
+import com.htrfid.finance.entity.FaLocationEntity;
+import com.htrfid.financeapp.remote.FaLocationRemoteService;
+import com.htrfid.financeapp.service.CommonService;
+import com.htrfid.financeapp.service.FaLocationService;
+import com.htrfid.shiro.utils.UserUtils;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.Result;
+
+/**
+* @className FaLocationServiceImpl
+* @description 存放地点
+* @author zhengfei
+* @email 936864724@qq.com
+* @date 2018-09-13 10:04
+* @version V1.0.1
+**/
+@Service("faLocationService")
+public class FaLocationServiceImpl implements FaLocationService {
+
+    @Autowired
+    private FaLocationRemoteService faLocationRemoteService;
+    @Autowired
+    private CommonService commonService;
+
+    @Override
+    public Result deleteById(Long id) {
+    	Long sobId = UserUtils.getCurrentUser().getUserCurrentOrganId();
+        FaLocationEntity entity = new FaLocationEntity();
+        entity.setSobId(sobId);
+        entity.setId(id);
+        return faLocationRemoteService.deleteById(entity);
+    }
+
+
+    @Override
+    public Result saveOrUpdate(FaLocationEntity locationEntity) {
+        SysUser user = UserUtils.getCurrentUser();
+        Long sobId = user.getUserCurrentOrganId();
+
+        if(TextUtils.isEmpty(locationEntity.getCode())){
+            return Result.error("编号不能为空");
+        }
+        try {
+            String reg = "/^[1-9]{1,9}(\\.{0,1}([0-9]{2,9}|[1-9]{1}))*$/";
+            //验证编码合法性
+            String code = locationEntity.getCode();
+            Integer.parseInt(code.replaceAll("\\.",""));
+
+            if(code.startsWith(".")||code.endsWith(".")){
+                return Result.error("编码不能以“ . ”开始或结束");
+            }
+            String[] split = code.split("\\.");
+            for(String str:split){
+                if(Integer.parseInt(str) == 0){
+                    return  Result.error("编码不能为0");
+                }
+                if(str.length() == 1){
+                    return  Result.error("编码长度不能为1");
+                }
+                if(str.startsWith("-")){
+                    return  Result.error("请使用[0-9]的数字和小数点来组成编码");
+                }
+            }
+        }catch (MyException e){
+            return Result.error("请使用[0-9]的数字和小数点来组成编码");
+        }
+
+        if(TextUtils.isEmpty(locationEntity.getName())){
+            return Result.error("名称不能为空");
+        }
+
+        locationEntity.setSobId(sobId);
+        if(locationEntity.getId() == null || locationEntity.getId() == 0){
+            locationEntity.setCreateTime(new Date());
+            locationEntity.setCreateId(user.getId());
+            locationEntity.setCreateName(user.getUsername());
+        }
+        locationEntity.setUpdateTime(new Date());
+        locationEntity.setUpdateId(user.getId());
+        locationEntity.setUpdateName(user.getUsername());
+        if(TextUtils.isEmpty(locationEntity.getRemark())){
+            locationEntity.setRemark(locationEntity.getName());
+        }
+        return faLocationRemoteService.saveOrUpdate(locationEntity);
+    }
+
+    @Override
+    public Result info(Long id) {
+    	Long sobId = UserUtils.getCurrentUser().getUserCurrentOrganId();
+        FaLocationEntity entity = new FaLocationEntity();
+        entity.setSobId(sobId);
+        entity.setId(id);
+        return faLocationRemoteService.info(entity);
+    }
+
+    /**
+    * @description: 页面初始化
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-09-17 10:38
+    * @param sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result initPage(Long sobId) {
+        Map<String,Object> initMap = new HashMap<>(10);
+        //当前组织及名称
+        List<Map<String,Object>> list = new ArrayList<>();
+        Map<String, Object> orgEntity = commonService.getOrgEntity();
+        list.add(orgEntity);
+        initMap.put("org",list);
+        return Result.ok(initMap);
+    }
+
+    /**
+    * @description: 初始化树
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-09-17 10:46
+    * @param sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result initTree(Long sobId) {
+        FaLocationEntity entity = new FaLocationEntity();
+        entity.setSobId(sobId);
+        return faLocationRemoteService.initTree(entity);
+    }
+}

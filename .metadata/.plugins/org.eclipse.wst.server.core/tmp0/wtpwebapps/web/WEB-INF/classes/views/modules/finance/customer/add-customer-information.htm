@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="../header.html" />
+    <link rel="stylesheet" href="../../css/basedata/add-customer-information.css">
+    <title>新增/修改客户资料</title>
+</head>
+<body>
+    <div id="customerInfo">
+        <!-- 按钮栏 -->
+        <div class="ht-tabnav">
+            <span @click="save">保存</span>
+            <span>退出</span>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>新建客户资料</legend>
+        </fieldset>        
+        <!-- 标签部分 -->
+        <div class="layui-tab">
+            <!-- 标签页头 -->
+            <ul class="layui-tab-title">
+                <li class="layui-this">基本资料</li>
+                <li>联系人信息</li>
+                <li>银行卡账户信息</li>
+                <li>附件</li>          
+            </ul>
+            <div class="layui-tab-content">
+                <!-- tab1基本信息 -->
+                <div class="layui-tab-item layui-show">
+                    <form class="form-horizontal ht-form">
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">客户编码：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control required ht-width" type="text" />
+                             </div>
+                         </div>  
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">客户名称：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control required ht-width" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">简称：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control required ht-width" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">客户等级：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <select name="" id="" class="form-control ht-width">
+                                     <option value="0">请选择</option>
+                                     <option value="1">一级</option>
+                                     <option value="2">二级</option>
+                                     <option value="3">三级</option>
+                                     <option value="4">四级</option>
+                                 </select>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">客户地址：</label>
+                             <div class="col-xs-9">
+                                 <select name="" id="sel-area" class="form-control ht-width ht-area">
+                                     <option value="">华东区</option>
+                                     <option value="">华南区</option>
+                                     <option value="">华中区</option>
+                                     <option value="">西北区</option>
+                                     <option value="">西南区</option>
+                                 </select>
+                                 <select name="" id="sel-province" class="form-control ht-width ht-province">
+                                     <option value="">请选择</option>
+                                     <option value="">湖南省</option>
+                                     <option value="">湖北省</option>
+                                 </select>
+                                 <select name="" id="sel-city" class="form-control ht-width ht-city">
+                                     <option value="">请选择</option>
+                                     <option value="">长沙市</option>
+                                     <option value="">株洲市</option>
+                                 </select>
+                                 <input id="sel-address"  class="form-control ht-width required ht-add" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">邮政编码：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">付款方式：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <select name="" id=""  class="form-control required ht-width">
+                                     <option value="">请选择</option>
+                                     <option value="">月结</option>
+                                     <option value="">预付</option>
+                                     <option value="">到货付</option>
+                                 </select>
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">结算天数：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>(天)</span>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">预付比例：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>%</span>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">结算币种：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <select name="" id=""  class="form-control required ht-width">
+                                     <option value="">请选择</option>
+                                     <option value="">人民币</option>
+                                     <option value="">美元</option>
+                                     <option value="">港币</option>
+                                 </select>
+                             </div>
+                         </div>                     
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">结算方式：<span class="star"></span></label>
+                             <div class="col-xs-9">
+                                 <select name="" id=""  class="form-control required ht-width">
+                                     <option value="">请选择</option>
+                                     <option value="">现金</option>
+                                     <option value="">电汇</option>
+                                     <option value="">信汇</option>
+                                 </select>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">公司传真：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">公司法人：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">注册日期：</label>
+                             <div class="col-xs-9">
+                                 <input id="regiDate" class="form-control ht-width layui-input" type="text" />
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">营业执照编号：</label>
+                             <div class="col-xs-9">
+                                 <input class="form-control ht-width" type="text" />
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">税务登记号：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">税分类：</label>
+                             <div class="col-xs-9">
+                                 <select name="" id=""  class="form-control ht-width" >
+                                     <option value="">请选择</option>
+                                     <option value="">一般纳税人</option>
+                                     <option value="">小规模纳税人</option>
+                                 </select>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">增值税率：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>%</span>
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">免息天数：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>(天)</span>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">日利率：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>%</span>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">信用额度：</label>
+                             <div class="col-xs-9">
+                                 <input  class="form-control ht-width" type="text" />
+                                 <span>元</span>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">代管仓：</label>
+                             <div class="col-xs-9">
+                                 <select name="" id=""  class="form-control ht-width">
+                                     <option value="">请选择</option>
+                                     <option value="">仓库1</option>
+                                     <option value="">仓库2</option>
+                                 </select>
+                             </div>
+                         </div>
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">有效状态：</label>
+                             <div class="col-xs-9">
+                                 <label class="radio-inline">
+                                     <input type="radio" name="status" value="status1" > 有效
+                                 </label>
+                                 <label class="radio-inline">
+                                     <input type="radio" name="status" value="status2" > 无效
+                                 </label>
+                             </div>
+                         </div> 
+                         <div class="form-group form-group-sm">
+                             <label class="col-xs-3 control-label">备注：</label>
+                             <div class="col-xs-9">
+                                 <textarea name="" id="" cols="30" rows="5"  class="form-control ht-width"></textarea>
+                             </div>
+                         </div> 
+                         <!-- <div class="form-group">
+                             <label class="col-xs-3"></label>
+                             <div class="col-xs-9">
+                                 <button type="button" class="btn btn-primary" >保存</button>
+                                 <button type="button" class="btn btn-primary" >返回</button>
+                             </div>
+                         </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        -->
+                    </form>
+                </div>
+                <!-- tab2联系人信息 -->
+                <div class="layui-tab-item">
+                    <button class="btn btn-primary" >新增</button>
+                    <form action="">
+                        <table class="layui-table" lay-size="sm">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>姓名<span class="star"></span></th>
+                                    <th>手机号<span class="star"></span></th>
+                                    <th>Email邮箱</th>
+                                    <th>联系方式</th>
+                                    <th>微信</th>
+                                    <th>是否默认联系人</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                               
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                                        
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+                <!-- tab3银行卡账户信息 -->
+                <div class="layui-tab-item">
+                    <button class="btn btn-primary" >新增</button>
+                    <form action="">
+                        <table class="layui-table" lay-size="sm">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>开户银行</th>
+                                    <th>银行账号</th>
+                                    <th>开户人</th>
+                                    <th>是否默认</th>
+                                    <th>操作</th>                               
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><input type="text"></td>                               
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                               
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><input type="text"></td>                               
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                                                                    
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>                
+                </div>
+                <!-- tab4附件信息 -->
+                <div class="layui-tab-item">
+                    <button class="btn btn-primary" @click="uploadfile">上传文件</button>
+                    <form action="">
+                        <table class="layui-table" lay-size="sm">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>文件名</th>
+                                    <th>文件大小</th>
+                                    <th>上传人</th>
+                                    <th>上传时间</th>
+                                    <th>操作</th>                               
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td></td>                               
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                               
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td></td>                               
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <a href="">修改</a>
+                                        <a href="">删除</a>
+                                    </td>                                                                                           
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>                  
+                </div>          
+            </div>
+        </div>        
+    </div>
+    <div class="hide-render" >
+        <div id="uploadConfirm">
+            <p>可批量上传jpg、png、bmp、jpeg等图片文件，电子发票支持pdf文件，最大支持批量上传2M</p>                 
+            <input  type="file"/>            
+        </div>
+    </div>
+
+    <script src="../../js/basedata/add-customer-information.js"></script>
+</body>
+</html>

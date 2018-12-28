@@ -1,0 +1,82 @@
+/* base */
+h1,h2,h3,h4,h5,h6,ul,li,dd,dt{
+    margin: 0;
+    padding: 0;
+}
+/* text-align */
+.text-lf{
+    text-align: left;
+}
+.text-rg{
+    text-align: right;
+}
+/* width */
+.width-lg{
+    width:90%
+}
+/* padding */
+.pd-lf-sm{
+    padding-left:10px;
+}
+.pd-rg-sm{
+    padding-right:10px;
+}
+.pd-top-sm{
+    padding-top:10px;
+}
+.pd-bt-sm{
+    padding-bottom:10px;
+}
+/* margin */
+.mg-lf-sm{
+    margin-left: 20px;
+}
+/* mouse */
+.mouse-point{
+    cursor: pointer;
+}
+
+
+.inline-block{
+    display: inline-block;
+}
+.add-account{
+    border-collapse:separate;   
+    border-spacing:5px;
+}
+
+.check-table th{
+    padding:10px 40px;
+    border:1px solid #bbbec4
+}
+.check-table td{
+    padding: 10px 5px;
+    border:1px solid #bbbec4
+}
+/* background-color */
+.bg-gray{
+    background: #F2F2F2;
+}
+.bg-gray-less{
+    background: #E8E8E8;
+}
+.navbase{
+    height: 40px;
+    line-height: 40px;
+}
+
+.position-r{
+    position: relative;
+}
+.position-search{
+    position: absolute;
+    right:10px;
+    top:8px;
+}
+
+.err-notice{
+    position: absolute;
+    top:10px;
+    right:-50%;
+}
+

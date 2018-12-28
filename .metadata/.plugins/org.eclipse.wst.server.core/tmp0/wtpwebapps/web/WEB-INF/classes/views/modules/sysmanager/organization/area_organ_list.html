@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>区域组织 - 列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/sysmanager/organization/area_organ_list.css">
+    <!--<link rel="stylesheet" type="text/css" href="../../../../statics/css/iview.css">
+    <link rel="stylesheet" href="../../../../statics/css/basedata/common.css">
+    <link rel="stylesheet" href="../../../../statics/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../../statics/css/main.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css">-->
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isAdd">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="refresh">刷新</span>
+            <span class="pd-rg-md" v-show="isOperatorServer" @click="add">新增</span>
+            <span class="pd-rg-md" @click="del_click">删除</span>
+            <span class="pd-rg-md" @click="update">修改</span>
+            <span class="pd-rg-md" @click="">预览</span>
+            <span class="pd-rg-md" @click="">打印</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <!-- row代表行 -->
+                <row :gutter="24">
+                    <i-col span="8">
+                        <form-item label="组织名称：">
+                            <i-input v-model="organizationEntity.orgName" style="width: 200px"></i-input>
+                        </form-item>
+                        <form-item label="组织类型：">
+                            <i-select v-model="organizationEntity.organType" ref="organType" :clearable="true" @on-clear="clearData('organType')" style="width: 200px">
+                                <i-option v-for="(item,index) in selectOrganizationType" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="组织简称：">
+                            <i-input type="text" v-model="organizationEntity.abbreviation" class="ht-input-width" style="width: 200px"></i-input>
+                        </form-item>
+                        <form-item label="性质：">
+                            <i-select v-model="organizationEntity.nature" style="width: 200px" :clearable="true" @on-clear="clearData('nature')" ref="nature">
+                                <i-option v-for="(item,index) in selectNature" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="所属区域：">
+                            <i-select v-model="organizationEntity.area" style="width: 200px" :clearable="true" @on-clear="clearData('area')" ref="area">
+                                <i-option v-for="(item,index) in selectArea" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item>
+                            <ht-btns  :is-search="true" :is-add="false"
+                                      class="inline-block"
+                                      @clear='clear'
+                                      @search="search"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div style="height: 35px;"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <!--<base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"  v-show="isTabulationHide"></base-data-list>-->
+            <div class="layer">
+                <div id="tableMain">
+                    <ul id="dataTree" class="ztree">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--<script src="../../../../statics/plugins/layui/layui.all.js"></script>
+<script src='../../../../statics/js/jquery-2.0.3.min.js'></script>
+<script src='../../../../statics/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='../../../../statics/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='../../../../statics/js/vue.min.js'></script>
+<script src='../../../../statics/plugins/iview/iview.min.js'></script>
+<script src='../../../../statics/js/utils.js'></script>
+<script src='../../../../statics/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='../../../../statics/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src='../../../../statics/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src="../../../../statics/ktc/components/basedata/dist/iview.js"></script>
+&lt;!&ndash;组件&ndash;&gt;
+<script src='../../../../statics/js/basedata/components/base-data-list.js'></script>
+<script src='../../../../statics/js/basedata/components/ht-btns.js'></script>
+<script src='../../../../statics/js/components/ht-toggle.js'></script>-->
+<!--js逻辑-->
+<script>
+    htLoadJs([
+        'ht-toggle',
+        '${rc.contextPath}/js/access/access.js',
+        '${rc.contextPath}/js/math.min.js',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/sysmanager/organization/area_organ_list.js'],'debug');
+</script>
+
+</html>

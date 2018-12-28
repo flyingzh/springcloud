@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge"> #parse("modules/public/header.html")
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/cashier/CashCountSheet/index.css">
+    <title>现金盘点单</title>
+    <style>
+        .ht-receivableW-table{
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cashCountSheet" class="copyright_content clearfix" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshData">刷新</button>
+            <button class="ht-btn" @click="openFilter">打开</button>
+            <Modal v-model="filterModal" title="查询条件与显示设置" class-name="ht-deleteModal" width="400" @on-ok="saveData" @on-cancel="cancelData"
+                closable="false">
+                <div class="ht-modal-center" style="position: relative;">
+                    <i-form :model="filterBody" label-width="100">
+                        <form-item label="所属组织：">
+                            <i-select v-model="filterBody.sobId" disabled class="ht-width-md">
+                                <i-option v-for="item in organizationList" :value="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="开始日期：">
+                            <date-picker v-model="filterBody.timeStart" end="true" class="inline-block"></date-picker>
+                        </form-item>
+                        <form-item label="结束日期：">
+                            <date-picker v-model="filterBody.timeEnd" end="true" class="inline-block"></date-picker>
+                        </form-item>
+                    </i-form>
+                </div>
+            </Modal>
+            <button class="ht-btn" @click="modify('add')" >新增</button>
+
+            <!-- <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject> -->
+
+            <span class="ht-btn" @click="modify('update')" :disabled="isDisabled">修改</span>
+            <span class="ht-btn" @click="deleteBatch">删除</span>
+            <button class="ht-btn" @click="printV">打印</button>
+            <button class="ht-btn" @click="outHtml">退出</button>
+
+        </div>
+        <p class="ht-tip1">期间：{{showDataForm.timeStart}} 至 {{showDataForm.timeEnd}}</p>
+        <div class="mt10">
+            <div class="sider-left ht-left-content ht-commFloatLeft" style="overflow: auto;">
+                <div class="ht-left-type">
+                    <Radio-group v-model="leftType" @on-change="onTreeChange">
+                        <Radio label="ltData">
+                            <span>期间</span>
+                        </Radio>
+                        <Radio label="ltSubject">
+                            <span>科目</span>
+                        </Radio>
+                    </Radio-group>
+                </div>
+                <div class="ht-left-ztreeData">
+                    <ht-treeinc :node-data="nodes" :setting="setting" :tid="tid"></ht-treeinc>
+                </div>
+
+            </div>
+            <div class="ht-right-content ht-commFloatLeft">
+                <Row class="pt10">
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">盘点人：</label>{{rightForm.createName}}
+                    </i-col>
+                    <i-col :span="16" class="ht-lineHeight30">
+                        <label class="w85">现金盘点单</label>
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">科目：</label>{{rightForm.subjectName}}
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">币别：</label>{{rightForm.currencyName}}
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">日期：</label>{{rightForm.dateTime}}
+                    </i-col>
+                </Row>
+
+                <!-- <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list> -->
+
+                <div class="jqGrid_wrapper">
+                    <table id="list"></table>
+                    <div id="pager"></div>
+                </div>
+
+                <Row class="pt10">
+                    <i-col :span="24" class="ht-lineHeight30">
+                        <label class="w85">备注：</label>{{rightForm.remark}}
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">实存金额：</label>{{rightForm.sheetMoney}}
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">账存金额：</label>{{rightForm.cashMoney}}
+                    </i-col>
+                    <i-col :span="8" class="ht-lineHeight30">
+                        <label class="w85">盘盈：</label>{{rightForm.profitMoney}}
+                    </i-col>
+                </Row>
+            </div>
+        </div>
+        <ht-count-add v-model="addModal" :title="addTitle" :data-list="dataList" :organization-list="organizationList" :subject-list="subjectList"
+            :currency-list="currencyList" :period-date="periodDate" :form-add="formAdd" @refresh="refreshData" @close="addClose" @loadtree="initCashCheckTree">
+        </ht-count-add>
+    </div>
+    #parse("modules/public/footer.html")
+    <script src="${rc.contextPath}/js/finance/cashier/CashCountSheet/ht-tree.js"></script>
+    <script src='${rc.contextPath}/js/basedata/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/ht-add-del-btn.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/cashier/CashCountSheet/ht-count-add.js"></script>
+    <script src="${rc.contextPath}/js/finance/cashier/CashCountSheet/index.js"></script>
+ </body>
+
+</html>

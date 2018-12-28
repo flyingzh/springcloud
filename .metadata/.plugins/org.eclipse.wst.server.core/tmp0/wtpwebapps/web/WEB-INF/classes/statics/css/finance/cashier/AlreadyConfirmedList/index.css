@@ -1,0 +1,12 @@
+#alreadyConfirmedList .ht-formInfo{
+    padding: 10px 34px;
+    font-size: 14px;
+}
+
+#alreadyConfirmedList .ht-formInfo span{margin-right: 20px;}
+#alreadyConfirmedList .ht-padding10{padding: 10px !important;}
+.ht-paddingRight20{padding-right: 20px !important;}
+
+#alreadyConfirmedList .ui-jqgrid .ui-jqgrid-caption {
+    text-align: center !important;text-align: -webkit-center !important;
+}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>收付款单据</title>
+	#parse("modules/public/header.html")
+	<link rel="stylesheet" href="${rc.contextPath}/ktc/css/ht-fixed-table.css">
+	<link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/paymentreceipt/index.css">
+
+</head>
+
+<body>
+	<div id="receivableWriteofflist" class="copyright_content" v-cloak>
+		<div class="btn-menu ht-finance-menu-cl">
+			<button class="ht-btn" @click="actionBtnMth('addNew')">新增</button>
+			<button class="ht-btn" @click="preserve" :disabled="isDisabled">保存</button>
+			<button class="ht-btn" @click="actionBtnMth('source')" :disabled="sourceDisabled">源单</button>
+			<button class="ht-btn" @click="actionBtnMth('examine')" :disabled="examineisDisabled">审核</button>
+			<button class="ht-btn" @click="actionBtnMth('noexamine')" :disabled="noexamineisDisabled">反审核</button>
+			<button class="ht-btn" @click="totalToTHEAD">合计</button>
+			<button class="ht-btn" @click="divideToTBODY">分摊</button>
+			<button class="ht-btn" @click="actionBtnMth('delete')" :disabled="deleteisDisabled">删单</button>
+			<button class="ht-btn" @click="actionBtnMth('edit')" :disabled="editisDisabled">修改</button>
+			<button class="ht-btn" @click="print">打印</button>
+			<button class="ht-btn" @click="actionBtnMth('deleteRow')" :disabled="deleteisRowDisabled">删除行</button>
+			<button class="ht-btn" @click="beforeOrLast(2)">前一</button>
+			<button class="ht-btn" @click="beforeOrLast(1)">后一</button>
+			<!--<i-button type="text" @click="createVoucher">生成凭证</i-button>-->
+			<!--<i-button type="text" @click="checkVoucher">查看凭证</i-button>-->
+			<Dropdown trigger="click" @on-click="voucherAction" placement="bottom-start" style="margin-left: 10px">
+				<button class="ht-btn">凭证
+					<Icon type="arrow-down-b"></Icon>
+				</button>
+				<Dropdown-menu slot="list" style="z-index: 102;">
+					<Dropdown-item name="addVoucher">生成凭证</Dropdown-item>
+					<Dropdown-item name="showVoucher">查看凭证</Dropdown-item>
+				</Dropdown-menu>
+			</Dropdown>
+
+			<Dropdown trigger="click" @on-click="optionAction" placement="bottom-start">
+				<button class="ht-btn">选项
+					<Icon type="arrow-down-b"></Icon>
+				</button>
+				<Dropdown-menu slot="list">
+					<Dropdown-item name="saveAdd">
+						<Icon type="checkmark-circled" v-if="isSaveAdd"></Icon>
+						保存后自动新增
+					</Dropdown-item>
+				</Dropdown-menu>
+			</Dropdown>
+			<button class="ht-btn" @click="closeWindow">退出</button>
+		</div>
+
+		<div class="ht-receivableW-form pl20 pr20 mt10 ht-paddingTop30 clearfix">
+			<div class="col-sm-12 ht-formTitle">{{ initInfo.pageTitle }}</div>
+			<img src="${rc.contextPath}/images/audit.png" v-if="formData.auditMark === 2" class="ht-audit">
+
+			<i-row class="pt10">
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">{{initInfo.pageType === '1' ? '客户' : '供应商'}}：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select v-if="initInfo.pageType === '1'" class="inline-block calc-right-w140" @on-change="occurrenceObjectOne"
+					 filterable v-model="formData.occurrentObjectRealId" name="occurrentObjectRealId" ref="occurrentObjectRealId">
+						<i-option v-for="item in formDataInit.client" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+					<i-select v-if="initInfo.pageType === '2'" class="inline-block calc-right-w140" @on-change="occurrenceObjectOne"
+					 filterable v-model="formData.occurrentObjectRealId" name="occurrentObjectRealId" ref="occurrentObjectRealId">
+						<i-option v-for="item in formDataInit.supplier" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">日期：
+						<!-- <span class="star"></span> -->
+					</label>
+					<Date-picker transfer type="date" v-model="formData.orderDate" disabled class="inline-block calc-right-w140"
+					 placeholder="选择日期">
+					</Date-picker>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85 ht-star2">单据号：
+						<!-- <span class="star"></span> -->
+					</label>
+					<input v-model="formData.documentNumber" name="a1" class="form-control required inline-block calc-right-w140" type="text" />
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85 ht-star2">{{initInfo.pageType === '1' ? '收款' : '付款'}}类型：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select v-if="initInfo.pageType === '1'" class="inline-block calc-right-w140" @on-change="cancellationType"
+					 filterable ref="typePaymentReceived" v-model="formData.typePaymentReceived">
+						<i-option v-for="item in formDataInit.receiptType" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+					<i-select v-if="initInfo.pageType === '2'" class="inline-block calc-right-w140" @on-change="cancellationType"
+					 filterable ref="typePaymentReceived" v-model="formData.typePaymentReceived">
+						<i-option v-for="item in formDataInit.paymentType" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85 ht-star2">币别：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-select class="inline-block calc-right-w140" @on-change="currencyType" filterable ref="coinStopId" v-model="formData.coinStopId">
+						<i-option v-for="item in formDataInit.listCS" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85 ht-star2">汇率：
+						<!-- <span class="star"></span> -->
+					</label>
+					<input-number :min="0" :step="0" class="required inline-block calc-right-w140 w80 ht-input-number-nobtn" name="a2"
+					 v-model="formData.exchangeRate" @on-blur="()=> inputNumberF(this,'formData','exchangeRate')" disabled></input-number>
+				</i-col>
+				<!--<i-col :span="8" class="ht-lineHeight30 mt5">-->
+				<!--<label class="w85">结算账户：-->
+				<!--<span class="star"></span>-->
+				<!--</label>-->
+				<!--<i-select v-model="formData.clearanceAccountId" filterable ref="clearanceAccountId" name="a4" class="inline-block calc-right-w140">-->
+				<!--<i-option v-for="item in formDataInit.clearanceAccount" :value="item.id" :key="item.name">{{ item.name }}</i-option>-->
+				<!--</i-select>-->
+				<!--</i-col>-->
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85 ht-star2">结算账户：
+						<!-- <span class="star"></span> -->
+					</label>
+					<i-input class="required inline-block calc-right-w140" v-model="formData.clearanceAccount" readonly="true"
+					 @on-click="showSubjectVisable(1)" icon="ios-list-outline" type="text"></i-input>
+					<!--仿照折扣科目使用组件树形展示结算账户-->
+					<!-- <Icon @click="showSubjectVisable" class="ht-discount" type="ios-list-outline"></Icon> -->
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w130 ht-star2">表头{{initInfo.pageType === '1' ? '收款' : '付款'}}金额：
+						<!-- <span class="star"></span> -->
+					</label>
+					<Input-number :min="0" :step="0" class="required inline-block calc-right-w185 ht-input-number-nobtn" v-model="formData.watchPaymentFor"
+					 @on-blur="()=> inputNumberF(this,'formData','watchPaymentFor')" @on-change="watchPaymentForChange"></Input-number>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85">折后金额：</label>
+					<Input-number :min="0" :step="0" class="required inline-block calc-right-w140 ht-input-number-nobtn" v-model="formData.reducedAmountFor"
+					 @on-blur="()=> inputNumberF(this,'formData','reducedAmountFor')" @on-change="reducedAmountForChange"></Input-number>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85">整单折扣(%)：</label>
+					<Input-number :min="0" :step="0" class="required inline-block calc-right-w140 ht-input-number-nobtn" v-model="formData.bulkDiscount"
+					 @on-blur="()=> inputNumberF(this,'formData','bulkDiscount')" @on-change="bulkDiscountChange"></Input-number>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w130">表头{{initInfo.pageType === '1' ? '收款' : '付款'}}金额(本位币)：</label>
+					<Input-number :min="0" :step="0" class="required inline-block calc-right-w185 ht-input-number-nobtn" v-model="formData.watchPayment"
+					 @on-blur="()=> inputNumberF(this,'formData','watchPayment')" disabled></Input-number>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w130">折后金额(本位币)：</label>
+					<Input-number class="required inline-block calc-right-w185" v-model="formData.reducedAmount" disabled></Input-number>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85">折扣科目：</label>
+					<i-input class="required inline-block calc-right-w140" v-model="formData.discountSubject" readonly="true"
+					 @on-click="showSubjectVisable(2)" icon="ios-list-outline" type="text"></i-input>
+					<!-- <Icon @click="showSubjectVisable" class="ht-discount" type="ios-list-outline"></Icon> -->
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30 mt5">
+					<label class="w85">摘要：</label>
+					<i-input class="required inline-block calc-right-w140" v-model="formData.summary" type="text"></i-input>
+					<!--<i-select v-model="formData.summary" filterable >-->
+					<!--<i-option v-for="item in formDataInit.summary" :value="item.id" :key="item.id">{{ item.name }}</i-option>-->
+					<!--</i-select>-->
+				</i-col>
+			</i-row>
+		</div>
+
+		<div class="ht-receivableW-table">
+			<div class="ht-wrapper-tbl">
+				<table class="table tablediv">
+					<thead>
+						<tr>
+							<td class="wt45">行号</td>
+							<td class="wt130" v-if="formData.typePaymentReceived === 5">收款单号</td>
+							<td class="wt130" v-if="formData.typePaymentReceived === 6">付款单号</td>
+							<td class="wt130">源单编号</td>
+							<td class="wt100">单据日期</td>
+							<td class="wt100">单据金额</td>
+							<td class="wt125">单据金额（本位币）</td>
+							<td class="wt100" v-if="formData.typePaymentReceived === 5">收款金额</td>
+							<td class="wt100" v-if="formData.typePaymentReceived === 6">付款金额</td>
+							<td class="wt100">已核销金额</td>
+							<td class="wt100">未核销金额</td>
+							<td class="wt100"><span class="star"></span>本次核销</td>
+							<td class="wt125">本次核销（本位币）</td>
+							<td class="wt100">发票币别</td>
+							<td class="wt80">表体汇率</td>
+							<td class="wt100">备注</td>
+						</tr>
+					</thead>
+					<tbody>
+						<template v-if="formData.typePaymentReceived === 5 || formData.typePaymentReceived === 6">
+							<tr style="background: #f3f3f3" lay-size="sm" v-for="(item,idx) in table1DataList" @click="table1ChickTr(item)"
+							 :class="{success: table1CurrentSelectRow === item.sourceSourceId}">
+								<td class="wt45">{{ idx+1 }}</td>
+								<td class="wt130">{{ item.paymentReceiptNumber }}</td>
+								<td class="wt130">{{ item.sourceListNumber }}</td>
+								<td class="wt100">{{ item.documentDate | filtersTableDate }}</td>
+								<td class="wt100">{{item.documentaryAmount | numFilter }}</td>
+								<td class="wt125">{{item.documentaryAmountFor | numFilter }}</td>
+								<td class="wt100">{{item.receiptPaymentAmount | numFilter }}</td>
+								<td class="wt100">{{item.cancellationAmount | numFilter }}</td>
+								<td class="wt100">{{item.notCancellationAmount | numFilter }}</td>
+								<td class="wt100 ht-nopadding" style="background: #ffffff ">
+									<input type="number" class="form-control input-sm ht-input ht-commTxtContent" @blur="blur_money(item,'thisTiemCancellation')"
+									 v-model="item.thisTiemCancellationFor" />
+									<!--<Input-number :min="0" :step="0" v-model="item.thisTiemCancellationFor" @on-blur="()=> inputNumberF(this,'thisTiemCancellation')" class="w100 ht-input-number-nobtn ht-commTxtContent"></Input-number>-->
+								</td>
+								<td class="wt125">{{item.thisTiemCancellation}}</td>
+								<td class="wt100">{{ item.invoiceCoinType }}</td>
+								<td class="wt80">{{item.surfaceExchangeRate}}</td>
+								<td class="wt100">{{item.remark}}</td>
+							</tr>
+						</template>
+						<template v-else>
+							<!--1,2 -->
+							<tr style="background: #f3f3f3" lay-size="sm" v-for="(item,idx) in table1DataList" @click="table1ChickTr(item)"
+							 :class="{success: table1CurrentSelectRow === item.sourceSourceId}">
+								<td class="wt45">{{ idx+1 }}</td>
+								<td class="wt130">{{ item.sourceListNumber }}</td>
+								<td class="wt100">{{ item.documentDate | filtersTableDate }}</td>
+								<td class="wt100">{{item.documentaryAmountFor | numFilter }}</td>
+								<td class="wt125">{{item.documentaryAmount | numFilter }}</td>
+								<td class="wt100">{{item.cancellationAmount | numFilter }}</td>
+								<td class="wt100">{{item.notCancellationAmount | numFilter }}</td>
+								<td class="wt100 ht-nopadding" style="background: #ffffff ">
+									<input type="number" class="form-control input-sm ht-input ht-commTxtContent" @blur="blur_money(item,'thisTiemCancellation')"
+									 v-model="item.thisTiemCancellationFor" />
+									<!--<Input-number :min="0" :step="0" v-model="item.thisTiemCancellationFor" @on-blur="()=> inputNumberF(this,'thisTiemCancellation')" class="w100 ht-input-number-nobtn ht-commTxtContent"></Input-number>-->
+								</td>
+								<td class="wt125">{{item.thisTiemCancellation | numFilter }}</td>
+								<td class="wt100">{{item.invoiceCoinType}}</td>
+								<td class="wt80">{{item.surfaceExchangeRate}}</td>
+								<td class="wt100">{{item.remark}}</td>
+							</tr>
+						</template>
+					</tbody>
+					<!---------- tfoot------------------>
+					<tfoot>
+						<!--5,6-->
+						<template v-if="formData.typePaymentReceived === 5 || formData.typePaymentReceived === 6">
+							<tr>
+								<td class="wt45">合计</td>
+								<td class="wt130"></td>
+								<td class="wt130"></td>
+								<td class="wt100"></td>
+								<td class="wt100">{{totalDocumentaryAmountFort}}</td>
+								<td class="wt125">{{totalDocumentaryAmount}}</td>
+								<td class="wt100" v-if="formData.typePaymentReceived === 5 || formData.typePaymentReceived === 6"></td>
+								<td class="wt100">{{totalCancellationAmount}}</td>
+								<td class="wt100">{{totalNotCancellationAmount}}</td>
+								<td class="wt100">{{totalThisTiemCancellationFor}}</td>
+								<td class="wt125">{{totalThisTiemCancellation}}</td>
+								<td class="wt100"></td>
+								<td class="wt80"></td>
+								<td class="wt100"></td>
+							</tr>
+						</template>
+						<template v-else>
+							<!--1,2-->
+							<tr>
+								<td class="wt45">合计</td>
+								<td class="wt130"></td>
+								<td class="wt100"></td>
+								<td class="wt100">{{totalDocumentaryAmountFort}}</td>
+								<td class="wt125">{{totalDocumentaryAmount}}</td>
+								<td class="wt100" v-if="formData.typePaymentReceived === 5 || formData.typePaymentReceived === 6"></td>
+								<td class="wt100">{{totalCancellationAmount}}</td>
+								<td class="wt100">{{totalNotCancellationAmount}}</td>
+								<td class="wt100">{{totalThisTiemCancellationFor}}</td>
+								<td class="wt125">{{totalThisTiemCancellation}}</td>
+								<td class="wt100"></td>
+								<td class="wt80"></td>
+								<td class="wt100"></td>
+							</tr>
+						</template>
+					</tfoot>
+				</table>
+			</div>
+		</div>
+		<div class="ht-receivableW-form pl20 pr20 clearfix">
+			<i-row class="pt10">
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">主管：</label>
+					<i-select v-model="formData.directorId" class="inline-block calc-right-w140" filterable ref="directorId">
+						<i-option v-for="item in formDataInit.director" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">部门：</label>
+					<i-select v-model="formData.departmentId" class="inline-block calc-right-w140" filterable ref="departmentId">
+						<i-option v-for="item in formDataInit.department" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="ht-lineHeight30">
+					<label class="w85">业务员：</label>
+					<i-select v-model="formData.salesmanId" class="inline-block calc-right-w140" filterable ref="salesmanId">
+						<i-option v-for="item in formDataInit.salesman" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+					</i-select>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">制单人：</label>
+					<div class="inline-block calc-right-w140">{{formData.singlePerson}}</div>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">审核人：</label>
+					<div class="inline-block calc-right-w140">{{formData.auditorName}}</div>
+				</i-col>
+				<i-col :span="8" class="mt5 ht-lineHeight30">
+					<label class="w85">审核日期：</label>
+					<div class="inline-block calc-right-w140">{{formData.auditDate}}</div>
+				</i-col>
+			</i-row>
+		</div>
+
+		<Modal v-model="detailVisible" width="800" :title="detailTitle" :mask-closable="false">
+			<div class="ht-detailModalContent">
+				<ht-detailed-table v-bind:detail_table="detailTable1" v-bind:detail_table_columns="detailTableColumns"
+				 v-on:close-modal="detailTableModal" v-on:callback-info="callBackInfo"></ht-detailed-table>
+			</div>
+			<div slot="footer"> </div>
+		</Modal>
+		<Modal v-model="deleteVisible" title="信息提示" class-name="ht-deleteModal" :loading="deleteLoading" @on-ok="deleteOK">
+			<p>确认要删除记录？</p>
+		</Modal>
+
+		<div v-if="!writeIsChange || formData.auditMark === 2 " class="ht-writeIsChangeDiv"></div>
+
+		<ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+
+	</div>
+	#parse("modules/public/footer.html")
+
+	<!--<script type="text/javascript" src="${rc.contextPath}/js/jquery-1.10.2.min.js"></script>-->
+	<script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+	<script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+	<script src="${rc.contextPath}/js/finance/paymentReceipt/money.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/paymentReceipt/ht-detailed-table.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/paymentReceipt/index.js"></script>
+	<!--<script src="${rc.contextPath}/js/basedata/customer/customer-information.js"></script>-->
+</body>

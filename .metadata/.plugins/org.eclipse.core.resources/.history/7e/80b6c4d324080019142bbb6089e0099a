@@ -1,0 +1,1354 @@
+package com.htrfid.financeapp.service.impl;
+
+import com.alibaba.fastjson.TypeReference;
+import com.htrfid.basedata.entity.TBaseAccountProjectEntity;
+import com.htrfid.basedata.entity.TBaseCurrencyMaintainEntity;
+import com.htrfid.basedata.entity.TBaseVoucherDataEntity;
+import com.htrfid.basedata.entity.TbaseAccountSubjectEntity;
+import com.htrfid.common.remote.TBaseAccountSubjectRemoteService;
+import com.htrfid.constant.EnumConstant;
+import com.htrfid.exception.MyException;
+import com.htrfid.finance.entity.*;
+import com.htrfid.finance.vo.*;
+import com.htrfid.finance.vo.BankDepositJournalVO;
+import com.htrfid.financeapp.common.Constant;
+import com.htrfid.financeapp.common.SystemProfileConstant;
+import com.htrfid.financeapp.controller.CnBankDepositJournalReportController;
+import com.htrfid.financeapp.remote.*;
+import com.htrfid.financeapp.service.*;
+import com.htrfid.financeapp.util.ResponseUtil;
+import com.htrfid.financeapp.util.Tools;
+import com.htrfid.financeapp.vo.ResponseVO;
+import com.htrfid.shiro.utils.UserUtils;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.JsonUtil;
+import com.htrfid.util.Result;
+import com.htrfid.util.StringUtils;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
+import org.apache.taglibs.standard.lang.jstl.NullLiteral;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * @author zhengfei
+ * @version V1.0.1
+ * @className CnCashierJournalServiceImpl
+ * @description 现金日记账
+ * @email 936864724@qq.com
+ * @date 2018-07-31 9:24
+ **/
+@Service
+public class CnCashierJournalServiceImpl implements CnCashierJournalService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CnCashierJournalServiceImpl.class);
+
+    @Autowired
+    private VoucherRemoteService voucherRemoteService;
+    @Autowired
+    private CommonService commonService;
+    @Autowired
+    private VoucherExpRemoteService voucherExpService;
+    @Autowired
+    private CnCashierJournalRemoteService cnCashierJournalRemoteService;
+    @Autowired
+    private VoucherService voucherService;
+
+    @Autowired
+    private GeneratingCredentialOptionRemoteService generatingCredentialOptionRemoteService;
+    @Autowired
+    private CashierVoucherService cashierVoucherService;
+    @Autowired
+    private VerificationSheetService verificationSheetService;
+    @Autowired
+    private VoucherTemplateService voucherTemplateService;
+    @Autowired
+    private GeneratingCredentialOptionService generatingCredentialOptionService;
+
+    @Autowired
+    private CashierBalanceService cashierBalanceService;
+    /**
+     * 核算项目
+     **/
+    @Autowired
+    private AccountProjectRemoteService accountProjectRemoteService;
+    @Autowired
+    private TBaseAccountSubjectRemoteService accountSubjectRemoteService;
+    @Autowired
+    private SystemProfileRemoteService systemProfileRemoteService;
+    @Autowired
+    private CnBankDepositJournalRemoteService cnBankDepositJournalRemoteService;
+
+    /**
+     * @param sobId 组织id
+     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @description: 现金日记账初始化
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-31 9:31
+     */
+    @Override
+    public Result initPage(Long sobId) {
+        Map<String, Object> initMap = new HashMap<>();
+        //获取摘要列表
+        List<VoucherExpEntity> voucherExpList = null;
+        Result voucherExp = voucherExpService.list(new VoucherExpEntity());
+        if (voucherExp != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(voucherExp.getCode())) {
+            voucherExpList = ResponseUtil.getResult(voucherExp, new TypeReference<ResponseVO<List<VoucherExpEntity>>>() {
+            });
+        }
+        initMap.put("voucherExpList", voucherExpList);
+        //获取当前会计年度，当前会计期间
+        Integer cnCurrentAccountYear = commonService.getCnCurrentAccountYear(sobId);
+        Integer cnCurrentAccountPeriod = commonService.getCnCurrentAccountPeriod(sobId);
+        initMap.put("cnCurrentAccountYear", cnCurrentAccountYear);
+        initMap.put("cnCurrentAccountPeriod", cnCurrentAccountPeriod);
+        //获取库存现金科目列表
+        List<Map<String, Object>> initCnSubject = cashierBalanceService.initCnSubject(Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        initMap.put("subjectList", initCnSubject);
+        if(initCnSubject==null|| initCnSubject.size() == 0) {
+        	return Result.error("页面初始化失败：获取科目列表失败");
+        }
+        List<TBaseCurrencyMaintainEntity> currencyList = null;
+        if (initCnSubject != null && initCnSubject.size() != 0) {
+        	Long subjectId = Long.parseLong(initCnSubject.get(0).get("accountId").toString());
+            currencyList = commonService.getInitCurrencyList(subjectId, Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        }
+        if(currencyList==null|| currencyList.size() == 0) {
+        	return Result.error("页面初始化失败：根据科目查询币别列表失败");
+        }
+        initMap.put("currencyList", currencyList);
+
+        //获取所有的核算项目
+        Map<String, Object> projectList = commonService.getNewDetailProjectList(sobId);
+        initMap.put("projectOpts", projectList);
+        initMap.put("projectList", commonService.getProjectList(sobId));
+        //获取当前会计年度当前会计期间的第一天和最后一天日期
+        Map<String, Object> periodDate = commonService.getPeriodDate(cnCurrentAccountYear, cnCurrentAccountPeriod, sobId);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar startDateTime = (Calendar) periodDate.get("startDate");
+        Calendar dateTime = (Calendar) periodDate.get("endDate");
+        String endDate = format.format(dateTime.getTime());
+        String startDate = format.format(startDateTime.getTime());
+
+        initMap.put("startDate", startDate);
+        initMap.put("endDate", endDate);
+
+        //获取当日日记账序号
+        Integer serialNum = getSerialNum(cnCurrentAccountYear, cnCurrentAccountPeriod, sobId, endDate);
+        initMap.put("serialNum", serialNum);
+
+        //获取本位币id
+        Long standardCurrencyId = commonService.getStandardCurrencyId(sobId);
+        initMap.put("standardCurrencyId", standardCurrencyId);
+        //当前组织及名称
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> orgEntity = commonService.getOrgEntity();
+        list.add(orgEntity);
+        initMap.put("org", list);
+        //获取会计年度列表
+        List<Map<String, String>> periodYear = getPeriodYear(sobId);
+        initMap.put("periodYear", periodYear);
+        //获取凭证字列表
+        List<TBaseVoucherDataEntity> voucherTypes = commonService.getVoucherTypes();
+        initMap.put("voucherDataList", voucherTypes);
+        //获取经手人列表、制单人列表
+        initMap.put("handleAndMakerList", cnCashierJournalRemoteService.getHandleAndMakerList(sobId));
+
+        Map<String, Integer> cnStartYearAndPeriod = commonService.getCnStartYearAndPeriod(sobId);
+        initMap.put("cnStartYearAndPeriod", cnStartYearAndPeriod);
+
+        String periodStartDate = commonService.getAccountPeriodStartDate(sobId);
+        Calendar calendar = Tools.getCalendar(periodStartDate);
+        calendar.set(Calendar.YEAR, cnStartYearAndPeriod.get("generalLedgerYear"));
+        calendar.set(Calendar.MONTH, cnStartYearAndPeriod.get("generalLedgerPeriod") - 1);
+        initMap.put("startCnDate", calendar.getTimeInMillis());
+        return Result.ok(initMap);
+    }
+
+    /**
+     * @param currentDate, sobId
+     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @description: 根据时间获取对应会计年度会计期间
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-31 13:27
+     */
+    @Override
+    public Result getPeriodByDate(String currentDate, Long sobId, Long currencyId) {
+        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, Integer> period = commonService.getAccountingYearAndPeriod(currentDate, sobId);
+        Integer year = period.get("accountYear");
+        Integer month = period.get("accountPeriod");
+        Integer serialNum = getSerialNum(year, month, sobId, currentDate);
+        resultMap.put("year", year);
+        resultMap.put("month", month);
+        resultMap.put("serialNum", serialNum);
+        return Result.ok(resultMap);
+    }
+
+    /**
+     * @param
+     * @return com.htrfid.util.Result
+     * @description: 从总账引入引入日记账
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-31 14:19
+     */
+    @Override
+    public Result importCashierJournal(CashierBankImportAccountVO reqVo) {
+        //判断当前是否允许从总账系统引入日记账
+        Boolean agreeImportCashier = commonService.agreeImportCashier(reqVo.getSobId());
+        if (!agreeImportCashier) {
+            return Result.error("当前不允许从总账系统引入日记账");
+        }
+        List<String> importId = reqVo.getImportId();
+        if (importId == null || importId.isEmpty()) {
+            return Result.error("请选择从总账引入科目");
+        }
+
+        Integer accountYear = commonService.getCnCurrentAccountYear(reqVo.getSobId());
+        Integer accountPeriod = commonService.getCnCurrentAccountPeriod(reqVo.getSobId());
+        if (accountYear.intValue() > reqVo.getStartYear() ||
+                (accountYear.intValue() == reqVo.getStartYear().intValue() && accountPeriod.intValue() > reqVo.getStartPeriod().intValue()) ||
+                (accountYear.intValue() == reqVo.getStartYear().intValue() && reqVo.getStartPeriod().intValue() > accountPeriod.intValue() + 1)) {
+            return Result.error("只允许从总账引入" + accountYear + "年第" + accountPeriod + "期和第" + (accountPeriod.intValue() + 1) + "期的日记账");
+        }
+
+        return cnCashierJournalRemoteService.importCashierJournalFromAccount(reqVo);
+    }
+
+    /**
+     * @param reqVo
+     * @return com.htrfid.util.Result
+     * @description: 现金日记账列表
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-31 16:34
+     */
+    @SuppressWarnings("unchecked")
+	@Override
+    public Map<String, Object> cashierDetail(CashierBankDetailFilterVO reqVo) {
+        if (reqVo.getType().intValue() == 1) {
+            reqVo.setStartDate(null);
+            reqVo.setEndDate(null);
+        } else if (reqVo.getType().intValue() == 2) {
+            reqVo.setStartYear(null);
+            reqVo.setEndYear(null);
+            reqVo.setStartPeriod(null);
+            reqVo.setEndPeriod(null);
+        }
+        if (reqVo.getVoucherGroupId() == null || reqVo.getVoucherGroupId().intValue() < 0) {
+            reqVo.setVoucherGroupId(null);
+        }
+        if (reqVo.getStartVoucherGroupNumber() == null || reqVo.getStartVoucherGroupNumber().intValue() < 0) {
+            reqVo.setStartVoucherGroupNumber(null);
+        }
+        if (reqVo.getEndVoucherGroupNumber() == null || reqVo.getEndVoucherGroupNumber().intValue() < 0) {
+            reqVo.setEndVoucherGroupNumber(null);
+        }
+
+        Map<String, Object> resultMap = cnCashierJournalRemoteService.cashierDetail(reqVo);
+        if (resultMap.get("resultVo") == null) {
+            return resultMap;
+        }
+        List<CashierJournalResultVO> vos = JsonUtil.jsonToList(resultMap.get("resultVo").toString(), CashierJournalResultVO.class);
+        if (vos == null || vos.isEmpty()) {
+            return resultMap;
+        }
+        Map<String, Object> projectList = commonService.getProjectList(reqVo.getSobId());
+        List<CashierJournalResultVO> newList = new ArrayList<>();
+        for (CashierJournalResultVO vo : vos) {
+            if (vo.getOpts() != null && vo.getOpts().size() != 0) {
+                Map<String, Long> opts = vo.getOpts();
+                Set<String> keySet = opts.keySet();
+                StringBuilder builder = new StringBuilder(vo.getRelateSubjectName() + "");
+                for (String key : keySet) {
+                    List<Map<String, Object>> customerList = (List<Map<String, Object>>) projectList.get(key);
+                    for (Map<String, Object> map : customerList) {
+                        if (opts.get(key) != null && opts.get(key).toString().equals(map.get("name").toString())) {
+                            builder.append("/" + map.get("code") + "-" + map.get("value"));
+                            break;
+                        }
+                    }
+                    /*if(Constant.ACCOUNT_PROJECT_CUSTOMER.equals(Integer.parseInt(key))){
+
+                    }else if(Constant.ACCOUNT_PROJECT_DEPARTMENT.equals(Integer.parseInt(key))){
+
+                    }else if(Constant.ACCOUNT_PROJECT_EMPLOYEE.equals(Integer.parseInt(key))){
+
+                    }else if(Constant.ACCOUNT_PROJECT_WAREHOUSE.equals(Integer.parseInt(key))){
+
+                    }else if(Constant.ACCOUNT_PROJECT_SUPPLIER.equals(Integer.parseInt(key))){
+
+                    }*/
+                }
+                vo.setRelateSubjectName(builder.toString());
+            }
+            newList.add(vo);
+        }
+        resultMap.put("resultVo", newList);
+        return resultMap;
+    }
+
+
+    /**
+     * @param cashJournalVO
+     * @return com.htrfid.util.Result
+     * @description: 新增/修改日记账
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-01 9:01
+     */
+    @SuppressWarnings("unchecked")
+	@Override
+    public Result saveOrUpdate(CashJournalVO cashJournalVO) throws MyException {
+        CashJournalEntity cashJournal = cashJournalVO.getCashJournal();
+        if(cashJournal.getSubjectId().equals(cashJournal.getRelativeSubjectId())){
+            return Result.error("对方科目不能和本方科目相同");
+        }
+        //获取出纳当前会计年度会计期间
+        Integer accountYear = commonService.getCnCurrentAccountYear(cashJournal.getSobId());
+        Integer accountPeriod = commonService.getCnCurrentAccountPeriod(cashJournal.getSobId());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Map<String, Integer> yearAndPeriod = commonService.getAccountingYearAndPeriod(format.format(cashJournal.getDatetime()), cashJournal.getSobId());
+        Integer year = yearAndPeriod.get("accountYear");
+        Integer period = yearAndPeriod.get("accountPeriod");
+
+        //判断录入日记账是否在出纳会计期间之后
+        if (accountYear.intValue() > year.intValue() ||
+                (accountYear.intValue() == year.intValue() && accountPeriod.intValue() > period.intValue())) {
+            return Result.error("当前会计期间不允许录入日记账");
+        }
+
+        if (accountYear.intValue() == year.intValue() && period.intValue() > accountPeriod.intValue() + 1) {
+            return Result.error("只允许录入" + accountYear + "年第" + accountPeriod + "期和第" + (accountPeriod.intValue() + 1) + "期的日记账");
+        }
+
+        cashJournal.setAccountYear(year);
+        cashJournal.setAccountPeriod(period);
+
+        if (cashJournal.getRelativeSubjectId() != null) {
+            //判断是否有核算项目
+            Map<String, Object> resultParam = voucherService.getListBySubjectId(cashJournal.getRelativeSubjectId());
+            Object optsObj = resultParam.get("opts");
+            if (optsObj != null) {
+                List<Integer> opts = (List<Integer>) resultParam.get("opts");
+                if (opts.size() != 0) {
+                    //有核算项目
+                    if (cashJournalVO.getOpts() == null || cashJournalVO.getOpts().size() == 0) {
+                        return Result.error("请先录入核算项目");
+                    }
+                    cashJournal.setIsProject(Constant.CASHIER_PROJECT_YES);
+                } else {
+                    //无核算项目
+                    cashJournalVO.setOpts(null);
+                    cashJournal.setIsProject(Constant.CASHIER_PROJECT_NO);
+                }
+            } else {
+                //无核算项目
+                cashJournalVO.setOpts(null);
+                cashJournal.setIsProject(Constant.CASHIER_PROJECT_NO);
+            }
+        }
+        if ((cashJournal.getCreditAmountFor() == null || cashJournal.getCreditAmountFor().compareTo(BigDecimal.ZERO) == 0) &&
+                (cashJournal.getDebitAmountFor() == null || cashJournal.getDebitAmountFor().compareTo(BigDecimal.ZERO) == 0)) {
+            return Result.error("借方金额和贷方金额不能同时为空");
+        }
+        if ((cashJournal.getCreditAmountFor() != null && cashJournal.getCreditAmountFor().compareTo(BigDecimal.ZERO) != 0) &&
+                (cashJournal.getDebitAmountFor() != null && cashJournal.getDebitAmountFor().compareTo(BigDecimal.ZERO) != 0)) {
+            return Result.error("不能同时录入借方金额和贷方金额");
+        }
+
+        if(cashJournal.getCreditAmountFor() != null&&cashJournal.getCreditAmountFor().compareTo(BigDecimal.ZERO)!=0){
+            //贷方
+            cashJournal.setDirection(Constant.DIRECTION_CREDIT);
+        }else{
+            //借方
+            cashJournal.setDirection(Constant.DIRECTION_DEBIT);
+        }
+
+        cashJournal.setIsCarryOver(Constant.CASHIER_CURRY_OVER_NO);
+        SysUser user = UserUtils.getCurrentUser();
+
+        //是否关联新增银行存款日记账
+        /**
+         *
+         * 判断是否是新增操作：
+         *  是：判断对方科目是否为空  为空则不做处理，不为空，则判断对方科目是否为银行存款科目
+         *      不是银行存款科目则不处理， 是银行存款科目，则判断是否有勾选自动生成日记账
+         *      若没有勾选则不做处理，若勾选，则判断银行存款科目是否存在该现金科目对应的币别，
+         *      若不存在，则提示：
+         *      若存在，则新增一笔现金日记账，自动生成一笔银行存款日记账
+         *  否：取出现金日记账数据，判断对方科目是否为空，
+         *      a.为空则判断auto_id是否为空，若为空则不处理，若不为空，则删除auto_id对应的银行存款日记账
+         *      b.不为空，则判断对方科目是否是银行存款科目
+         *      是则判断对方科目是否有修改，修改过则修改银行存款日记账科目
+         *      不是银行存款科目，则取出现金日记账数据，判断auto_id是否为空，若为空，则不处理，若不为空，则删除auto_id对应的银行存款日记账
+         *
+         *
+         */
+        int isAutoCreated = 0;
+        Result resultForSysProfile = systemProfileRemoteService.getSystemProfileValue(SystemProfileConstant.CASHIER_MAKE_SUBJECT_DIARY, cashJournal.getSobId().toString());
+        if (resultForSysProfile != null) {
+            isAutoCreated = resultForSysProfile.getData() == null ? 0 : Integer.parseInt(resultForSysProfile.getData().toString());
+        }
+        TbaseAccountSubjectEntity accountEntity = null;
+        if (cashJournal.getId() == null || cashJournal.getId() == 0) {
+            if(cashJournal.getRelativeSubjectId() != null && cashJournal.getRelativeSubjectId() != 0){
+                Result subjectResult = accountSubjectRemoteService.info(cashJournal.getRelativeSubjectId());
+                if (subjectResult != null && subjectResult.getData() != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(subjectResult.getCode())) {
+                    accountEntity = ResponseUtil.getResult(subjectResult, new TypeReference<ResponseVO<TbaseAccountSubjectEntity>>() {});
+                    if(accountEntity == null){
+                        return Result.error("对方科目异常");
+                    }
+                    int isBank = accountEntity.getIsBankSubject()==null?0:accountEntity.getIsBankSubject();
+                    if (Constant.PUBLIC_ONE == isAutoCreated && isBank == Constant.PUBLIC_ONE) {
+                        //则判断银行存款科目是否存在该现金科目对应的币别，
+                        Boolean addFlag = false;
+                        List<TBaseCurrencyMaintainEntity> currencyList = commonService.getInitCurrencyList(cashJournal.getRelativeSubjectId(), Constant.CASHIER_IS_BANK, Constant.CASHIER_STATUS_YES, cashJournal.getSobId());
+                        for(TBaseCurrencyMaintainEntity entity:currencyList){
+                            if(entity.getId().intValue() == cashJournal.getCurrencyId()){
+                                addFlag = true;
+                                break;
+                            }
+                        }
+                        if(addFlag){
+                            Result cashJournalResult = cnCashierJournalRemoteService.saveOrUpdate(cashJournalVO, user.getId(), user.getUsername());
+                            if(cashJournalResult == null || !EnumConstant.PUBLIC.CODE_YES.getValue().equals(cashJournalResult.getCode())){
+                                return Result.error("操作失败");
+                            }
+                            Long cashId = ResponseUtil.getResult(cashJournalResult, new TypeReference<ResponseVO<Long>>() {});
+                            cashJournal.setId(cashId);
+                            BankDepositJournalEntity entity = createBankJournalEntity(cashJournal, user);
+                            Result bankJournalResult = cnBankDepositJournalRemoteService.saveOneBDJ(entity);
+                            if(bankJournalResult!=null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(bankJournalResult.getCode())){
+                            	Long bankId = ResponseUtil.getResult(bankJournalResult, new TypeReference<ResponseVO<Long>>() {});
+                                Result updateResult = cnCashierJournalRemoteService.updateAutoId(cashJournal.getId(),bankId);
+                                if(updateResult!=null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(updateResult.getCode())){
+                                    return updateResult;
+                                }else{
+                                    cnBankDepositJournalRemoteService.deletesBDJbyId(bankId);
+                                    cnCashierJournalRemoteService.deleteJournal(cashId);
+                                    return Result.error("系统异常，保存失败，请稍后重试");
+                                }
+                            }else{
+                                //简单逻辑补偿---如果添加现金日记账成功，但是新增银行存款日记账失败，则尝试删除已经生成的现金日记账
+                                cnCashierJournalRemoteService.deleteJournal(cashId);
+                                return Result.error("系统异常，保存失败，请稍后重试");
+                            }
+                        }else{
+                            return Result.error("对方科目没有挂此币别,请先维护该科目,或者去掉勾选自动生成对方日记账");
+                        }
+                    }
+                }else{
+                    return Result.error("对方科目异常");
+                }
+            }
+        }else{
+            Result infoResult = cnCashierJournalRemoteService.info(cashJournal.getId(), cashJournal.getSobId());
+            if(infoResult == null || !EnumConstant.PUBLIC.CODE_YES.getValue().equals(infoResult.getCode())){
+                return Result.error("系统异常，操作失败，请稍后重试");
+            }
+            CashJournalVO infoVo = ResponseUtil.getResult(infoResult, new TypeReference<ResponseVO<CashJournalVO>>() {});
+            CashJournalEntity journal = infoVo.getCashJournal();
+            Long autoId = 0L;
+            if(journal.getAutoId() != null && journal.getAutoId() != 0){
+                autoId = journal.getAutoId();
+                cashJournal.setAutoId(autoId);
+                cnBankDepositJournalRemoteService.deletesBDJbyId(autoId);
+            }
+            if(cashJournal.getRelativeSubjectId() != null && cashJournal.getRelativeSubjectId() != 0){
+                Result subjectResult = accountSubjectRemoteService.info(cashJournal.getRelativeSubjectId());
+                if (subjectResult != null && subjectResult.getData() != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(subjectResult.getCode())) {
+                    accountEntity = ResponseUtil.getResult(subjectResult, new TypeReference<ResponseVO<TbaseAccountSubjectEntity>>() {});
+                    if (accountEntity == null) {
+                        return Result.error("对方科目异常");
+                    }
+                }else{
+                    return Result.error("对方科目异常");
+                }
+                int isBank = accountEntity.getIsBankSubject()==null?0:accountEntity.getIsBankSubject();
+
+                if (Constant.PUBLIC_ONE == isAutoCreated && isBank == Constant.PUBLIC_ONE) {
+                    //则判断银行存款科目是否存在该现金科目对应的币别，
+                    Boolean addFlag = false;
+                    List<TBaseCurrencyMaintainEntity> currencyList = commonService.getInitCurrencyList(cashJournal.getRelativeSubjectId(), Constant.CASHIER_IS_BANK, Constant.CASHIER_STATUS_YES, cashJournal.getSobId());
+                    for(TBaseCurrencyMaintainEntity entity:currencyList){
+                        if(entity.getId().intValue() == cashJournal.getCurrencyId()){
+                            addFlag = true;
+                            break;
+                        }
+                    }
+                    if(addFlag){
+                        Result cashJournalResult = cnCashierJournalRemoteService.saveOrUpdate(cashJournalVO, user.getId(), user.getUsername());
+                        if(cashJournalResult == null || !EnumConstant.PUBLIC.CODE_YES.getValue().equals(cashJournalResult.getCode())){
+                            return Result.error("操作失败");
+                        }
+                        Long cashId = ResponseUtil.getResult(cashJournalResult, new TypeReference<ResponseVO<Long>>() {});
+                        BankDepositJournalEntity entity = createBankJournalEntity(cashJournal, user);
+                        Result bankJournalResult = cnBankDepositJournalRemoteService.saveOneBDJ(entity);
+                        if(bankJournalResult!=null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(bankJournalResult.getCode())){
+                        	Long bankId = ResponseUtil.getResult(bankJournalResult, new TypeReference<ResponseVO<Long>>() {});
+                            Result updateResult = cnCashierJournalRemoteService.updateAutoId(cashJournal.getId(),bankId);
+                            if(updateResult!=null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(updateResult.getCode())){
+                                return updateResult;
+                            }else{
+                                cnBankDepositJournalRemoteService.deletesBDJbyId(bankId);
+                                cnCashierJournalRemoteService.deleteJournal(cashId);
+                                return Result.error("系统异常，保存失败，请稍后重试");
+                            }
+                        }else{
+                            //简单逻辑补偿---如果添加现金日记账成功，但是新增银行存款日记账失败，则尝试删除已经生成的现金日记账
+                            cnCashierJournalRemoteService.deleteJournal(cashId);
+                            return Result.error("系统异常，保存失败，请稍后重试");
+                        }
+                    }else{
+                        return Result.error("对方科目没有挂此币别,请先维护该科目,或者去掉勾选自动生成对方日记账");
+                    }
+                }
+
+            }
+        }
+        return cnCashierJournalRemoteService.saveOrUpdate(cashJournalVO, user.getId(), user.getUsername());
+    }
+
+
+
+    /**
+    * @description: 生成银行存款日记账
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-10-30 15:16
+    * @param cashJournal
+    * @param user
+     * @return void
+    */
+    private BankDepositJournalEntity createBankJournalEntity(CashJournalEntity cashJournal, SysUser user) {
+        BankDepositJournalEntity bankEntity = new BankDepositJournalEntity();
+        bankEntity.setDatetime(cashJournal.getDatetime());
+        bankEntity.setSobId(cashJournal.getSobId());
+        bankEntity.setOperateTime(cashJournal.getDatetime());
+        bankEntity.setSerialNumber(cashJournal.getSerialNumber());
+        bankEntity.setVoucherId(null);
+        bankEntity.setSubjectId(cashJournal.getRelativeSubjectId());
+        bankEntity.setRelativeSubjectId(cashJournal.getSubjectId());
+        bankEntity.setAccountYear(cashJournal.getAccountYear());
+        bankEntity.setAccountPeriod(cashJournal.getAccountPeriod());
+        bankEntity.setCurrencyId(cashJournal.getCurrencyId());
+        bankEntity.setDirection(cashJournal.getDirection().intValue() == Constant.DIRECTION_DEBIT.intValue()?Constant.DIRECTION_CREDIT:Constant.DIRECTION_DEBIT);
+        bankEntity.setExchangeRate(cashJournal.getExchangeRate());
+        bankEntity.setDebitAmountFor(cashJournal.getCreditAmountFor());
+        bankEntity.setDebitAmount(cashJournal.getCreditAmount());
+        bankEntity.setCreditAmountFor(cashJournal.getDebitAmountFor());
+        bankEntity.setCreditAmount(cashJournal.getDebitAmount());
+        bankEntity.setIsCarryOver(cashJournal.getIsCarryOver());
+        bankEntity.setHandleId(cashJournal.getHandleId());
+        bankEntity.setHandleName(cashJournal.getHandleName());
+        bankEntity.setIsTick(Constant.CASHIER_TICK_NO);
+        bankEntity.setTickTime(null);
+        bankEntity.setDataSource(Constant.CASHIER_DATA_SOURCE_HAND);
+        bankEntity.setSummary(cashJournal.getSummary());
+        bankEntity.setCreateTime(new Date());
+        bankEntity.setUpdateTime(new Date());
+        bankEntity.setCreateId(user.getId());
+        bankEntity.setCreateName(user.getUsername());
+        bankEntity.setUpdateId(user.getId());
+        bankEntity.setUpdateName(user.getUsername());
+        bankEntity.setRemark(cashJournal.getRemark());
+        bankEntity.setIsProject(Constant.CASHIER_PROJECT_NO);
+        bankEntity.setVoucherEntityId(null);
+        bankEntity.setAccountNumber(null);
+        bankEntity.setAutoId(cashJournal.getId());
+        bankEntity.setIsAutoBank(Constant.PUBLIC_TWO);
+        return  bankEntity;
+    }
+
+    /**
+     * @param sobId, ids
+     * @return com.htrfid.util.Result
+     * @description: 删除日记账
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-01 13:54
+     */
+    @Override
+    public Result deleteDailyAccount(Long sobId, Long[] ids) {
+        return cnCashierJournalRemoteService.deleteDailyAccount(ids, sobId);
+    }
+
+    /**
+     * @param
+     * @return com.htrfid.util.Result
+     * @description: 获取当日最大序号
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-31 13:30
+     */
+    public Integer getSerialNum(Integer accountYear, Integer accountPeriod, Long sobId, String date) {
+        return cnCashierJournalRemoteService.getSerialNum(accountYear, accountPeriod, sobId, date);
+    }
+
+
+    /**
+     * 按单生成凭证
+     *
+     * @param
+     * @return
+     * @description:TODO
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-08-01 14:08
+     */
+    @Override
+    public Result setGeneratingCertificate(Long[] ids, Long sobId) {
+        logger.info("现金日记账按单生成凭证接口参数为ids{}" + JsonUtil.objToJson(ids) + "组织id{}" + sobId);
+        List<CashJournalEntity> cashJournalEntities = queryAll(ids, sobId);
+        if (StringUtils.isEmpty(cashJournalEntities) || cashJournalEntities.size() == 0) {
+            return Result.error("请选择至少一行数据");
+        }
+        if (isDoAudit(cashJournalEntities)) {
+            logger.info("存在单据所属会计期间异常,或者选中的单据中存在已经生成凭证的单据");
+            return Result.error("存在单据所属会计期间异常,或者选中的单据中存在已经生成凭证的单据");
+        }
+        //获取出纳系统生成凭参数选项
+        GeneratingCredentialOptionEntity gcoe =
+                generatingCredentialOptionService.getCredentialOption
+                        (Constant.CASH_JOURNAL_SYSTEM, UserUtils.getCurrentUser().getUserCurrentOrganId());
+        logger.info("获取出纳系统生成凭参数选项为{}" + JsonUtil.objToJson(gcoe));
+        if (StringUtils.isEmpty(gcoe)) {
+            return Result.error("获取出纳系统生成凭证参数选项失败");
+        }
+        String adp = gcoe.getAbnormalDataProcessing();
+        Map<String, Object> map = new HashMap<>();
+        //用于记录每张凭证信息
+        StringBuffer buffer = new StringBuffer("开始生成凭证 ...  <br/>");
+        //用于保存生成成功的实体对象
+        List<CashJournalEntity> cashJournalList = new ArrayList<>();
+        map.put("gcoe", gcoe);
+        List<Long> receiptId = new ArrayList<>();
+        //adp="1" 编辑凭证 adp="2" 跳过该凭证 adp="3" 停止生成凭证
+        if (Constant.EDIT_CERTIFICATE.equals(adp)) {
+            //获取第一条数据
+            CashJournalEntity cje = cashJournalEntities.get(0);
+            logger.info("获取到的现金日记账生成凭证对象为{}" + JsonUtil.objToJson(cje));
+            //获取生成凭证的封装VO
+            logger.info("开始获取生成凭证封装vo对象");
+            CashierVoucherVO cvv = getCashierVoucherVO(cje);
+            logger.info("获取生成凭证封装vo对象{}" + JsonUtil.objToJson(cvv));
+            logger.info("开始获取凭证整体数据");
+            VoucherVO voucherVo = cashierVoucherService.getVoucherVo(cvv);
+            logger.info("获取到凭证整体对象{}" + JsonUtil.objToJson(voucherVo));
+            //将id存入集合
+            receiptId.add(cje.getId());
+            //将id集合封装到VoucherVO中
+            voucherVo.setReceiptId(receiptId);
+            //将获取到的vo对象存入redis中
+            logger.info("开始将数据存入redis缓存中{}");
+            String uuid = verificationSheetService.setRedis(voucherVo);
+            logger.info("获取到的key值为{}" + uuid);
+            if (!org.springframework.util.StringUtils.isEmpty(uuid)) {
+                map.put("key", uuid);
+                map.put("voucherVO", voucherVo);
+                logger.info("调用接口成功,返回到页面的数据为{}" + JsonUtil.objToJson(map));
+                return Result.ok(map);
+            }
+            logger.info("存入redis缓存失败");
+            return Result.error("单据异常,无法生成凭证");
+        }
+        int i = 0;
+        //遍历实体对象
+
+        for (CashJournalEntity cje : cashJournalEntities) {
+            i++;
+            try {
+                buffer.append("开始生成第" + i + "张凭证<br/>");
+                //获取生成凭证的封装VO
+                logger.info("开始获取生成凭证的封装参数VO");
+                CashierVoucherVO cvv = getCashierVoucherVO(cje);
+                logger.info("获取生成凭证的封装参数VO为{}" + JsonUtil.objToJson(cvv));
+                //判断是否存在对方科目
+                if (StringUtils.isEmpty(cvv.getRelativeSubjectId())) {
+                    logger.info("生成第" + i + "张凭证失败,对方科目不存在");
+                    buffer.append("生成第" + i + "张凭证失败,对方科目不存在<br/>");
+                    int a = i / 0;
+                }
+                //获取封装的凭证VO
+                logger.info("开始获取凭证整体对象");
+                VoucherVO voucherVo = cashierVoucherService.getVoucherVo(cvv);
+                logger.info("获取凭证整体对象成功{}" + JsonUtil.objToJson(voucherVo));
+                //判断封装的凭证VO是否存在异常
+                if (!StringUtils.isEmpty(voucherVo.getMessage())) {
+                    logger.info("生成第" + i + "张凭证失败," + voucherVo.getMessage());
+                    buffer.append("生成第" + i + "张凭证," + voucherVo.getMessage() + "<br/>");
+                    int a = i / 0;
+                }
+                logger.info("开始获取凭证字信息");
+                TBaseVoucherDataEntity voucType =
+                        commonService.getVoucType(gcoe.getVoucherWordId());
+                logger.info("获取凭证字信息为{}" + JsonUtil.objToJson(voucType));
+                if (StringUtils.isEmpty(voucType)) {
+                    return Result.error("获取凭证字信息异常");
+                }
+                voucherVo.getEntity().setEntryCount(voucherVo.getEntryVoList().size());
+                List<Long> preListId = new ArrayList<>();
+                preListId.add(cvv.getId());
+                voucherVo.setReceiptId(preListId);
+                //调用生成凭证接口 生成凭证
+                logger.info("开始调用接口生成凭证");
+                Result result = voucherService.saveOrUpdateVoucher(voucherVo);
+                logger.info("调用生成凭证接口的结果为{}" + JsonUtil.objToJson(result));
+                if (!EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())) {
+                    buffer.append("生成第" + i + "张凭证," + result.getMsg() + "<br/>");
+                    int a = i / 0;
+                    ;
+                }
+                VoucherEntity voucherEntity = ResponseUtil.getResult(
+                        result, new TypeReference<ResponseVO<VoucherEntity>>() {
+                        });
+                if (StringUtils.isEmpty(voucherEntity)) {
+                    buffer.append("生成第" + i + "张凭证," + result.getMsg() + "<br/>");
+                    int a = i / 0;
+                }
+                //调用方法获取更新后的实体对象
+                CashJournalEntity newCje = getNewCashJournal(cje, voucherEntity.getId());
+                cashJournalList.add(newCje);
+                buffer.append("生成第" + i + "张凭证成功<br/>");
+            } catch (Exception e) {
+                if (Constant.STOP_GENERATION.equals(adp)) {
+                    //跳出循环的不在生成凭证
+                    map.put("log", buffer);
+                    map.put("vses", cashJournalList);
+                    return Result.ok(map);
+                } else if (Constant.SKIP_THE_VOUCHER.equals(adp)) {
+                    //跳出本次循环 记录异常信息后批量返回结果
+                    continue;
+                }
+            }
+        }
+        map.put("vses", cashJournalList);
+        map.put("log", buffer);
+        logger.info("返回页面上的数据为{}" + JsonUtil.objToJson(map));
+        return Result.ok(map);
+    }
+
+    /**
+     * 判断该会计期间是否大于等于当前会计期间
+     **/
+    private boolean isDoAudit(List<CashJournalEntity> cashJournalEntities) {
+        for (CashJournalEntity cje : cashJournalEntities) {
+            Boolean doAudit = commonService.isDoAudit(cje.getAccountYear(), cje.getAccountPeriod(), cje.getSobId(), Constant.SYS_CN);
+            if (doAudit || !StringUtils.isEmpty(cje.getVoucherId()) && cje.getVoucherId() != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 汇总生成凭证
+     *
+     * @param
+     * @return
+     * @description:TODO
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-08-01 17:00
+     */
+    @Override
+    public Result setPoolVoucher(Long[] ids, Long sobId) {
+        List<CashJournalEntity> cashJournalEntities = queryAll(ids, sobId);
+        if (StringUtils.isEmpty(cashJournalEntities) || cashJournalEntities.size() == 0) {
+            return Result.error("请选择至少一行数据");
+        }
+        if (isDoAudit(cashJournalEntities)) {
+            return Result.error("存在单据所属会计期间异常,或者选中的单据中存在已经生成凭证的单据");
+        }
+        Map<String, Object> map = new HashMap<>();
+        logger.info("开始调用生成凭证选项接口");
+        GeneratingCredentialOptionEntity gcoe =
+                generatingCredentialOptionService.getCredentialOption
+                        (Constant.CASH_JOURNAL_SYSTEM, UserUtils.getCurrentUser().getUserCurrentOrganId());
+        logger.info("调用生成凭证选项接口结果为{}" + JsonUtil.objToJson(gcoe));
+        if (StringUtils.isEmpty(gcoe)) {
+            return Result.error("获取生成凭证选项数据异常");
+        }
+        String adp = gcoe.getAbnormalDataProcessing();
+        List<VoucherEntryVo> voucherEntryVos = new ArrayList<>();
+        BigDecimal debitTotal = new BigDecimal(0);
+        BigDecimal creditTotal = new BigDecimal(0);
+        map.put("gcoe", gcoe);
+        List<VoucherVO> voucherVOS = new ArrayList<>();
+        for (CashJournalEntity cje : cashJournalEntities) {
+            VoucherVO voucherVo = null;
+            try {
+                CashierVoucherVO cvv = getCashierVoucherVO(cje);
+                logger.info("获取封装参数为{}" + JsonUtil.objToJson(cvv));
+                //获取封装的凭证VO
+                voucherVo = cashierVoucherService.getVoucherVo(cvv);
+                logger.info("获取凭证整体对象{}" + JsonUtil.objToJson(voucherVo));
+                //判断封装的凭证VO是否存在异常
+                if (!StringUtils.isEmpty(voucherVo.getMessage())) {
+                    int a = 1 / 0;
+                }
+                List<Long> list = new ArrayList<>();
+                list.add(cje.getId());
+                //将成功的id存入集合中 将id进行临时保存
+                voucherVo.setReceiptId(list);
+                voucherVOS.add(voucherVo);
+            } catch (Exception e) {
+                if (Constant.EDIT_CERTIFICATE.equals(adp)) {
+                    List<Long> list = new ArrayList<>();
+                    list.add(cje.getId());
+                    //跳出本次循环 记录异常信息后批量返回结果
+                    voucherVo.setReceiptId(list);
+                    voucherVOS.add(voucherVo);
+                    continue;
+                } else {
+                    return Result.error(voucherVo.getMessage());
+                }
+            }
+        }
+        logger.info("获取到的凭证整体对象集合{}" + JsonUtil.objToJson(voucherVOS));
+        //需要根据会计期间和会计年度对数据进行区分汇总
+        List<VoucherVO> vos = commonService.getVoucherVoMerge(voucherVOS);
+        logger.info("调用接口将凭证整体对象集合进行合并{}" + JsonUtil.objToJson(vos));
+        Integer voucherId = null;
+        for (VoucherVO voucherVO : vos) {
+            try {
+                //获取需要借贷方科目是否需要合并
+                //贷方合并
+                if (gcoe.getSubjectMergerLender()) {
+                    voucherEntryVos = voucherTemplateService.subjectAmalgamation(voucherVO.getEntryVoList(), Constant.DIRECTION_CREDIT);
+                    logger.info("贷方科目相同合并后的结果为{}" + JsonUtil.objToJson(voucherEntryVos));
+                    voucherVO.setEntryVoList(voucherEntryVos);
+                }
+                //借方合并
+                if (gcoe.getSubjectMergerDebit()) {
+                    voucherEntryVos = voucherTemplateService.subjectAmalgamation(voucherVO.getEntryVoList(), Constant.DIRECTION_DEBIT);
+                    logger.info("借方科目相同合并后的结果为{}" + JsonUtil.objToJson(voucherEntryVos));
+                    voucherVO.setEntryVoList(voucherEntryVos);
+                }
+                //设置分录数
+                voucherVO.getEntity().setEntryCount(voucherVO.getEntryVoList().size());
+                voucherVO.setReceiptId(Arrays.asList(ids));
+                //判断是否要在生成凭证时编辑凭证
+                if (Constant.EDIT_CERTIFICATE.equals(adp)) {
+                    //将数据存入redis缓存中
+                    String uuid = verificationSheetService.setRedis(voucherVO);
+                    logger.info("将数据存入redis中的key值为{}" + uuid);
+                    map.put("key", uuid);
+                    return Result.ok(map);
+                }
+                logger.info("开始调用接口生成凭证");
+                Result result = voucherService.saveOrUpdateVoucher(voucherVO);
+                logger.info("调用生成凭证接口的结果为{}" + JsonUtil.objToJson(result));
+                if (!EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())) {
+                    return result;
+                }
+                VoucherEntity voucherEntity = ResponseUtil.getResult(
+                        result, new TypeReference<ResponseVO<VoucherEntity>>() {
+                        });
+                if (StringUtils.isEmpty(voucherEntity)) {
+                    return Result.error("保存凭证信息失败");
+                }
+                logger.info("调用接口更新现金日记账生成凭证数据成功");
+            } catch (Exception e) {
+                e.getMessage();
+            }
+        }
+        return Result.ok(map);
+    }
+
+    /**
+     * @param id, sobId
+     * @return com.htrfid.util.Result
+     * @description: 查询详情
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-03 8:16
+     */
+    @Override
+    public Result info(Long id, Long sobId) {
+        Result result = cnCashierJournalRemoteService.info(id, sobId);
+        if (result == null || !EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())) {
+            return result;
+        }
+        CashJournalVO vo = JsonUtil.jsonToObj(result.getData().toString(), CashJournalVO.class);
+        CashJournalEntity cashJournal = vo.getCashJournal();
+        if (cashJournal == null) {
+            return result;
+        }
+        if (cashJournal.getRelativeSubjectId() == null || cashJournal.getRelativeSubjectId() == 0) {
+            return result;
+        }
+        //根据对方科目id获取科目编码，名称
+        Result infoResult = accountSubjectRemoteService.info(cashJournal.getRelativeSubjectId());
+        TbaseAccountSubjectEntity subjectEntity = null;
+        if (infoResult != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(infoResult.getCode())) {
+            subjectEntity = JsonUtil.jsonToObj(infoResult.getData().toString(), TbaseAccountSubjectEntity.class);
+        }
+        if (subjectEntity == null) {
+            return result;
+        }
+        cashJournal.setRelativeSubjectCode(subjectEntity.getSubjectCode());
+        cashJournal.setRelativeSubjectName(subjectEntity.getFullName());
+        CashJournalVO cashJournalVO = new CashJournalVO();
+        cashJournalVO.setCashJournal(cashJournal);
+        cashJournalVO.setOpts(vo.getOpts());
+        result.setData(cashJournalVO);
+        return result;
+    }
+
+    /**
+     * @param code, sobId
+     * @return com.htrfid.util.Result
+     * @description: 根据科目编码查询科目信息及核算项目
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-07 16:43
+     */
+    @Override
+    public Result getSubjectInfo(String code, Long sobId) {
+        //获取科目信息
+        TbaseAccountSubjectEntity info = accountSubjectRemoteService.getSubjectInfoByCode(code, sobId);
+        if (info == null) {
+            return Result.error("科目不存在");
+        }
+        List<TBaseAccountProjectEntity> projectList = null;
+        Result projectResult = accountProjectRemoteService.getListBySubjectId(info.getId());
+        if (projectResult != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(projectResult.getCode())) {
+            projectList = ResponseUtil.getResult(projectResult, new TypeReference<ResponseVO<List<TBaseAccountProjectEntity>>>() {
+            });
+        }
+
+        List<Long> opts = new ArrayList<>();
+        if (projectList != null && projectList.size() > 0) {
+            for (TBaseAccountProjectEntity projectEntity : projectList) {
+                opts.add(projectEntity.getId());
+            }
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("subjectId", info.getId());
+        map.put("subjectName", info.getSubjectName());
+        map.put("subjectCode", info.getSubjectCode());
+        map.put("subjectEntity", info);
+        map.put("opts", opts);
+        return Result.ok(map);
+    }
+
+    /**
+     * @param vo
+     * @param response
+     * @return void
+     * @description: 导出excel
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-09 10:01
+     */
+    @Override
+    public void exportExcel(CashierBankDetailFilterVO vo, HttpServletResponse response) throws MyException {
+        //查询当前本位币id
+        Long standardCurrencyId = commonService.getStandardCurrencyId(vo.getSobId());
+        //标记当前选中币别是否为本位币
+        boolean isStandard = false;
+        if (standardCurrencyId.equals(vo.getCurrencyId())) {
+            isStandard = true;
+        }
+
+        Map<String, Object> map = cashierDetail(vo);
+
+
+        String[] arrayTitle = null;
+        if (isStandard) {
+            arrayTitle = new String[]{"日期", "当日序号", "凭证字号", "凭证期间", "凭证审核", "过账标志", "摘要", "对方科目", "借方金额", "贷方金额", "余额", "经手人", "制单人", "数据来源", "备注"};
+        } else {
+            arrayTitle = new String[]{"日期", "当日序号", "凭证字号", "凭证期间", "凭证审核", "过账标志", "摘要", "对方科目", "借方", "", "贷方", "", "余额", "", "经手人", "制单人", "数据来源", "备注"};
+        }
+
+        //生成Excel文件
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("现金日记账");
+        for (int i = 0; i < arrayTitle.length; i++) {
+            //每一列的宽度
+            sheet.setColumnWidth(i, 20 * 180);
+        }
+
+        //合并
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, arrayTitle.length - 1));
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, arrayTitle.length / 2 - 1));
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, arrayTitle.length / 2, arrayTitle.length - 1));
+
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setWrapText(true);//强制使用POI样式
+        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+        //字体大小
+        XSSFFont font = workbook.createFont();
+        font.setFontName("宋体");
+        font.setFontHeightInPoints((short) 14);
+        font.setBold(true); //是否加粗
+        cellStyle.setFont(font);
+        //创建行 （第1行）
+        XSSFRow row = sheet.createRow(0);
+        row.setHeightInPoints(20);
+        XSSFCell cell = row.createCell(0);
+        cell.setCellValue("现金日记账");
+        cell.setCellStyle(cellStyle);
+
+        //第2行
+        cellStyle = workbook.createCellStyle();
+        cellStyle.setAlignment(CellStyle.ALIGN_RIGHT);// 右靠
+        cellStyle.setWrapText(true);//强制使用POI样式
+        row = sheet.createRow(1);
+        // row.setHeightInPoints(20);
+        cell = row.createCell(0);
+        cell.setCellValue("金大祥");
+        cell = row.createCell(arrayTitle.length / 2);
+        cell.setCellValue("科目：" + map.get("subjectName") + " 币别：" + map.get("currencyName") + " 期间：" + map.get("queryPeriod"));
+        font = workbook.createFont();
+        font.setFontName("Arial");
+        font.setFontHeightInPoints((short) 10);
+        cellStyle.setFont(font);
+        cell.setCellStyle(cellStyle);
+
+        String[] mergeTitle = new String[]{"", "", "", "", "", "", "", "", "原币", "本位币", "原币", "本位币", "原币", "本位币", "", "", "", ""};
+        if (!isStandard) {
+            // 设置合并单元格
+            List<Integer[]> merges = new ArrayList<>();
+            merges.add(new Integer[]{2, 3, 0, 0});
+            merges.add(new Integer[]{2, 3, 1, 1});
+            merges.add(new Integer[]{2, 3, 2, 2});
+            merges.add(new Integer[]{2, 3, 3, 3});
+            merges.add(new Integer[]{2, 3, 4, 4});
+            merges.add(new Integer[]{2, 3, 5, 5});
+            merges.add(new Integer[]{2, 3, 6, 6});
+            merges.add(new Integer[]{2, 3, 7, 7});
+            merges.add(new Integer[]{2, 2, 8, 9});
+            merges.add(new Integer[]{2, 2, 10, 11});
+            merges.add(new Integer[]{2, 2, 12, 13});
+            merges.add(new Integer[]{2, 3, 14, 14});
+            merges.add(new Integer[]{2, 3, 15, 15});
+            merges.add(new Integer[]{2, 3, 16, 16});
+            merges.add(new Integer[]{2, 3, 17, 17});
+
+            if (merges != null && merges.size() > 0 && merges.get(0).length == 4) {
+                // 设置合并单元格//参数1：起始行 参数2：终止行 参数3：起始列 参数4：终止列
+                for (Integer[] merge : merges) {
+                    CellRangeAddress region = new CellRangeAddress(merge[0], merge[1], merge[2], merge[3]);
+                    sheet.addMergedRegion(region);
+                }
+            }
+        }
+
+        cellStyle = workbook.createCellStyle();
+        row = sheet.createRow(2);
+        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+        for (int i = 0; i < arrayTitle.length; i++) {
+            cell = row.createCell(i);
+            cell.setCellValue(arrayTitle[i]);
+            font = workbook.createFont();
+            font.setBold(true); //是否加粗
+            font.setFontName("Courier New");
+            font.setFontHeightInPoints((short) 12);
+            cellStyle.setFont(font);
+            cell.setCellStyle(cellStyle);
+        }
+        if (!isStandard) {
+            cellStyle = workbook.createCellStyle();
+            row = sheet.createRow(3);
+            cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+            for (int i = 8; i < 14; i++) {
+                cell = row.createCell(i);
+                cell.setCellValue(mergeTitle[i]);
+                font = workbook.createFont();
+                font.setBold(true); //是否加粗
+                font.setFontName("Courier New");
+                font.setFontHeightInPoints((short) 12);
+                cellStyle.setFont(font);
+                cell.setCellStyle(cellStyle);
+            }
+        }
+
+        List<CashierJournalResultVO> vos = (List<CashierJournalResultVO>) map.get("resultVo");
+
+        if (vos != null || !vos.isEmpty()) {
+            for (int j = 0; j < vos.size(); j++) {
+                if (isStandard) {
+                    row = sheet.createRow(j + 3);
+                } else {
+                    row = sheet.createRow(j + 4);
+                }
+
+                row.createCell((short) 0).setCellValue(vos.get(j).getDatetimeStr());
+                row.createCell((short) 1).setCellValue(vos.get(j).getSerialNumber() == null || vos.get(j).getSerialNumber() == 0 ? "" : vos.get(j).getSerialNumber() + "");
+                row.createCell((short) 2).setCellValue(vos.get(j).getVoucherGroupData());
+                row.createCell((short) 3).setCellValue(vos.get(j).getVoucherPeriodData());
+                if (Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(vos.get(j).getAudited())) {
+                    row.createCell((short) 4).setCellValue("Y");
+                } else {
+                    row.createCell((short) 4).setCellValue("N");
+                }
+                if (Constant.VOUCHER_ENTRY_POSTED_YES.equals(vos.get(j).getPosted())) {
+                    row.createCell((short) 5).setCellValue("Y");
+                } else {
+                    row.createCell((short) 5).setCellValue("N");
+                }
+                row.createCell((short) 6).setCellValue(vos.get(j).getSummary());
+                row.createCell((short) 7).setCellValue(vos.get(j).getRelateSubjectName());
+                DecimalFormat format = new DecimalFormat("0.00");
+                if (isStandard) {
+                    row.createCell((short) 8).setCellValue(isBigDecimalZero(vos.get(j).getDebitAmount()) ? "" : format.format(vos.get(j).getDebitAmount()));
+                    row.createCell((short) 9).setCellValue(isBigDecimalZero(vos.get(j).getCreditAmount()) ? "" : format.format(vos.get(j).getCreditAmount()));
+                    row.createCell((short) 10).setCellValue(isBigDecimalZero(vos.get(j).getBalance()) ? "" : format.format(vos.get(j).getBalance()));
+                    row.createCell((short) 11).setCellValue(vos.get(j).getHandleName());
+                    row.createCell((short) 12).setCellValue(vos.get(j).getCreateName());
+                    if (Constant.CASHIER_DATA_SOURCE_LEDGER.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 13).setCellValue("总账引入");
+                    } else if (Constant.CASHIER_DATA_SOURCE_HAND.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 13).setCellValue("手工录入");
+                    } else if (Constant.CASHIER_DATA_SOURCE_EXCEL.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 13).setCellValue("excel导入");
+                    }
+                    row.createCell((short) 14).setCellValue(vos.get(j).getRemark() == null ? "" : vos.get(j).getRemark());
+                } else {
+                    row.createCell((short) 8).setCellValue(isBigDecimalZero(vos.get(j).getDebitAmountFor()) ? "" : format.format(vos.get(j).getDebitAmountFor()));
+                    row.createCell((short) 9).setCellValue(isBigDecimalZero(vos.get(j).getDebitAmount()) ? "" : format.format(vos.get(j).getDebitAmount()));
+                    row.createCell((short) 10).setCellValue(isBigDecimalZero(vos.get(j).getCreditAmountFor()) ? "" : format.format(vos.get(j).getCreditAmountFor()));
+                    row.createCell((short) 11).setCellValue(isBigDecimalZero(vos.get(j).getCreditAmount()) ? "" : format.format(vos.get(j).getCreditAmount()));
+                    row.createCell((short) 12).setCellValue(isBigDecimalZero(vos.get(j).getBalanceFor()) ? "" : format.format(vos.get(j).getBalanceFor()));
+                    row.createCell((short) 13).setCellValue(isBigDecimalZero(vos.get(j).getBalance()) ? "" : format.format(vos.get(j).getBalance()));
+                    row.createCell((short) 14).setCellValue(vos.get(j).getHandleName());
+                    row.createCell((short) 15).setCellValue(vos.get(j).getCreateName());
+                    if (Constant.CASHIER_DATA_SOURCE_LEDGER.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 16).setCellValue("总账引入");
+                    } else if (Constant.CASHIER_DATA_SOURCE_HAND.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 16).setCellValue("手工录入");
+                    } else if (Constant.CASHIER_DATA_SOURCE_EXCEL.equals(vos.get(j).getDataSource())) {
+                        row.createCell((short) 16).setCellValue("excel导入");
+                    }
+                    row.createCell((short) 17).setCellValue(vos.get(j).getRemark());
+                }
+            }
+        }
+
+        try {
+            String name = "现金日记账_" + map.get("queryPeriod");
+            response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" +
+                    new String(name.getBytes("GBK"), "ISO8859-1") + ".xlsx");
+            workbook.write(response.getOutputStream());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    private boolean isBigDecimalZero(BigDecimal arg) {
+        if (arg == null) {
+            return true;
+        }
+        if (arg.compareTo(BigDecimal.ZERO) == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private List<CashJournalEntity> getCashJournal(List<Integer> receiptId, List<CashJournalEntity> cashJournalEntities) {
+        List<CashJournalEntity> cjes = new ArrayList<>();
+        for (CashJournalEntity cash : cashJournalEntities) {
+            for (Integer id : receiptId) {
+                if (cash.getId().equals(id)) {
+                    cjes.add(cash);
+                }
+            }
+        }
+        return cjes;
+    }
+
+
+    /**
+     * 更新对象数据 对象和凭证id
+     **/
+    private CashJournalEntity getNewCashJournal(CashJournalEntity cje, Long id) {
+        SysUser sysUser = UserUtils.getCurrentUser();
+        cje.setVoucherId(id);
+        cje.setUpdateId(sysUser.getId());
+        cje.setUpdateName(sysUser.getUsername());
+        cje.setUpdateTime(new Date());
+        return cje;
+    }
+
+    /**
+     * 获取生成凭参数
+     **/
+    private CashierVoucherVO getCashierVoucherVO(CashJournalEntity cje) {
+        CashierVoucherVO cvv = new CashierVoucherVO();
+        cvv.setId(cje.getId());
+        cvv.setSubjectId(cje.getSubjectId());
+        if (!StringUtils.isEmpty(cje.getRelativeSubjectId())) {
+            cvv.setRelativeSubjectId(cje.getRelativeSubjectId());
+        }
+        cvv.setDirection(cje.getDirection());
+        if (Constant.DIRECTION_DEBIT.intValue() == cje.getDirection().intValue()) {
+            //本方科目为借方时
+            cvv.setAmount(cje.getDebitAmount());
+            cvv.setAmountFor(cje.getDebitAmountFor());
+        }
+        if (Constant.DIRECTION_CREDIT.intValue() == cje.getDirection().intValue()) {
+            //本方科目为贷方时
+            cvv.setAmount(cje.getCreditAmount());
+            cvv.setAmountFor(cje.getCreditAmountFor());
+        }
+        cvv.setIsProject(cje.getIsProject());
+        cvv.setCurrencyId(cje.getCurrencyId());
+        cvv.setAccountYear(cje.getAccountYear());
+        cvv.setAccountPeriod(cje.getAccountPeriod());
+        cvv.setSummary(cje.getSummary());
+        cvv.setDatetime(cje.getDatetime());
+        //所属系统 银行日记账 31
+        cvv.setBelongSystem(Constant.CASH_JOURNAL_SYSTEM);
+        return cvv;
+    }
+
+    /**
+     * 根据id集合批量查询数据
+     *
+     * @param
+     * @return
+     * @description:TODO
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-08-01 14:10
+     */
+    private List<CashJournalEntity> queryAll(Long[] ids, Long sobId) {
+        Result result = cnCashierJournalRemoteService.queryAll(ids, sobId);
+        logger.info("获取到的数据结果为{}" + JsonUtil.objToJson(result));
+        List<CashJournalEntity> projectList = null;
+        if (!StringUtils.isEmpty(result.getData())) {
+            //解析result获得集合
+            projectList = ResponseUtil.getResult(result,
+                    new TypeReference<ResponseVO<List<CashJournalEntity>>>() {
+                    });
+        }
+        return projectList;
+    }
+
+
+    /**
+     * @param sobId
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.String>>
+     * @description: 获取会计年度列表
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-01 14:46
+     */
+    public List<Map<String, String>> getPeriodYear(Long sobId) {
+        Map<String, Object> yearPeriod = cnCashierJournalRemoteService.getYearPeriod(sobId);
+        List<Map<String, String>> resultList = new ArrayList<>();
+        Map<String, String> yearMap = new HashMap<>();
+        if (yearPeriod == null || yearPeriod.size() == 0 || (yearPeriod.get("minYear") == null && yearPeriod.get("maxYear") == null)) {
+            Integer accountYear = commonService.getCnCurrentAccountYear(sobId);
+            yearMap.put("name", accountYear + "");
+            yearMap.put("value", accountYear + "");
+            resultList.add(yearMap);
+        } else {
+            Integer startYear = Integer.parseInt(yearPeriod.get("minYear").toString());
+            Integer endYear = Integer.parseInt(yearPeriod.get("maxYear").toString());
+            if (startYear.intValue() == endYear.intValue()) {
+                yearMap.put("name", startYear + "");
+                yearMap.put("value", startYear + "");
+                resultList.add(yearMap);
+                return resultList;
+            }
+            for (int i = startYear; i <= endYear.intValue(); i++) {
+                yearMap.put("name", i + "");
+                yearMap.put("value", i + "");
+                resultList.add(yearMap);
+            }
+        }
+        return resultList;
+    }
+
+
+    @Override
+    public boolean updateVoucher(ParamVO paramVO) {
+
+        return cnCashierJournalRemoteService.updateVoucher(paramVO);
+    }
+
+
+    /**
+     * @param sobId
+     * @return com.htrfid.util.Result
+     * @description: 现金对账 初始化
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-13 16:58
+     */
+    @Override
+    public Result reconciliationInit(Long sobId) {
+        Map<String, Object> initMap = new HashMap<>();
+        //获取当前会计年度，当前会计期间
+        Integer cnCurrentAccountYear = commonService.getCnCurrentAccountYear(sobId);
+        Integer cnCurrentAccountPeriod = commonService.getCnCurrentAccountPeriod(sobId);
+        initMap.put("cnCurrentAccountYear", cnCurrentAccountYear);
+        initMap.put("cnCurrentAccountPeriod", cnCurrentAccountPeriod);
+        //获取库存现金科目列表
+        List<Map<String, Object>> initCnSubject = cashierBalanceService.initCnSubject(Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        initMap.put("subjectList", initCnSubject);
+        List<TBaseCurrencyMaintainEntity> currencyList = null;
+        if (initCnSubject != null && initCnSubject.size() != 0) {
+        	Long subjectId = Long.parseLong(initCnSubject.get(0).get("accountId").toString());
+            currencyList = commonService.getInitCurrencyList(subjectId, Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        }
+        initMap.put("currencyList", currencyList);
+
+        //获取当前会计年度当前会计期间的第一天和最后一天日期
+        Map<String, Object> periodDate = commonService.getPeriodDate(cnCurrentAccountYear, cnCurrentAccountPeriod, sobId);
+        initMap.put("startDate", periodDate.get("startDate"));
+        initMap.put("endDate", periodDate.get("endDate"));
+        //当前组织及名称
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> orgEntity = commonService.getOrgEntity();
+        list.add(orgEntity);
+        initMap.put("org", list);
+        //获取会计年度列表
+        List<Map<String, String>> periodYear = getPeriodYear(sobId);
+        initMap.put("periodYear", periodYear);
+        return Result.ok(initMap);
+    }
+
+    /**
+     * @param vo
+     * @return com.htrfid.util.Result
+     * @description: 现金对账 详情
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-13 17:58
+     */
+    @Override
+    public Result reconciliationDetail(CashReconciliationFilterVo vo) {
+        return cnCashierJournalRemoteService.reconciliationDetail(vo);
+    }
+
+
+}

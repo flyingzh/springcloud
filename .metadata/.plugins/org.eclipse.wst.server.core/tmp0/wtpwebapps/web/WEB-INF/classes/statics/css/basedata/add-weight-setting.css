@@ -1,0 +1,19 @@
+.ht-tabnav{
+    background:#E8E8E8;
+    height: 40px;
+    line-height: 40px;
+    padding-left: 10px
+}
+ .ht-tabnav span{
+    padding:0 5px 0 5px;
+    cursor: pointer;
+}
+ .ht-form{
+    width:80%;
+}
+ .ht-width{   
+    display: inline-block;
+    width: 28%;
+}
+ 
+

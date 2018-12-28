@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>维修退货单——列表</title>
+    <style>
+        .selectInp{
+            width: 60%
+        }
+        .form-content{
+            padding: 30px 0 0 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="repair-order-list" v-cloak>
+        <ht-approve-reject :trigger="modalTrigger"
+                           :modal-type="modalType"
+                           :receipt-id="repairReturnNo"
+                           :receipt-status="status"
+                           :step-list.sync="stepList"
+                           :table-data.sync="approvalTableData"
+                           url-check='${rc.contextPath}/repairReturn/findUserOperation'
+                           url-init-approve='${rc.contextPath}/repairReturn/queryProcessByReceiptsId'
+                           url-approve='${rc.contextPath}/repairReturn/submitApproval'
+                           url-table-data='${rc.contextPath}/repairReturn/queryReceiptsById'
+                           @on-auto-approve="approvalOrRejectCallBack"
+                           @on-approve="approvalOrRejectCallBack"
+                           @on-reject="approvalOrRejectCallBack" ref="ar">
+        </ht-approve-reject>
+        <div class="btn-menu">
+            <span class="pd-rg-sm pd-lf-sm"  @click="refresh">刷新</span>
+            <span class="pd-rg-sm pd-lf-sm"  @click="delBatch">删除</span>
+            <span class="pd-rg-sm pd-lf-sm"  @click="info">提交</span>
+            <span class="pd-rg-sm pd-lf-sm"  @click="approval">审核</span>
+            <span class="pd-rg-sm pd-lf-sm"  @click="reject">驳回</span>
+            <span class="pd-rg-sm pd-lf-sm"  @click="exit">退出</span>
+        </div>
+        <i-form class="form-content" v-show="isHideSearch" >
+                <row>
+                    <i-col span="8">
+                        <form-item label="商品类型：">
+                            <ht-commodity-type :show-tip="false" @change="changeProductType" ref="gtype"></ht-commodity-type>
+
+                        </form-item>
+                        <form-item label="单据编号：">
+                            <i-input class="ht-width-md" placeholder="可模糊搜索" v-model="body.searchRepairRegisterNo"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="客户：">
+                            <ht-customer-list
+                                    v-model="selectCustomerObj"
+                                    @sure="closeCustomer"
+                                    is-check="no"
+                                    ref="customerRef"
+                            >
+                            </ht-customer-list>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="日期：">
+                            <date-picker v-model="dateArr" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+                                         placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false"
+                                     class="inline-block" style="margin-left:50px"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        <!-- 隐藏按钮 -->
+        <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+        <!-- 列表部分 -->
+        <!-- 折叠按钮结束 -->
+        <base-data-list v-show="isHideList" :table_id="myTable" :data_config="data_user_list" :need-reload="reload"
+                        v-model="selected"></base-data-list>
+    </div>
+    <script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+    <script src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-commodity-type.js"></script>
+    <script src="${rc.contextPath}/js/repair/repair-return/repair-return-list.js"></script>
+
+</body>
+
+</html>

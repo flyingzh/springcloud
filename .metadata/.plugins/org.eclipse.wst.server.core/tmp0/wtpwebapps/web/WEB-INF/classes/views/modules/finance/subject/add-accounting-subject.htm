@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="../header.html" />
+    <link rel="stylesheet" href="../../css/basedata/add-accounting-subject.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="rrapp">
+        <div class="bg-gray-less pd-top-sm pd-bt-sm pd-lf-sm">
+            <span class="mouse-point" @click='submit'>保存</span>
+            <span class="pd-lf-sm mouse-point">退出</span>
+        </div>
+        <div class="layui-tab layui-tab-brief">
+            <ul class="layui-tab-title">
+                <li class="layui-this">科目设置</li>
+                <li>核算项目</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <form action="">
+                        <table class="add-account width-lg">
+                            <tr>
+                                <td class="text-rg ">科目代码
+                                    <span class="star"></span>
+                                </td>
+                                <td>
+                                    <div class="inline-block  position-r">
+                                        <input required class="form-control input-sm" type="text" name="checkIn">
+                                        <label for="checkIn" class="error err-notice"></label>
+                                    </div>
+
+                                </td>
+                                <td class="text-rg ">科目名称
+                                    <span class="star"></span>
+                                </td>
+                                <td>
+                                    <div class="inline-block ">
+                                        <input required class="form-control input-sm" type="text">
+                                    </div>
+                                </td>
+                                <td class="text-rg ">科目类别
+                                    <span class="star"></span>
+                                </td>
+                                <td>
+                                    <div class="inline-block ">
+                                        <select required @change="selectSubject($event)" class="form-control input-sm">
+                                            <option value="">请选择</option>
+                                            <option v-for="(item,index) in subjectList" :value="item.DCRecord">{{item.subjectType}}</option>
+                                        </select>
+                                    </div>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-rg ">余额方向
+                                    <span class="star"></span>
+                                </td>
+                                <td>
+                                    <div class="inline-block ">
+                                        <select v-model="isSelected" required class="form-control input-sm" name="" id="" class="test">
+                                            <option value="">请选择</option>
+                                            <option value="1">借方</option>
+                                            <option value="0">贷方</option>
+                                        </select>
+                                    </div>
+
+                                </td>
+                                <td class="text-rg ">外币核算
+                                    <span class="star"></span>
+                                </td>
+                                <td>
+                                    <div class="inline-block ">
+                                        <select @change="selectCurrency($event)" required class="form-control input-sm">
+                                            <option value="0">请选择</option>
+                                            <option v-for='item in currencyType' :value="item.value">{{item.type}}</option>
+                                        </select>
+                                    </div>
+
+                                </td>
+                                <td class="text-rg ">期末调汇</td>
+                                <td>
+                                    <input type="checkbox" :disabled="isDisable">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-rg ">现金科目</td>
+                                <td class="text-rg">
+                                    <input type="checkbox" v-model="isCheckedCash">
+                                </td>
+                                <td class="text-rg ">银行科目</td>
+                                <td>
+                                    <input v-model="isCheckedBand" type="checkbox">
+                                </td>
+                                <td class="text-rg ">出日记账</td>
+                                <td>
+                                    <input type="checkbox" :checked="isCheckedCash? true : false">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-rg ">数量金额辅助核算</td>
+                                <td>
+                                    <input type="checkbox" v-model='isChecked'>
+                                </td>
+                                <td class="text-rg ">计量单位</td>
+                                <td>
+                                    <select :disabled="isChecked? false : true" class="form-control input-sm">
+                                        <option value="">单位组</option>
+                                        <option value="">长度组</option>
+                                        <option value="">重量组</option>
+                                    </select>
+                                </td>
+                                <td colspan="2">
+                                    <select :disabled="isChecked? false : true" class="form-control input-sm">
+                                        <option value="">缺省单位</option>
+                                        <option value="">长度组</option>
+                                        <option value="">重量组</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-rg ">现金等价物</td>
+                                <td>
+                                    <input type="checkbox">
+                                </td>
+                                <td class="text-rg ">预设现金流量项目</td>
+                                <td class="position-r">
+                                    <input :disabled="(isCheckedCash && isCheckedBand) ? true : false" class="form-control input-sm" type="text">
+                                    <span class="glyphicon glyphicon-search position-search" @click="openDetail"></span>
+                                </td>
+                                <td class="position-r" colspan="2">
+                                    <input :disabled="(isCheckedCash && isCheckedBand) ? true : false" class="form-control input-sm" type="text">
+                                    <span class="glyphicon glyphicon-search position-search"></span>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+                <div class="layui-tab-item ">
+                    <div class="bg-gray navbase pd-lf-sm">
+                        <span>新增行</span>
+                        <span>删除行</span>
+                    </div>
+                    <table class="check-table">
+                        <thead>
+                            <tr class="bg-gray">
+                                <th>序号</th>
+                                <th>核算项目代码</th>
+                                <th>核算项目名称</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>2</td>
+                                <td>3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="hide-render"> -->
+            <div id="popup">
+                <div>
+                    <h4>C12投资活动产生的现金流量资料</h4>
+                </div>
+                <div>
+                    <h4>C12投资活动产生的现金流量资料内容</h4>
+                    <div>
+                        <div class="input-group">
+                            <label class="col-xs-2 text-rg">代码</label>
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control input-sm" placeholder="可模糊查询">
+                            </div>
+
+                            <label class="col-xs-2 text-rg">名称</label>
+                            <div class="col-xs-3">
+                                <input type="text" class="form-control input-sm" placeholder="可模糊查询">
+                            </div>
+                            <div class="col-xs-2">
+                                <button class="btn btn-default btn-sm">查询</button>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-default btn-sm">选择</button>
+                            <button class="btn btn-default btn-sm">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- </div> -->
+    </div>
+    <script src='../../js/basedata/add-accounting-subject.js'></script>
+</body>
+
+</html>

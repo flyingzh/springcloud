@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> #parse("modules/public/header.html")
+
+
+    <title>销售结算单-新增</title>
+</head>
+
+<body>
+    <div id="sale-settlement" v-cloak>
+        <ht-approve-reject
+                :trigger="modalTrigger"
+                :modal-type="modalType"
+                :receipt-id="saleBillVo.documentNo"
+                :receipt-status="saleBillVo.documentStatus"
+                :step-list.sync="stepList"
+                :table-data.sync="approvalTableData"
+                url-check='${rc.contextPath}/saleBillController/findUserOperation'
+                url-init-approve='${rc.contextPath}/saleBillController/queryProcessByReceiptsId'
+                url-approve='${rc.contextPath}/saleBillController/submitApproval'
+                url-table-data='${rc.contextPath}/saleBillController/queryReceiptsById'
+                @on-auto-approve="approvalOrRejectCallBack"
+                @on-approve="approvalOrRejectCallBack"
+                @on-reject="approvalOrRejectCallBack">
+        </ht-approve-reject>
+        <product-detail ref="modalRef" :show-modal="productDetailModal.showModal"
+                        :goods-main-type="goodList[selectedIndex] && goodList[selectedIndex].goodsMainType"
+                        :ids="productDetailModal.ids"
+                        :over-edit="goodList[selectedIndex] && goodList[selectedIndex].overEdit"
+                        :order-status="updateFlag"
+                        :t-base-bom-entity="goodList[selectedIndex] && goodList[selectedIndex].tBaseBomEntity"
+                        :my-assist-attrs="goodList[selectedIndex] && goodList[selectedIndex].assistAttrs"
+                        @ok="modalSure($event)"
+                        @cancel="modalCancel($event)">
+        </product-detail>
+        <div class="btn-menu">
+            <i-button type="text" class="pd-rg-md" @click="save" :disabled="saleBillVo.documentStatus != 1">保存</i-button>
+            <i-button type="text" class="pd-rg-md" @click="submit" :disabled="saleBillVo.documentStatus != 1">提交</i-button>
+            <i-button type="text" class="pd-rg-md" @click="approve" :disabled="(saleBillVo.documentStatus === 1 ) ||( saleBillVo.documentStatus === 4)">审核</i-button>
+            <i-button type="text" class="pd-rg-md" @click="reject" :disabled="(saleBillVo.documentStatus === 1 ) ||( saleBillVo.documentStatus === 4)">驳回</i-button>
+            <i-button type="text" class="pd-rg-md" :disabled="true">预览</i-button>
+            <i-button type="text" class="pd-rg-md" :disabled="true">打印</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div class="ht-approve-stamp" v-show="saleBillVo.documentStatus==4">
+            审核
+        </div>
+        <i-form label-width="140" ref="formValidate" :model="saleBillVo" :rules="ruleValidate">
+            <tabs value="base" :animated="false">
+                <tab-pane label="基本信息" name="base">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="单据编号：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="saleBillVo.documentNo" :disabled="isDisable"></i-input>
+                                <input type="text" name="name1" v-model="saleBillVo.documentNo" required class="hidden-input">
+                            </form-item>
+                            <form-item label="日期：" class="ht-star" prop="billTime">
+                                <date-picker type="date" @on-change="htTestChange" transfer v-model="saleBillVo.billTime" format="yyyy-MM-dd" class="ht-width-md" :disabled="isUpdateDisable" :readonly="saleBillVo.documentStatus != 1"></date-picker>
+                                <input type="text" name="name2" v-model="saleBillVo.billTime" required class="hidden-input">
+                            </form-item>
+                            <form-item label="本单金料金额：">
+                                <i-input class="ht-width-md" @input="htTestChange" v-model="saleBillVo.totalGoldAmount" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="本单其他费：">
+                                <i-input class="ht-width-md" @input="htTestChange" v-model="saleBillVo.totalOtherAmount" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="本单保价费：">
+                                <input class="ht-width-md ivu-input" maxlength="16" v-model="saleBillVo.totalInsurancePrice" :disabled="isUpdateDisable" @input="checkNum(saleBillVo,'totalInsurancePrice', 2);htTestChange()"/>
+                            </form-item>
+                            <form-item label="上期累计应收款：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.lastReceiptAmount" :disabled="isDisable" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织：" class="ht-star">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="saleBillVo.organizationName"></i-input>
+                                <input type="text" name="name5" required class="hidden-input">
+                            </form-item>
+                            <form-item label="计价方式：">
+                                <i-select v-model="saleBillVo.pricingMethod" :disabled="isDisable" class="ht-width-md" @on-change="htTestChange" >
+                                    <i-option value="1">标签价折扣</i-option>
+                                    <i-option value="2">金工石计价</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="本单石料金额：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.totalStoneAmount" :disabled="isDisable" @input="htTestChange"></i-input>
+                            </form-item>
+                            <form-item label="本单检测费：">
+                                <input class="ht-width-md ivu-input" maxlength="16" v-model="saleBillVo.inspectionCost" @input="checkNum(saleBillVo,'inspectionCost', 2);htTestChange()" :disabled="isUpdateDisable"/>
+                            </form-item>
+                            <form-item label="本单应收款：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.currentReceiptAmount" :disabled="isDisable" @input="htTestChange"></i-input>
+                            </form-item>
+                            <form-item label="本期累计应收款(余额)：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.totalReceiptAmount" :disabled="isDisable" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="客户：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="saleBillVo.custName" :disabled="isDisable"></i-input>
+                                <input type="text" name="name9" v-model="saleBillVo.custName" required class="hidden-input">
+                            </form-item>
+                            <form-item label="本单工费：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.totalLaborCost" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="本单配件金额：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.totalAccessoryAmount" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="本单邮寄费：">
+                                <input class="ht-width-md ivu-input" maxlength="16" v-model="saleBillVo.postalCost" @input="checkNum(saleBillVo,'postalCost', 2);htTestChange()"  :disabled="isUpdateDisable"/>
+                            </form-item>
+                            <form-item label="本期其他收款：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.currentOtherAmount" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="备注：">
+                                <i-input type="textarea" class="ht-width-md" v-model="saleBillVo.remark" :disabled="isUpdateDisable" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="审批信息" name="approve">
+                    <steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </steps>
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>序号</th>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="(item,index) in approvalTableData">
+                            <td>{{index+1}}</td>
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="其他" name="other">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="创建人:">
+                                <i-input class="ht-width-md" v-model="saleBillVo.createName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="创建日期:">
+                                <i-input class="ht-width-md" v-model="saleBillVo.createTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="最后修改人：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.updateName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="修改日期：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.updateTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="审核人：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.auditName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="审核日期：">
+                                <i-input class="ht-width-md" v-model="saleBillVo.auditTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件" name="name4">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+        <tabs value="name1" :animated="false">
+            <tab-pane label="出库汇总" name="name1">
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>源单类型</th>
+                            <th>单据编号</th>
+                            <th>日期</th>
+                            <th>商品总数量</th>
+                            <th>总重</th>
+                            <th>销售金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in saleBillVo.saleBillOutStockCollectList" :key="index">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>销售出库单</td>
+                            <td style="text-align: center">
+                                <a class="ht-width-md"  @click="jumpOutStock(item.sourceDocumentNo)"
+                                   v-model="item.sourceDocumentNo">{{item.sourceDocumentNo}}</a>
+                            <td>{{item.outStockTime}}</td>
+                            <td>{{item.totalNum}}</td>
+                            <td>{{item.totalWeight}}</td>
+                            <td>{{item.totalAmount}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="width-xs text-center">合计</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{outStockTotalAmount}}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+            </tab-pane>
+            <tab-pane label="商品简述" name="name2">
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>商品图片</th>
+                            <th>商品类型</th>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>款式类别</th>
+                            <th>计数单位</th>
+                            <th>数量</th>
+                            <th>计重单位</th>
+                            <th>总重量</th>
+                            <th>销售总金额</th>
+                            <th>折扣率(%)</th>
+                            <th>实际销售总金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in saleBillVo.saleBillGoodsInfoList" :key="item.id">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>
+                                <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                            </td>
+                            <td>{{item.goodsTypeName}}</td>
+                            <td>{{item.goodsCode}}</td>
+                            <td>{{item.goodsName}}</td>
+                            <td>{{item.styleName}}</td>
+                            <td>{{item.countingUnit}}</td>
+                            <td>{{item.num}}</td>
+                            <td>{{item.weightUnit}}</td>
+                            <td>{{item.totalWeight}}</td>
+                            <td>{{item.totalAmount}}</td>
+                            <td>{{item.discountRate}}</td>
+                            <td>{{item.totalActualAmount}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="width-xs text-center">合计</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{goodsInfoTotalNum}}</td>
+                            <td></td>
+                            <td>{{goodsInfoTotalWeight}}</td>
+                            <td>{{goodsInfoTotalAmount}}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </tab-pane>
+            <tab-pane label="商品明细" name="name9" style="overflow: scroll;" :disabled="isDetailTabShow">
+                <div style="width:3000px;overflow-x: scroll;">
+                    <table class="edit-table">
+                        <thead>
+                            <tr>
+                                <th class="width-xs">序号</th>
+                                <th>条码号</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>款式类别</th>
+                                <th>商品明细</th>
+                                <th>主石条码号</th>
+                                <th>批号</th>
+                                <th>计数单位</th>
+                                <th>数量</th>
+                                <th>计重单位</th>
+                                <th>总重</th>
+                                <th>金重</th>
+                                <th>主石重(ct)</th>
+                                <th>标配证书类型</th>
+                                <th>证书编号</th>
+                                <th>今日金价</th>
+                                <th>金耗(%)</th>
+                                <th>金额（金）</th>
+                                <th>主石价</th>
+                                <th>金额（石）</th>
+                                <th>金额（配件）</th>
+                                <th>工费</th>
+                                <th>证书费</th>
+                                <th>其他费用</th>
+                                <th>销售金额</th>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            <tr v-for="(item,index) in saleBillVo.saleBillGoodsDetailList" :key="item.goodsBarcode">
+                                <td class="width-xs text-center">{{index+1}}</td>
+                                <td>{{item.goodsBarcode}}</td>
+                                <td>{{item.goodsCode}}</td>
+                                <td>{{item.goodsName}}</td>
+                                <td>{{item.styleName}}</td>
+                                <td v-if="item.detailMark !=2" @click="showProductDetail(index)"><a>商品明细</a></td>
+                                <td v-if="item.detailMark ==2" ><a>商品明细</a></td>
+                                <td>{{item.stoneNo}}</td>
+                                <td>{{item.batchNum}}</td>
+                                <td>{{item.countingUnit}}</td>
+                                <td>{{item.num}}</td>
+                                <td>{{item.weightUnit}}</td>
+                                <td>{{item.totalWeight}}</td>
+                                <td>{{item.goldWeight}}</td>
+                                <td>{{item.stoneWeight}}</td>
+                                <td>{{item.standardCateType}}</td>
+                                <td>{{item.certificateNo}}</td>
+                                <td>{{item.goldPrice}}</td>
+                                <td>{{item.goldLoss}}</td>
+                                <td>{{item.goldAmount}}</td>
+                                <td>{{item.stonePrice}}</td>
+                                <td>{{item.stoneAmount}}</td>
+                                <td>{{item.accessoryAmount}}</td>
+                                <td>{{item.processingFee}}</td>
+                                <td>{{item.certificateAmount}}</td>
+                                <td>{{item.otherAmount}}</td>
+                                <td>{{item.saleAmount}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </tab-pane>
+            <tab-pane label="用料明细" name="name3" :disabled="isTabShow">
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>金料成色</th>
+                            <th>重量单位</th>
+                            <th>重量(含耗)</th>
+                            <th>金价</th>
+                            <th>金额</th>
+                        </tr>
+                    </thead>
+                    <tbody v-show="saleBillVo.pricingMethod==2">
+                        <tr v-for="(item,index) in saleBillVo.saleBillGoldInfoList" :key="index">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>{{item.goodsCode}}</td>
+                            <td>{{item.goodsName}}</td>
+                            <td>{{item.goldColor}}</td>
+                            <td>{{item.weightUnit}}</td>
+                            <td>{{item.consumptionWeight}}</td>
+                            <td>{{item.goldPrice}}</td>
+                            <td>{{item.totalAmount}}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="width-xs text-center">合计</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{goldInfoTotalWeight}}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="ht-subtitle">
+                    <div>客存料结价情况</div>
+                </div>
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>金料</th>
+                            <th>上期客存料(g</th>
+                            <th>本期来料(g)</th>
+                            <th>是否结价</th>
+                            <th>结价数量</th>
+                            <th>结价金额</th>
+                            <th>本期结存(g)</th>
+                        </tr>
+                    </thead>
+                    <tbody v-show="saleBillVo.pricingMethod==2">
+                        <tr v-for="(item,index) in saleBillVo.saleBillInventoryList" :key="index">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>{{item.materialName}}</td>
+                            <td>{{item.lastStockMaterialWeight}}</td>
+                            <td>{{item.materialWeight}}</td>
+                            <td>{{item.isBill}}</td>
+                            <td>{{item.billWeight}}</td>
+                            <td>{{item.billPrice}}</td>
+                            <td>{{item.overageMaterialWeight}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </tab-pane>
+            <tab-pane label="用石明细" name="name4" :disabled="isTabShow">
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>原料性质</th>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>批号</th>
+                            <th>条码号</th>
+                            <th>粒数</th>
+                            <th>总重量(ct)</th>
+                            <th>单价</th>
+                            <th>金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in saleBillVo.saleBillStoneInfoList" :key="index">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>{{item.materialType}}</td>
+                            <td>{{item.goodsCode}}</td>
+                            <td>{{item.goodsName}}</td>
+                            <td>{{item.batchNum}}</td>
+                            <td>{{item.goodsBarcode}}</td>
+                            <td>{{item.num}}</td>
+                            <td>{{item.weight}}</td>
+                            <td>{{item.price}}</td>
+                            <td>{{item.totalAmount}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </tab-pane>
+            <tab-pane label="配件明细" name="name5" :disabled="isTabShow">
+                <table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th class="width-xs">序号</th>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>计数单位</th>
+                            <th>数量</th>
+                            <th>计重单位</th>
+                            <th>重量</th>
+                            <th>单价</th>
+                            <th>金额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in saleBillVo.saleBillAccessoryInfoList" :key="index">
+                            <td class="width-xs text-center">{{index+1}}</td>
+                            <td>{{item.goodsCode}}</td>
+                            <td>{{item.goodsName}}</td>
+                            <td>{{item.countingUnit}}</td>
+                            <td>{{item.num}}</td>
+                            <td>{{item.weightUnit}}</td>
+                            <td>{{item.weight}}</td>
+                            <td>{{item.price}}</td>
+                            <td>{{item.totalAmount}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </tab-pane>
+        </tabs>
+        <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+
+    </div>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-select.js"></script>
+    <script src='${rc.contextPath}/js/components/ht-product-detail.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-img-magnifier.js"></script>
+    <script src='${rc.contextPath}/js/components/ht-product-detail.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+    <script src="${rc.contextPath}/js/access/access.js"></script>
+    <script src='${rc.contextPath}/js/sale/bill/sale-bill-add.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

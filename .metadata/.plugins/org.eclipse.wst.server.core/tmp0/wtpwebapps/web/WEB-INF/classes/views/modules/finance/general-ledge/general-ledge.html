@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<!--    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/basedata/ht-list-common.css">-->
+
+    <style>
+        /* .filter {
+            position: absolute;
+            z-index: 10;
+        } */
+
+        .ui-jqgrid .ui-jqgrid-title {
+            font-size: 15px;
+        }
+
+        .ui-jqgrid .ui-jqgrid-sortable {
+            font-size: 15px;
+        }
+
+        .ui-jqgrid tr.jqgrow td {
+            font-size: 14px;
+        }
+
+        .ui-jqgrid-btable div.ht-inner-td:not(:last-child) {
+            width: 100%;
+            height: 20px;
+            border-bottom: 1px solid #DDDDDD;
+        }
+
+        .ui-jqgrid-btable tr.ui-row-ltr td {
+            padding: 0;
+        }
+
+        #general-ledge .btn-menu .ivu-dropdown .ivu-select-dropdown {
+            width: 380px;
+        }
+
+        #general-ledge .btn-menu .ivu-dropdown .ivu-select-dropdown .ivu-form-item {
+            margin-bottom: 10px !important;
+        }
+    </style>
+    <title>总账</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="general-ledge" v-cloak>
+        <ht-common-confirm v-if="confirmConfig.showConfirm" :config="confirmConfig" @sure="conformSure" @cancel="conformCancel">
+        </ht-common-confirm>
+        <ht-modal-subject v-model="subjectVisiable" @close="subjectClose" @save="subjectDate" ref="modalSubject1"></ht-modal-subject>
+        <div class="btn-menu">
+            <Dropdown trigger="custom" :visible="visible_filter">
+                <button @click="handleOpen" class="ht-btn">
+                    过滤
+                </button>
+                <DropdownMenu slot="list">
+                    <DropdownItem>
+                        <div class="filter" style="padding: 20px;">
+                            <i-form :model="searchData" label-width="80">
+                                <form-item label="起始期间:">
+                                    <i-select v-model="searchData.subjectYearStart" style="width:100px">
+                                        <i-option v-for="item in years" :value="item.value" :key="item.value">{{ item.name }}
+                                        </i-option>
+                                    </i-select>
+                                    年
+                                    <i-select v-model="searchData.subjectPeriodStart" style="width:100px">
+                                        <i-option v-for="item in subjectList" :value="item.value" :key="item.value">{{ item.name }}
+                                        </i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="结束期间:">
+                                    <i-select v-model="searchData.subjectYearEnd" style="width:100px">
+                                        <i-option v-for="item in years" :value="item.value" :key="item.value">{{ item.name }}
+                                        </i-option>
+                                    </i-select>
+                                    年
+                                    <i-select v-model="searchData.subjectPeriodEnd" style="width:100px">
+                                        <i-option v-for="item in subjectList" :value="item.value" :key="item.value">{{ item.name }}
+                                        </i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="起始科目:">
+                                    <i-input v-model="searchData.subjectStart" icon="ios-list-outline" readonly="true" @on-click="iconPopup"></i-input>
+                                </form-item>
+                                <form-item label="结束科目:">
+                                    <i-input v-model="searchData.subjectEnd" icon="ios-list-outline" readonly="true" @on-click="iconPopup(222)"></i-input>
+                                </form-item>
+                                <form-item label="科目级别:" class="level">
+                                    <input-number :min="1" :max="9" v-model="searchData.subjectLeaveStart" name="a1" style="width:70px;" class="required"></input-number>
+                                    <!--<i-input v-model="searchData.subjectLeaveStart" type="number"></i-input>-->
+                                    至
+                                    <input-number :min="1" :max="9" v-model="searchData.subjectLeaveEnd" name="a1" style="width:70px;" class="required"></input-number>
+                                    <!--<i-input v-model="searchData.subjectLeaveEnd" type="number"></i-input>-->
+                                </form-item>
+                                <form-item label="币别:" class="level">
+                                    <i-select v-model="searchData.currencyId" style="width:120px">
+                                        <i-option v-for="item in currencyList" :value="item.id" :key="item.id">{{ item.currencyName }}
+                                        </i-option>
+                                    </i-select>
+                                </form-item>
+                                <!--<form-item class="check">
+                                    <Checkbox v-model="searchData.showForbiddenSubject">显示禁用科目</Checkbox>
+                                </form-item>-->
+                                <form-item class="check">
+                                    <Checkbox v-model="searchData.noShow">余额为0不显示</Checkbox>
+                                </form-item>
+                                <form-item class="check">
+                                    <Checkbox v-model="searchData.noShowAndHappen">无发生额且余额为0不显示</Checkbox>
+                                </form-item>
+                                <form-item class="check">
+                                    <Checkbox v-model="searchData.posted">包括未过账凭证</Checkbox>
+                                </form-item>
+                                <form-item class="check">
+                                    <Checkbox v-model="searchData.showSubjectDetail">显示核算项目明细</Checkbox>
+                                </form-item>
+                                <!--<form-item class="check">-->
+                                <!--<Checkbox v-model="searchData.showSubjectLevel">显示核算项目所有级次</Checkbox>-->
+                                <!--</form-item>-->
+                            </i-form>
+                            <div style="position: absolute;bottom:0px;right:10px;margin-bottom: 10px">
+                                <i-button type="primary" @click="sure(true)">确定</i-button>
+                                <i-button type="primary" @click="sure(false)">取消</i-button>
+                            </div>
+
+                        </div>
+                    </DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+            <button @click="refurbish" class="ht-btn">刷新</button>
+            <button @click="detailed" class="ht-btn">查看明细账</button>
+            <button @click="printV" class="ht-btn">打印</button>
+            <button @click="outExcel" class="ht-btn">引出</button>
+            <!--<span>选项</span>-->
+            <!--<span>选项</span>-->
+            <!--<span>选项</span>-->
+            <button @click="secede" class="ht-btn">退出</button>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <table id="list"></table>
+            <div id="pager"></div>
+        </div>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+
+<!--    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src='${rc.contextPath}/ktc/js/app.js'></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>-->
+<!--    <script src="${rc.contextPath}/js/finance/general-ledge/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/finance/general-ledge/ht-add-del-btn.js"></script>-->
+    <!--    <script src="../../js/basedata/components/ht-tree.js"> </script>
+    <script src="../../js/basedata/components/subject-tree.js"> </script>-->
+<!--    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-common-confirm.js"></script>-->
+    <!--<script src="${rc.contextPath}/js/utils.js"></script>-->
+   <!-- <script src='${rc.contextPath}/js/finance/general-ledge/general-ledge.js'></script>-->
+
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script>
+        htLoadJs([
+            'ht-print-choose',
+            '${rc.contextPath}/js/finance/components/ht-tree.js',
+            '${rc.contextPath}/js/basedata/components/ht-common-confirm.js',
+            '${rc.contextPath}/js/finance/general-ledge/general-ledge.js'
+        ])
+    </script>
+    <!--'${rc.contextPath}/js/finance/components/ht-modal-subject.js',-->
+
+
+#parse("modules/public/footer.html") </body>
+
+</html>

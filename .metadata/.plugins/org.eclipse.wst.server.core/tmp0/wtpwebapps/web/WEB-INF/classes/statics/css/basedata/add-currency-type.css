@@ -1,0 +1,24 @@
+/* padding */
+.pd-lf-sm{
+    padding-left:10px;
+}
+.pd-rg-sm{
+    padding-right:10px;
+}
+.pd-top-sm{
+    padding-top:10px;
+}
+.pd-bt-sm{
+    padding-bottom:10px;
+}
+/* background-color */
+.bg-gray{
+    background: #F2F2F2;
+}
+.bg-gray-less{
+    background: #E8E8E8;
+}
+/* mouse */
+.mouse-point{
+    cursor: pointer;
+}

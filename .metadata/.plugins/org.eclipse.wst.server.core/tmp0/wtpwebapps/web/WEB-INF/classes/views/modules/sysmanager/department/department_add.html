@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>部门-新增</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/sysmanager/department/department_add.css">
+</head>
+<body>
+<div id="department_list">
+        <div id="weight">
+            <div class="btn-menu">
+                <span @click="save('formValidate')">保存</span>
+                <span @click="exit">退出</span>
+            </div>
+            <div style="height: 35px;"></div>
+            <i-form id="my_from"  label-width="100" ref="formValidate"  :rules="ruleValidate"  :model="body">
+                <row>
+                    <i-col  span="8">
+                        <form-item label="代码：" class="ht-star" >
+                            <i-input disabled style="width: 200px;" v-model="body.depCode" placeholder="保存时自动生成"></i-input>
+                        </form-item>
+                        <form-item label="部门名称：" prop="depName"  class="ht-star" >
+                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depName"></i-input>
+                        </form-item>
+                        <form-item label="部门主管：">
+                            <ht-employee-list
+                                    v-model="selectChargeObj"
+                                    @sure="closeCharge"
+                                    :disabled="showAll"
+                                    ref="chargeRef"
+                                    is-check="no"
+                                    @on-change="htTestChange()"
+                            >
+                            </ht-employee-list>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="创建时间：">
+                            <i-input disabled  style="width: 200px;" v-model="body.createTime"></i-input>
+                        </form-item>
+                        <form-item label="创建人：">
+                            <i-input disabled style="width: 200px;" v-model="body.createName"></i-input>
+                        </form-item>
+                        <form-item label="上级部门组：">
+                            <i-input disabled style="width: 200px;" v-model="parentDept.depName"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="部门编制人数：">
+                            <input :disabled="showAll" style="width: 200px;" class="ivu-input" v-model="body.depStaff"
+                                    @input="clearNoNumber(body,'depStaff',0)"></input>
+                        </form-item>
+                        <form-item label="备注：">
+                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depRemarks"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+            <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+        </div>
+
+
+</div>
+</body>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/components/ht-employee-list.js',
+        '${rc.contextPath}/js/sysmanager/department/department_add.js'
+    ])
+</script>
+</html>

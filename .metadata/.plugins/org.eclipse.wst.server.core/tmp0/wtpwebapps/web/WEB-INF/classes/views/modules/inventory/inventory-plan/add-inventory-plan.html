@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新增盘点方案</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/inventory/inventory-plan/add-inventory-plan.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="btn-menu ht-menu-fix">
+        <!--<span class="pd-rg-md" @click="">刷新</span>-->
+        <span class="pd-rg-md is-disabled" @click="save">保存</span>
+        <span class="pd-rg-md is-disabled" @click="submit('formValidate')">提交</span>
+        <span class="pd-rg-md is-disabled" @click="entryData">盘点数据录入</span>
+        <span class="pd-rg-md is-disabled" @click="">预览</span>
+        <span class="pd-rg-md is-disabled" @click="htPrint">打印</span>
+        <span class="pd-rg-md" @click="exit">退出</span>
+    </div>
+    <div class="mg-top-md  ht-menu-top">
+        <i-form label-width="100"  height="200px;"  ref="formValidate"  :rules="ruleValidate"  :model="inventoryPlan">
+            <tabs :animated="false">
+                <tab-pane label="基本信息">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="盘点方案编号：">
+                                    <i-input  style="width: 200px" disabled v-model="inventoryPlan.documentNo"></i-input>
+                                </form-item>
+                                <form-item label="所属组织：">
+                                    <i-input  style="width: 200px" disabled v-model="orgName"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="盘点方案名称：" class="ht-star" label-width="110px;" prop="documentName">
+                                <i-input :disabled="allDisable" style="width: 200px" v-model="inventoryPlan.documentName" @input="htTestChange"></i-input>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="inventoryPlan.documentName" name="custId" required >
+                            </form-item>
+
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="盘点类型：" class="ht-star" prop="inventoryType">
+                                    <i-select :disabled="allDisable" class="ht-input-width" v-model="inventoryPlan.inventoryType"  style="width: 200px" @on-change="htTestChange">
+                                        <i-option v-for="item in inventoryTypeList" :value="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                    <!--<span class="star"></span>-->
+                                    <input class="hidden-input" v-model="inventoryPlan.inventoryType" name="inventoryType" required >
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                    <div style="height:10px"></div>
+                    <div class="ht-subtitle">
+                        <div>盘点参数</div>
+                    </div>
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                                <form-item label="实盘数量默认值："  label-width="120px;">
+                                    <i-select :disabled="allDisable" class="ht-input-width" v-model="inventoryPlan.numDefault"  style="width: 200px" @on-change="htTestChange">
+                                        <i-option v-for="item in selectQuantityDefaultsNum" :value="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="实盘重量默认值："  label-width="120px;">
+                                    <i-select :disabled="allDisable" class="ht-input-width" v-model="inventoryPlan.weightDefault"  style="width: 200px" @on-change="htTestChange">
+                                        <i-option v-for="item in selectQuantityDefaultsWeight" :value="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item>
+                                <label for="colcum"><input :disabled="allDisable" type="checkbox" @click="hideNum($event)" id="colcum" v-model="inventoryPlan.displaySkuNum == 1">显示账存数量</label>
+                            </form-item>
+                            <form-item>
+                                <label for="colcum1"><input :disabled="allDisable" type="checkbox" @click="hideWeight($event)" id="colcum1" v-model="inventoryPlan.dispalySkuWeight == 1">显示账存重量</label>
+                            </form-item>
+                        </i-col>
+                    </row>
+
+                    <div style="height:10px"></div>
+                    <div class="ht-subtitle">
+                        <div>盘点范围</div>
+                    </div>
+                        <row class="mg-top-md">
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="仓库或柜台："class="ht-star" prop="warehouseId">
+                                        <i-select :disabled="allDisable" v-model="warehouseId" filterable multiple style="width: 200px;" transfer="true" @on-change="getIdAndName">
+                                            <i-option v-for="item in selectWarehouseOrCounter" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+                                        </i-select>
+                                        <!--<span class="star"></span>-->
+                                        <input class="hidden-input" v-model="inventoryPlan.warehouseId" name="warehouseId" required >
+                                    </form-item>
+                                </div>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="商品类型：">
+                                    <input :disabled="allDisable" style="width: 200px" @focus="showGoodsTypeModal" v-model="inventoryPlan.goodsTypeName" class="ivu-input" @input="htTestChange"/>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="款式类型：">
+                                        <input :disabled="allDisable"  style="width: 200px" @focus="showCategoryStyleModal" v-model="inventoryPlan.custStyleTypeName" class="ivu-input" @input="htTestChange"/>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                        </row>
+                </tab-pane>
+                <!--客户信息-->
+                <tab-pane label="其他">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="创建人：">
+                                    <i-input disabled style="width:200px"  v-model="inventoryPlan.createName"></i-input>
+                                </form-item>
+                                <form-item label="创建日期：">
+                                    <i-input disabled style="width:200px" v-model="inventoryPlan.createTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="修改人：">
+                                    <i-input disabled style="width:200px" v-model="inventoryPlan.updateName"
+                                    ></i-input>
+                                </form-item>
+                                <form-item label="修改日期：">
+                                    <i-input disabled style="width:200px" v-model="inventoryPlan.updateTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+    </div>
+
+    <!--商品类型弹框-->
+    <modal v-model="isShowGoodsType" @on-ok="goodsTypeClick" >
+        <ht-tree
+                url="${rc.contextPath}/tbasecommoditycategory/queryAllList"
+                :setting="goodsTypeTreeSetting" tid="tree-demo"></ht-tree>
+    </modal>
+    <!--款式类别弹框-->
+    <modal v-model="isCategoryStyle" @on-ok="categoryStyleClick">
+        <ht-tree
+                url="${rc.contextPath}/tbasestylecategory/list"
+                :setting="categoryStyleTreeSetting" tid="tree-demo1"></ht-tree>
+    </modal>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script>
+    htLoadJs([
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+            '${rc.contextPath}/js/components/ht-close-modal.js',
+            '${rc.contextPath}/js/inventory/inventory-plan/add-inventory-plan.js'
+        ],
+
+    );
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

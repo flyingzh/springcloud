@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>现金流量表</title>
+    <link rel="stylesheet" href="../../../../finance/plugins/layui/css/layui.css" />
+    <link rel="stylesheet" href="../../../../finance/css/bootstrap.css" />
+    <link rel="stylesheet" href="../../../../finance/ktc/css/base.css" />
+    <link rel="stylesheet" href="../../../../finance/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="../../../../finance/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../../finance/plugins/iview/styles/iview.css" />
+    <link rel="stylesheet" href="../../../../finance/plugins/ztree/css/zTreeStyle/zTreeStyle.css" />
+    <link rel="stylesheet" href="../../../../finance/css/finance/report/cash-flow-statement/common.css">
+    <link rel="stylesheet" href="../../../../finance/css/finance/report/cash-flow-statement/add-weight-setting.css">
+    <!--<link rel="stylesheet" href="../../../../finance/css/finance/report/ht-list-common.css">-->
+    <!--<link rel="stylesheet" href="./index.css" />-->
+    <link rel="stylesheet" href="../../../../finance/ktc/css/ht-fixed-table.css" />
+</head>
+<body>
+<div id="profit-statement"  class="pd-md container" v-cloak>
+    <div>
+        <label>现金流量表：</label>
+        <i-select v-model="formData.for1" style="width:70px;">
+            <i-option v-for="item in optionList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+        </i-select>
+
+        <label class="pl10">日期：</label>
+        <i-select v-model="formData.for2" style="width:150px;">
+            <i-option v-for="item in dateList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+        </i-select>
+        <i-button @click="" id="refresh">
+            <Icon type="refresh"></Icon>
+        </i-button>
+        <div class="checkbox inline ml10">
+            <label>
+                <input type="checkbox" v-model="formData.for3"> 显示本月数、本年累计数
+            </label>
+        </div>
+        <div class="ht-float-right">
+            <i-button @click="" type="primary">打印</i-button>
+            <i-button @click="exportProfitStatemen">导出</i-button>
+            <i-button @click="">报错</i-button>
+        </div>
+    </div>
+    <div class=" ht-common-list mt10">
+        <!--  v-model="selected" -->
+        <base-data-list :data_config="data_config"
+                        :need-reload="reload"
+                        :table-name="tableName"
+                        :page-name="pageName"></base-data-list>
+    </div>
+    <edit-formula v-model="editVisable" :title="editTitle" @close="editClose"></edit-formula>
+</div>
+
+<script src="../../../../finance/plugins/layui/layui.all.js"></script>
+<script src='../../../../finance/js/jquery-2.0.3.min.js'></script>
+<script src='../../../../finance/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='../../../../finance/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='../../../../finance/js/vue.min.js'></script>
+<script src='../../../../finance/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='../../../../finance/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="../../../../finance/plugins/layui/layui.all.js"></script>
+<script src='../../../../finance/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src="../../../../finance/plugins/iview/iview.min.js"></script>
+<script src='../../../../finance/ktc/js/app.js'></script>
+<script src="../../../../finance/js/finance/report/cash-flow-statement/base-data-list.js"></script>
+<script src="../../../../finance/js/finance/report/cash-flow-statement/edit-formula.js"></script>
+<script src="../../../../finance/js/finance/report/subject-tree.js"></script>
+<script src="../../../../finance/js/finance/report/ht-tree.js"></script>
+<script src="../../../../finance/js/finance/report/utils.js"></script>
+<script>
+
+    var reportVue = new Vue({
+        el: '#profit-statement',
+        data(){
+            var This = this;
+            return {
+                data_config:{
+                    url: './../../finance/report/cashFlowStatement?accountYear=1&accountPeriod=1',
+                    mtype:'POST',
+                    colNames : [  '项目', '行次', '本年累计金额', '本月金额' ],
+                    colModel : [
+                        {name : 'fieldName',width : 400, align: "left",
+                            formatter: function (value, grid, rows, state) {
+                                if (rows.isCompute==1){
+                                    $(document).on("click",".detail"+rows.id,function(){
+                                        This.detailClick(rows)
+                                    });
+                                    let div =`<div class="detail${rows.id}">${rows.fieldName}</div>`;
+                                    return div
+                                }else{
+                                    return value;
+                                }
+                            }
+                        },
+                        {name : 'lineNum',width :200, align : "center"},
+                        {name : 'amount1',width : 200, align : "center",key:true},
+                        {name : 'amount2 ',width : 200,align : "center",key:true},
+                    ],
+                    // footerrow: true,
+                    // userDataOnFooter: false,
+                    rowNum:'999999',
+                },
+                optionList:[
+                    {label:'月报', value: 1},
+                    {label:'季报', value: 2},
+                ],
+                reload: false,
+                formData:{
+                    for1: '',
+                    for2: '',
+                    for3: '',
+                    for4: '',
+                },
+                // selected:[],
+                dateList:[],
+                editTitle: '',
+                editVisable: false,
+                tableName:'ht-table-list',
+                pageName:'ht-table-page',
+                reportContentId:0,
+                reportContentName:'',
+            }
+        },
+        mounted(){
+            $("#refresh").jqGrid('setGridParam',{
+                datatype:'json',
+                postData:{'accountYear':1,'accountPeriod':1}//发送数据
+            }).trigger("reloadGrid"); //重新载入
+        },
+        methods: {
+            detailClick(row){
+                this.editTitle = `编辑公式 - ${row.fieldName}`;
+                this.editVisable = true;
+                this.reportContentId = row.id;
+                this.reportContentName = row.fieldName;
+            },
+            editClose(){
+                this.editVisable = false;
+            },
+            _ajaxDateList(value){
+                var _this = this;
+                var _url = '';
+                $.ajax({
+                    type: 'POST',
+                    data: '',
+                    url: _url,
+                    dataType: 'json',
+                    success: function(res){
+                        let data = res.data;
+                        _this.dateList = data;
+                    },
+                    error: function(code){
+                        console.log(code);
+                    }
+                });
+            },
+            exportProfitStatemen() {
+                window.open("./../../report/exportCashFlowStatement?accountYear=1&accountPeriod=1");
+            },
+        },
+        watch:{
+            'formData.for1':function(value,oldValue){
+                this._ajaxDateList(value);
+            }
+        },
+        computed: {
+        }
+    })
+</script>
+#parse("modules/public/footer.html") </body>
+</html>

@@ -1,0 +1,39 @@
+#customerInfo .ht-tabnav{
+    background:#E8E8E8;
+    height: 40px;
+    line-height: 40px;
+    padding-left: 10px
+}
+#customerInfo .ht-tabnav span{
+    padding:0 5px 0 5px;
+    cursor: pointer;
+}
+#customerInfo .ht-form{
+    width:80%;
+}
+#customerInfo .ht-width{   
+    display: inline-block;
+    width: 54%;
+}
+#customerInfo .ht-area{
+    width:17%;
+}
+#customerInfo .ht-province{
+    width:18%;
+}
+#customerInfo .ht-city{
+    width:18%;
+}
+#customerInfo .ht-add{
+    width:45%;
+}
+#uploadConfirm{
+    margin: 20px;
+    position: relative;
+} 
+#uploadConfirm p:first-child{
+    color:#797676;
+    font-size: 12px;
+    padding:5px 0 5px 0;
+    margin-bottom: 20px;
+}

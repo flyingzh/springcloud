@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>受托加工材料出库单 - 列表</title>
+
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/entrust-material-out/entrust-material-out-list.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="documentNo"
+            :receipt-status="documentStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/entrustOut/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/entrustOut/queryProcessInfoByStockNo'
+            url-approve='${rc.contextPath}/entrustOut/submitapproval'
+            url-table-data='${rc.contextPath}/entrustOut/queryReceiptsById'
+            @on-auto-approve="autoSubmitOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    >
+    </ht-approve-reject>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="refresh">刷新</span>
+            <span class="pd-rg-md" @click="add">新增</span>
+            <span class="pd-rg-md" @click="DeleteOneRow">删除</span>
+            <span class="pd-rg-md" @click="update">修改</span>
+            <span class="pd-rg-md" @click="submit">提交</span>
+            <span class="pd-rg-md" @click="approval">审核</span>
+            <span class="pd-rg-md" @click="reject">驳回</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="业务类型：">
+                        <i-select v-model="body.businessType" class="ht-input-width" style="width: 200px;display: inline-block;" clearable ref="dType" @on-clear="handleClearType('dType')">
+                            <i-option v-for="item in selectType" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="日期：">
+                        <date-picker :value="dataValue" @on-change="changeDate" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="Select date" style="width: 200px;height: 30px"
+                                     clearalble on-clear="handleClearType('dataValue')" ref="dataValue"></date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="源单编号：">
+                        <i-input type="text" v-model="body.documentNo" ref="sType" class="ht-input-width" style="width: 200px"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader class="ht-input-width" :data="categoryType" trigger="hover" filterable="true" v-model="goodsValue" @on-change="changeproductTypeName"
+                                  style="display: inline-block;width: 200px;">
+                        </cascader>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                 class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"  :return-row-data=true v-show="isTabulationHide"></base-data-list>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'ht-approve-reject',
+        'base-data-list',
+        '${rc.contextPath}/js/warehouse/entrust-material-out/entrust-material-out-list.js',
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+
+</html>

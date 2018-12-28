@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>即时库存查询</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/inventory-search/inventory-search-immediate.css'>
+    <style>
+        div.ht-menu-top {
+            padding-top: 30px;
+        }
+        .shop-type{
+            display: flex;
+        }
+        .shop-type div{
+            float: left;
+            flex: 1;
+        }
+        .tree-one{
+            flex: 1;
+        }
+        #gbox_list .table-responsive{
+            height: auto;
+        }
+        #table-model .table-responsive{
+            width:1150px;
+            height: 420px;
+            overflow: auto;
+            table-layout: fixed;
+            overflow-x: scroll;
+            text-align: center;
+        }
+        /*.table-responsive{*/
+            /*height: 500px;*/
+        /*}*/
+       #table-model .ivu-modal-content{
+           height: 500px;
+       }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="refresh">刷新</span>
+            <span class="pd-rg-md" @click="queryBarCodeClick">查看条码</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu ht-menu-top" style="height: 100px; margin-bottom:40px" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <!-- row代表行 -->
+                <row :gutter="16">
+                    <i-col span="8">
+                        <form-item label="查询组织：">
+                           <i-input icon="search" class="ht-width-md" @on-click="searchAction" v-model="organization" :disabled="true"></i-input>
+                        </form-item>
+                        <form-item label="商品类型：">
+                            <i-input icon="search" class="ht-width-md" @on-click="goodsTypeAction" v-model="body.productType"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品编码：">
+                            <i-input class="ht-width-md" icon="search" v-model="body.goodsNo"></i-input>
+                        </form-item>
+                        <form-item label="商品名称：">
+                            <i-input icon="search" class="ht-width-md" v-model="body.goodsName"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="仓库：">
+                            <i-select v-model="body.warehouseId" class="ht-width-md" @on-change="warehouseChange" clearable ref="warehouseId" @on-clear="handleClearType('warehouseId')">
+                                <i-option v-for="(item,index) in warehouseList" :value="item.id" >{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="款式类别：">
+                            <i-input class="ht-width-md" icon="search" v-model="body.custStyleType" @on-click="categoryStyle"></i-input>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div >
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <!--<div>-->
+            <!--<base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-show="isTabulationHide" :return-row-data="true"></base-data-list>-->
+        <!--</div>-->
+        <div class="jqGrid_wrapper pl20 pr20 pt10"  v-show="isTabulationHide">
+            <table id="list"></table>
+            <div id="pager"></div>
+        </div>
+    </div>
+    <!--查询组织弹框-->
+    <modal v-model="isSearchShow" mask-closable="true" title="选择组织">
+        <div class="shop-type">
+            <div>门店类型</div>
+            <div>
+                <input type="checkbox">
+                <span>自营</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>加盟</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>联营</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>挂牌</span>
+            </div>
+        </div>
+       <div style="margin-top: 20px;display: flex">
+           <h6>组织名称</h6>
+          <div class="tree-one">
+              <ht-tree
+                      url="${rc.contextPath}/tQcCorrectPreventDocument/querydeptbyorganid"
+                      :setting="treeSetting"></ht-tree>
+          </div>
+       </div>
+    </modal>
+    <!--商品类型弹框-->
+    <modal v-model="isShowGoodsType" @on-ok="goodsTypeClick" >
+        <ht-tree
+                url="${rc.contextPath}/tbasecommoditycategory/queryAllList"
+                :setting="goodsTypeTreeSetting" tid="tree-demo"></ht-tree>
+    </modal>
+    <!--款式类别弹框-->
+    <modal v-model="isCategoryStyle" @on-ok="categoryStyleClick">
+        <ht-tree
+                url="${rc.contextPath}/tbasestylecategory/list"
+                :setting="categoryStyleTreeSetting" tid="tree-demo1"></ht-tree>
+    </modal>
+
+    <!--点击条码号的弹窗-->
+    <modal v-model="isBarCode" width="1200px;" footer-hide="true" id="table-model">
+        <div class="table-responsive" style="height: 430px;margin-top: 30px;">
+            <table class="table edit-table">
+                <tr>
+                    <th>条码号</th>
+                    <th>状态</th>
+                    <th>商品编码</th>
+                    <th>商品名称</th>
+                    <th>计数单位</th>
+                    <th>数量</th>
+                    <th>计重单位</th>
+                    <th>总重</th>
+                    <th>金重</th>
+                    <th>石重(ct)</th>
+                    <th>仓库</th>
+                    <th>商品明细</th>
+                    <th>规格</th>
+                    <th>批号</th>
+                    <th>证书类型</th>
+                    <th>证书编号</th>
+                    <th>进货证书费</th>
+                    <th>进货金价</th>
+                    <th>进货金耗(%)</th>
+                    <th>进货石价</th>
+                    <th>进货成本(配件)</th>
+                    <th>进货工费</th>
+                    <th>其他进货费用</th>
+                    <th>进货成本</th>
+                    <th>销售证书费</th>
+                    <th>销售金价</th>
+                    <th>销售石价</th>
+                    <th>销售成本(配件)</th>
+                    <th>销售工费</th>
+                    <th>其他销售费用</th>
+                    <th>销售成本</th>
+                    <th>售价(标签价)</th>
+                </tr>
+                <tr  v-for="(item,index) in  productDetail">
+                    <td><span style="width: 100px; display: block">{{item.goodsBarcode }}</span></td>
+                    <td><span style="width: 100px; display: block">{{item.isInStock == 1 ? '在库':'出库'}}</span></td>
+                    <td><span style="width: 100px; display: block">{{item.goodsNo}}</span></td>
+                    <td><span style="width: 100px; display: block">{{item.goodsName}}</span></td>
+                    <td><span style="width: 100px; display: block">{{item.countingUnitName}}</span></td>
+                    <td><span style="width: 100px; display: block">1</span></td>
+                    <td><span style="width: 100px; display: block">{{item.countingUnitName}}</span></td>
+                    <td><span style="width: 100px; display: block">{{(item.totalWeight) == null ? '0.000': (item.totalWeight).toFixed(3)}}</span></td>
+                    <td><span style="width: 100px; display: block">{{(item.goldWeight) == null ? '0.000' : (item.goldWeight).toFixed(3)}}</span></td>
+                    <td><span style="width: 100px; display: block">{{(item.mainStoneWeight) == null ? '0.000' : (item.mainStoneWeight).toFixed(3)}}</span></td>
+                    <td><span style="width: 100px; display: block">{{item.warehouse}}</span></td>
+                    <td><a @click="showProductDetail(index)" style="display: block;width: 100px;">商品明细</a></td>
+                    <td><span style="width: 100px;display: block">{{item.goodsNorm}}</span></td>
+                    <td><span style="width: 100px;display: block">{{item.batchNum}}</span></td>
+                    <td><span style="width: 100px;display: block">{{item.certificateType}}</span></td>
+                    <td><span style="width: 100px;display: block">{{item.certificateNo}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purCertificateFee) == null ? '0.00' : (item.purCertificateFee).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchaseGoldPrice) == null ? '0.00' : (item.purchaseGoldPrice).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchaseGoldLose) == null ? '0.00': (item.purchaseGoldLose).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchaseStonePrice) == null ? '0.00':(item.purchaseStonePrice).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchasePart) == null ? '0.00' : (item.purchasePart).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchaseLaborCharge) == null ? '0.00' : (item.purchaseLaborCharge).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purOtherFee) == null ? '0.00' : (item.purOtherFee).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purchaseCost) == null ? '0.00' : (item.purchaseCost).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.certificateFee) == null ? '0.00' : (item.certificateFee).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.goldPrice) == null ? '0.00' : (item.goldPrice).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.saleStonePrice) == null ? '0.00' : (item.saleStonePrice).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.salePart) == null ? '0.00' : (item.salePart).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.processingFee) == null ? '0.00' : (item.processingFee).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.otherFee) == null ? '0.00' : (item.otherFee).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.purPriceCost) == null ? '0.00' : (item.purPriceCost).toFixed(2)}}</span></td>
+                    <td><span style="width: 100px;display: block">{{(item.salePrice) == null ? '0.00' : (item.salePrice).toFixed(2)}}</span></td>
+                </tr>
+            </table>
+        </div>
+    </modal>
+    <product-detail
+            ref="modalRef"
+            :show-modal="productDetailModal.showModal"
+            :goods-main-type="goodsMainType"
+            :ids="productDetailModal.ids"
+            :over-edit="false"
+            :order-status="2"
+            :t-base-bom-entity="null"
+            :my-assist-attrs="null"
+            @ok="modalSure($event)"
+            @cancel="modalCancel($event)"
+    ></product-detail>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        'ht-product-detail',
+        "ht-tree",
+        "${rc.contextPath}/js/warehouse/inventory-search/inventory-search-immediate.js"
+    ])
+</script>
+#parse("modules/public/footer.html") </body>
+
+<!--<script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/warehouse/inventory-search/inventory-search-immediate.js"></script>-->
+</html>

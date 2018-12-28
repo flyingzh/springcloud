@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    #parse("modules/public/header.html")
+    <style>
+        .form-content{
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="list">
+    <div class="btn-menu">
+        <span @click="refresh()">刷新</span>
+        <span @click="exit()">退出</span>
+    </div>
+    <!--  挂靠组织弹框开始   -->
+    <modal v-model="oriTemp" :mask-closable="false" title="指定挂靠组织" id="barcode" @on-ok="enteringBarCode">
+        <i-form label-position="right" :label-width="100">
+            <row>
+                <i-col span="24">
+                    <form-item label="挂靠服务器：">
+                        <i-input class="ht-width-md" v-model="relyServerIP" :disabled="true"></i-input>
+                    </form-item>
+                    <form-item label="挂靠组织：">
+                        <i-select v-model="relyOrganCode" clearable class="ht-width-md">
+                            <i-option
+                                    v-for="(item, index) in orgArr"
+                                    :value="item.orgCode"
+                                    :key="index">
+                                {{item.orgName}}
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+    </modal>
+    <i-form class="form-content">
+        <row>
+            <i-col span="8">
+                <form-item label="申请日期：">
+                    <date-picker v-model="tempDate" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+                                 placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                </form-item>
+                <form-item label="挂靠组织：">
+                    <i-input class="ht-width-md"  v-model="body.relyOrganName" placeholder="可模糊搜索"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="来源服务器：">
+                    <i-input class="ht-width-md" v-model="body.sourceServerIP" placeholder="可模糊搜索"></i-input>
+                </form-item>
+                <form-item label="挂靠服务器：">
+                    <i-input class="ht-width-md" v-model="body.relyServerIP" placeholder="可模糊搜索"></i-input>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="来源组织名称：">
+                    <i-input class="ht-width-md" v-model="body.orgName" placeholder="可模糊搜索"></i-input>
+                </form-item>
+                <form-item style="margin-left: 10px">
+                    <ht-btns @search="search" @clear='clean' :is-search="true" :is-add="false" class="inline-block"
+                             style="margin-left:85px"></ht-btns>
+                </form-item>
+            </i-col>
+        </row>
+    </i-form>
+    <!--  挂靠组织弹框结束   -->
+
+    <base-data-list :table_id="tabId" :data_config="data_user_list" :need-reload="reload"
+                    v-model="selected"></base-data-list>
+</div>
+</body>
+<scrIPt src="${rc.contextPath}/js/server/total-Server/server-list.js"></scrIPt>
+<scrIPt src="${rc.contextPath}/js/server/total-Server/subordinate-server-call.js"></scrIPt>
+</html>

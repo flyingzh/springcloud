@@ -1,0 +1,31 @@
+{
+    "code": "100100",
+    "data": [
+        {
+			"auditStatus": 2, 
+			"documentDate": "2018-05-31 00:00:00",
+			"documentNumber": "QTS000002",               
+			 "documentType": 1,    
+			 "clearanceAccount": "建行",
+			 "occurrenceObject": "天地集团",
+			"coinStop": "人民币",
+            "exchangeRate": 1,
+			"amountPaymentReceivedFor":[8040,4,8],
+			"amountPaymentReceived":[8040,444444,8],
+			"genrePaymentsReceived": ["代垫运费","代垫押金","代付"],
+			"receiptPaymentPeriod": "2018-05-31 14:48:16",  
+			"payableAmount":814442,
+			"settledAmount":812,
+			"voucherSize":"记-1",
+			"summary":",这是摘要。。。5555",
+			"department":"财务部",
+			"brokerage":"李林",
+			"singlePerson":"Manager",
+			"auditorName":"Manager",
+			"auditorDate":"2018-05-31 14:48:16",  
+			"printingTimes":0,
+			"remark":["这是备注1..","备注2","备注3"]
+        }
+  ],
+    "msg":"操作成功"
+}

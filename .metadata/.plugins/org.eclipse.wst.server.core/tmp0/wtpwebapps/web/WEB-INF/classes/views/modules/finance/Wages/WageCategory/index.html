@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>工资类别</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .w80{width:80px}
+        .calc-w80{
+            width: calc(100% - 100px);
+        }
+    </style>
+</head>
+
+<body>
+<div id="wage-category" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="add" class="ht-btn">新增</button>
+        <button @click="update" class="ht-btn">修改</button>
+        <button @click="delFun" class="ht-btn">删除</button>
+        <button @click="chooseFun" class="ht-btn">选择</button>
+        <button @click="quit" class="ht-btn">退出</button>
+    </div>
+    <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
+        <table id="grid"></table>
+        <div id="page"></div>
+    </div>
+    <!-- 新增、修改 -->
+    <Modal v-model="filterVisible" :title="title" width="350" class="filter" :mask-closable="false">
+        <row>
+            <label class="w80 text-right">所属组织：</label>
+            <i-input class="calc-w80" v-model="orgName" disabled> </i-input>
+        </row>
+        <row class="mt5">
+            <label class="w80 text-right">类别编号：</label>
+            <i-input class="calc-w80" v-model="category.categoryNo" disabled ></i-input>
+        </row>
+        <row class="mt5">
+            <label class="w80 ht-star2 text-right">类别名称：</label>
+            <i-input class="calc-w80" v-model="category.categoryName"></i-input>
+        </row>
+        <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="cancel">取消</i-button>
+        </div>
+    </Modal>
+</div>
+<script src="${rc.contextPath}/js/finance/Wages/WageCategory/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

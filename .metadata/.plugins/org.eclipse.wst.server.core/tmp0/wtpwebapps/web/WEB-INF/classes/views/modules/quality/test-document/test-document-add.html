@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/quality/test-document.css">
+    <title>来料检验单</title>
+    <style>
+
+        .can {
+            height: 50px;
+            width: 50px;
+            margin: 0 auto;
+        }
+
+        .mirror {
+            position: fixed;
+            left: calc(47% - 90px);
+            top: 50%;
+            background: #fff;
+            display: none;
+            z-index: 999;
+        }
+
+        .jqGrid_wrapper table tbody tr.jqgrow td[role='gridcell'] {
+            white-space: normal;
+        }
+
+        /*.testTableWrap .edit-table .ivu-select-single .ivu-select-selection {*/
+            /*border: none;*/
+            /*outline: none;*/
+        /*}*/
+    </style>
+</head>
+
+<body>
+<div id="imcomingReport" v-cloak>
+    <section class="ht-common-list">
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-sm pd-lf-sm" @click="addNew()">新增</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="save('save')">保存</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="save('submit')">提交</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="genSpecialRelease()">生成特别放行单</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="confirmResult">确认检验结果</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="createReport">生成报告单</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="returnSource">列表</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="exit()">退出</span>
+        </div>
+        <!--<i-form :model="imcoming" label-width="120">-->
+            <!-- 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 -->
+            <modal
+                    title="审核"
+                    v-model="approveComment"
+                    :closable="false"
+                    @on-ok="getApproveInfo">
+                <div>
+                    <p class="mg-bm-md">
+                        <span>当前节点：{{currentStep}}</span>
+                        <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+                    </p>
+                    <span>审核意见</span>
+                    <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo"
+                             placeholder="请输入审批意见"></i-input>
+                </div>
+            </modal>
+            <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+            <modal
+                    title="驳回"
+                    v-model="rejectComment"
+                    :closable="false"
+                    @on-ok="getRejectInfo">
+                <div>
+                    <radio-group v-model="rejectement.approvalResult" class="mg-bm-md">
+                        <radio label="0">驳回上一级</radio>
+                        <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+                    </radio-group>
+                    <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+                    <i-input type="textarea" :rows="4" v-model="rejectement.approvalInfo"
+                             placeholder="请输入驳回意见"></i-input>
+                </div>
+            </modal>
+            <div style="height:30px"></div>
+            <div class="ht-approve-stamp" v-show="isStampShow">
+                审核
+            </div>
+            <!--<form id="commentForm">-->
+            <i-form label-width="120" ref="formValidate" :rules="ruleValidate" :model="imcoming.tQcTestDocumentEntity">
+                <tabs value="name1">
+                    <tab-pane label="基本信息" name="name1">
+                        <source-list :show-modal="showSourceModal"
+                                     v-model="selectSourceDoc"
+                                     @sure="closeSourceModal"
+                                     @cancel="closeSourceModal"
+                                     :code="imcoming.tQcTestDocumentEntity.sourceDocumentType"></source-list>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="源单类型：" prop="sourceDocumentType">
+                                    <i-select
+                                            v-if="parentParams.ger =='all'"
+                                              v-model="imcoming.tQcTestDocumentEntity.sourceDocumentType"
+                                              class="ht-width-input"
+                                            @on-change="htTestChange"
+                                            :disabled="sendTestDisabled || generateDisabled">
+                                        <i-option v-for="item in sourceTypeArr" :value="item.value" :label="item.name"
+                                                  :key="item.value">{{item.name}}
+                                        </i-option>
+                                    </i-select>
+                                    <i-select v-if="parentParams.ger =='ll'"
+                                              v-model="imcoming.tQcTestDocumentEntity.sourceDocumentType"
+                                              @on-change="htTestChange"
+                                              class="ht-width-input"
+                                              :disabled="sendTestDisabled || generateDisabled">
+                                        <i-option value="shd" key="shd">收货单</i-option>
+                                    </i-select>
+                                    <i-select v-if="parentParams.ger =='db'"
+                                              v-model="imcoming.tQcTestDocumentEntity.sourceDocumentType"
+                                              class="ht-width-input"
+                                              @on-change="htTestChange"
+                                              :disabled="sendTestDisabled || generateDisabled">
+                                        <i-option value="khdd" key="khdd">客户订单</i-option>
+                                        <i-option value="yllysqd" key="yllysqd">原料领用申请单</i-option>
+                                    </i-select>
+                                    <i-select v-if="parentParams.ger =='fh'"
+                                              @on-change="htTestChange"
+                                              v-model="imcoming.tQcTestDocumentEntity.sourceDocumentType"
+                                              class="ht-width-input" :disabled="sendTestDisabled || generateDisabled">
+                                        <i-option value="khdd" key="khdd">客户订单</i-option>
+                                    </i-select>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.sourceDocumentType" name="sourceDocumentType" required >-->
+                                </form-item>
+                                <form-item label="源单单号：">
+                                    <i-input icon="search"
+                                             :disabled="!imcoming.tQcTestDocumentEntity.sourceDocumentType || sendTestDisabled"
+                                             @on-click="doSelectSource"
+                                             :readonly="upstreamSourceCode!=''"
+                                             v-model="upstreamSourceCode" class="ht-width-input"
+                                             :disabled="sourceCodeDisabled"
+                                             @on-change="htTestChange"
+                                    ></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.sourceDocumentCode" type="text" name="sourceDocumentCode" required >-->
+                                </form-item>
+                                <form-item label="通知人：">
+                                    <i-input
+                                            v-model="imcoming.tQcTestDocumentEntity.informerName"
+                                            :disabled="true"
+                                            class="ht-width-input"
+                                            @on-change="htTestChange"
+                                    ></i-input>
+                                </form-item>
+                                <form-item label="送检人：" prop="sendTestId">
+                                    <i-select v-model="imcoming.tQcTestDocumentEntity.sendTestId"
+                                              class="ht-width-input"
+                                              :disabled="sendTestDisabled"
+                                              @on-change="htTestChange"
+                                    >
+                                        <i-option v-for="item in sendTestPeoples" :value="item.value"
+                                                  :label="item.label" :key="item.value">{{item.code}}|{{item.label}}
+                                        </i-option>
+                                    </i-select>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.sendTestId" name="sendTestId" required >-->
+                                </form-item>
+                                <form-item label="送检时间：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.sendTestTime"
+                                             :disabled="true" class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="检验总数量：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.testTotalAmount"
+                                             :disabled="true" class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="合格率：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.qualifiedPercent"
+                                             :disabled="true" class="ht-width-input"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="单据编号：">
+                                    <i-input disabled="true"
+                                             v-model="imcoming.tQcTestDocumentEntity.documentCode"
+                                             class="ht-width-input"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.documentCode" name="documentCode" required >-->
+                                </form-item>
+                                <form-item label="单据类型：">
+                                    <!--<i-select v-model="imcoming.tQcTestDocumentEntity.documentType" :disabled="true">-->
+                                    <!--<i-option>收货单</i-option>-->
+                                    <!--<i-option>证书商品收回单</i-option>-->
+                                    <!--<i-option>旧料回收</i-option>-->
+                                    <!--</i-select>-->
+                                    <i-input disabled="true"
+                                             v-model="imcoming.tQcTestDocumentEntity.documentTypeName"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="业务类型：">
+                                    <!--<i-select v-model="imcoming.tQcTestDocumentEntity.bussinessType" :disabled="true">-->
+                                    <!--<i-option>收货单</i-option>-->
+                                    <!--<i-option>证书商品收回单</i-option>-->
+                                    <!--<i-option>旧料回收</i-option>-->
+                                    <!--</i-select>-->
+                                    <i-input disabled="true"
+                                             v-model="imcoming.tQcTestDocumentEntity.businessTypeName"
+                                             class="ht-width-input"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.businessTypeName" name="businessType" required >-->
+                                </form-item>
+                                <form-item label="单据日期：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.documentTime"
+                                             class="ht-width-input" :disabled="true"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.documentTime"  name="documentTime" required >-->
+                                </form-item>
+                                <form-item label="单据状态：">
+                                    <i-input disabled="true"
+                                             v-model="imcoming.tQcTestDocumentEntity.documentStatusName"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="合格总数：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.qualifiedTotalAmount"
+                                             :disabled="true" class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="检验结果：">
+                                    <i-select
+                                            v-model="imcoming.tQcTestDocumentEntity.testResult"
+                                              class="ht-width-input"
+                                            @on-change="htTestChange"
+                                            :disabled="sendTestDisabled">
+                                        <i-option v-for="(item,index) in testResultArr" :value="item.value">
+                                            {{item.name}}
+                                        </i-option>
+                                    </i-select>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="质检组织：">
+                                    <i-input
+                                            icon="search"
+                                            class="ht-width-input"
+                                             v-model="imcoming.tQcTestDocumentEntity.testOrganizationName"
+                                             :disabled="true"
+                                    ></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.testOrganizationName" name="testOrganizationName" required >-->
+                                </form-item>
+                                <form-item label="质检部门：" class="departmentTreeWrap" prop="testDepartmentName" style="position: relative;"
+                                           class="ht-width-input">
+                                    <i-input icon="search"
+                                             v-model="imcoming.tQcTestDocumentEntity.testDepartmentName"
+                                             @on-click="showDepartmentTree(true)"
+                                             class="ht-width-input"
+                                             :disabled="sendTestDisabled"
+                                             @on-change="htTestChange"
+                                             readonly
+                                    ></i-input>
+                                    <div v-if="showDepartment"
+                                         style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                        <ht-tree url='${rc.contextPath}/testDocument/getCurrentUserDeptInfo'
+                                                 :setting="treeSetting"></ht-tree>
+                                    </div>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.testDepartmentName" name="testDepartmentName" required >-->
+                                </form-item>
+                                <form-item label="质检员：" prop="inspectorId">
+                                    <i-select
+                                            v-model="imcoming.tQcTestDocumentEntity.inspectorId"
+                                              class="ht-width-input"
+                                            @on-change="htTestChange"
+                                            :disabled="sendTestDisabled">
+                                        <!--<i-option>收货单</i-option>-->
+                                        <!--<i-option>证书商品收回单</i-option>-->
+                                        <!--<i-option>旧料回收</i-option>-->
+                                        <i-option v-for="item in testEmps" :value="item.value" :label="item.label"
+                                                  :key="item.value">{{item.code}}|{{item.label}}
+                                        </i-option>
+                                    </i-select>
+                                    <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.inspectorId" name="inspectorId" required >-->
+                                </form-item>
+                                <form-item label="质检完成时间：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.testFinishTime" :disabled="true"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="商品类型：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.productTypeName" :disabled="true"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="不合格总数：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.unqualifiedTotalAmount"
+                                             :disabled="true" class="ht-width-input"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <form-item label="整单检验结论：" prop="totalTestConclusion" class="ht-calc-width">
+                            <i-input
+                                    v-model="imcoming.tQcTestDocumentEntity.totalTestConclusion"
+                                    class="inline-block"
+                                     type="textarea"
+                                    @on-change="htTestChange"
+                                    :rows="4"
+                                       :disabled="sendTestDisabled"></i-input>
+                            <!--<input class="hidden-input" v-model="imcoming.tQcTestDocumentEntity.totalTestConclusion" name="totalTestConclusion" required >-->
+                        </form-item>
+                    </tab-pane>
+                    <tab-pane label="审批信息" name="name2">
+                        <steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+
+                            <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel"
+                                  :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+
+                        </steps>
+                        <base-data-list :data_config="approval_config" table_id="approvalList"></base-data-list>
+                    </tab-pane>
+                    <tab-pane label="其他" name="name3">
+                        <row>
+                            <i-col span="8">
+                                <form-item label="创建人：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.createName"
+                                             class="ht-width-input" :disabled="true"></i-input>
+                                </form-item>
+                                <form-item label="创建日期：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.createTime"
+                                             class="ht-width-input" :disabled="true"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="修改人：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.updateName" :disabled="true"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="修改日期：">
+                                    <i-input v-model="imcoming.tQcTestDocumentEntity.updateTime" :disabled="true"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="审核人：">
+                                    <i-input :disabled="true" class="ht-width-input"
+                                             v-model="examineVerifyName"></i-input>
+                                </form-item>
+                                <form-item label="审核日期：">
+                                    <i-input :disabled="true" class="ht-width-input"
+                                             v-model="examineVerifyTime"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </tab-pane>
+                    <tab-pane label="附件" name="name4">
+                        <i-button type="primary" @click="showUpload = true" v-show="!sendTestDisabled">上传文件</i-button>
+                        <form action="">
+                            <table class="edit-table">
+                                <thead>
+                                <tr>
+                                    <th class="width-xs text-center">序号</th>
+                                    <th style="width: 200px">文件名</th>
+                                    <th>文件大小</th>
+                                    <th>上传人</th>
+                                    <th>上传时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(item,index) in imcoming.tQcTestDocumentEntity.sysFile.fileDetails"
+                                    v-show="!item.del">
+                                    <td class="width-xs text-center">{{index+1}}</td>
+                                    <td>{{item.fdName}}</td>
+                                    <td>{{item.fdSize}}</td>
+                                    <td>{{item.uploadUser}}</td>
+                                    <td>{{item.uploadTime}}</td>
+                                    <td>
+                                        <a href="" @click.prevent="download(item)">下载</a>
+                                        <a href="" @click.prevent="delFile(item)" v-show="!sendTestDisabled">删除</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </tab-pane>
+                </tabs>
+            </i-form>
+            <div style="height: 25px">
+            <span class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                </span>
+            </span>
+            </div>
+            <div class="ht-subtitle mg-top-md">
+                <div>款式检测信息</div>
+            </div>
+            <div v-show="isSearchHide">
+                <tabs :value="testMessagePane" @on-click="changeStyleName" :animated="false">
+                    <tab-pane label="款式检测信息录入" name="first">
+                        <div class="btn-menu">
+                            <span class="pd-rg-md" @click="rowClick('first')">首行</span>
+                            <span class="pd-rg-md" @click="rowClick('previous')">上一行</span>
+                            <span class="pd-rg-md" @click="rowClick('next')">下一行</span>
+                            <span class="pd-rg-md" @click="rowClick('last')">末行</span>
+                        </div>
+                        <i-form label-width="120">
+                        <row style="margin-top:20px">
+                            <i-col span="8">
+                                <form-item label="序号：">
+                                    <i-input :disabled="true" v-model="imcoming.styleInput.index"
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="质检方式：">
+                                    <i-select v-model="imcoming.styleInput.testWay" :disabled="testWayDisabled"
+                                              class="ht-width-input" @on-change="testWayChange">
+                                        <i-option value="qj">全检</i-option>
+                                        <i-option value="mj">免检</i-option>
+                                        <i-option value="cj">抽检</i-option>
+                                    </i-select>
+                                    <!--<input class="hidden-input" v-model="imcoming.styleInput.testWay" name="testWay" required >-->
+                                </form-item>
+                                <form-item label="合格数：">
+                                    <i-input v-model="imcoming.styleInput.qualifiedAmount" class="ht-width-input"
+                                             :disabled="true"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="商品编码：" :disabled="true" class="ivu-form-item-required">
+                                    <i-input class="ht-width-input"
+                                             v-model="imcoming.styleInput.sourceDocumentProductStyle.productCode"
+                                             :disabled="true"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.styleInput.sourceDocumentProductStyle.productCode" name="productCode" required >-->
+                                </form-item>
+                                <form-item label="检验数量：" class="ivu-form-item-required">
+                                    <i-input class="ht-width-input" v-model="imcoming.styleInput.testAmount"
+                                             :disabled="true"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.styleInput.testAmount" name="testAmount" required >-->
+                                </form-item>
+                                <form-item label="合格率：">
+                                    <i-input class="ht-width-input" v-model="imcoming.styleInput.qualifiedPercent"
+                                             :disabled="true"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="商品名称：" :disabled="true">
+                                    <i-input class="ht-width-input"
+                                             v-model="imcoming.styleInput.sourceDocumentProductStyle.productName"
+                                             :disabled="true"></i-input>
+                                </form-item>
+                                <form-item label="不合格数：" class="ivu-form-item-required">
+                                    <i-input class="ht-width-input"
+                                             v-model="imcoming.styleInput.unqualifiedAmount"
+                                             @on-change="htTestChange()"
+                                             @on-blur="calculateQualifiedAmount()"
+                                             :disabled="sendTestDisabled"></i-input>
+                                    <!--<input class="hidden-input" v-model="imcoming.styleInput.unqualifiedAmount" name="unqualifiedAmount" required >-->
+                                </form-item>
+                                <form-item label="检验结果：" class="ivu-form-item-required">
+                                    <i-select v-model="imcoming.styleInput.testResult"
+                                              class="ht-width-input"
+                                              @on-change="htTestChange()"
+                                              :disabled="sendTestDisabled">
+                                        <i-option v-for="(item,index) in testResultArr" :value="item.value">
+                                            {{item.name}}
+                                        </i-option>
+                                    </i-select>
+                                    <!--<input class="hidden-input" v-model="imcoming.styleInput.testResult" name="testResult" required >-->
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <form-item label="结果描述/建议：" class="ivu-form-item-required ht-calc-width" >
+                            <i-input
+                                    v-model="imcoming.styleInput.resultDescribeSuggest"
+                                    type="textarea"
+                                    @on-change="htTestChange()"
+                                    :rows="4"
+                                      :disabled="sendTestDisabled"></i-input>
+                            <!--<input class="hidden-input" v-model="imcoming.styleInput.resultDescribeSuggest" name="resultDescribeSuggest" required >-->
+                        </form-item>
+                        </i-form>
+                        <div class="testTableWrap" style="min-height: 200px;">
+                            <table class="edit-table">
+                                <thead>
+                                <th>序号</th>
+                                <th>检验项目</th>
+                                <th>分析方法</th>
+                                <th>缺陷等级</th>
+                                <th>重点检查</th>
+                                <th>检验方法</th>
+                                <th>检验仪器</th>
+                                <th>检验依据</th>
+                                <th>单位</th>
+                                <th>目标值</th>
+                                <th>上限值</th>
+                                <th>下限值</th>
+                                <th>检测值</th>
+                                <th>上公差</th>
+                                <th>下公差</th>
+                                <th>抽检比例</th>
+                                <th>取样数量</th>
+                                <th>允收数</th>
+                                <th>拒收数</th>
+                                <th>取样合格数</th>
+                                <th>取样不合格数</th>
+                                <th>检验结果</th>
+                                <th>不良原因</th>
+                                <th>备注</th>
+                                </thead>
+                                <tbody v-if="imcoming.styleInput.showStyleItems">
+                                <tr v-for="(item, index) in imcoming.styleInput.styleTestItems" :key="index">
+                                    <td class="text-center">
+                                        {{index + 1}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.name}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{(item.testItemEntity && item.testItemEntity.analyseMethod)=='dxfx'? '定性分析':
+                                        (item.testItemEntity &&item.testItemEntity.analyseMethod=='dlfx'?
+                                        '定量分析':'其他分析方法')}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.bugRankName}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.importantFlag == 1 ? '是': '否'}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.testMethodName}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.testInstrumentName}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.testBasisName}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.unitName}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity.analyseMethod === 'dxfx'?
+                                        item.testItemEntity.goalValueName : item.testItemEntity.goalValue}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.upperLimitValue}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.lowerLimitValue}}
+                                    </td>
+                                    <td>
+                                        <input
+                                                class="text-center ivu-input" type="text"
+                                               v-model="item.testValue"
+                                                @input="htTestChange()"
+                                                @blur="testValueBlur(item, index, $event)"
+                                        >
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.upperCommonDifference}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.testItemEntity && item.testItemEntity.lowerCommonDifferent}}
+                                    </td>
+                                    <td>
+                                        <input type="text" class="text-center ivu-input" style="width:68% !important;"
+                                               v-model="item.randomTestProportion" :disabled="!canInput"
+                                               @input="clearNoNum(item,'randomTestProportion',2);htTestChange()"
+                                               @blur="randomTestProportionBlur(item, index)">
+                                        <span>%</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.sampleAmount}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.allowNumber}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.rejectNumber}}
+                                    </td>
+                                    <td class="text-center">
+                                        {{item.sampleQualifiedAmount}}
+                                    </td>
+                                    <td>
+                                        <!--<i-input class="ht-number-right" style="padding-right:8px" type="text" v-model="item.sampleUnqualifiedAmount" @on-blur="sampleUnqualifiedAmountBlur(item, index)"></i-input>-->
+                                        <input class="text-center ivu-input" type="text"
+                                               v-model="item.sampleUnqualifiedAmount"
+                                               @input="clearNoNum(item,'sampleUnqualifiedAmount',0);htTestChange"
+                                               @blur="sampleUnqualifiedAmountBlur(item, index)">
+                                    </td>
+                                    <td>
+                                        <i-select v-model="item.testResult"
+                                                  class="ht-width-md"
+                                                  :disabled="!canInput"
+                                                  @on-change="htTestChange"
+                                                  style="width: 120px;"
+                                                  transfer>
+                                            <i-option v-for="(item,index) in testResultArr" :value="item.value">
+                                                {{item.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </td>
+                                    <td>
+                                        <i-select
+                                                v-model="item.badReasonId"
+                                                @on-change="htTestChange"
+                                                style="width: 120px;" transfer>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option v-for="item in badResons" :value="item.value">{{item.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </td>
+                                    <td style="min-width: 180px">
+                                        <i-input
+                                                type="textarea"
+                                                @on-change="htTestChange"
+                                                v-model="item.remark"
+                                        ></i-input>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="款式检测结果汇总" name="second">
+                        <div class="btn-menu">
+                            <span class="pd-rg-md" @click="editTestResult">编辑</span>
+                            <!--<span class="pd-rg-md">设置列</span>-->
+                        </div>
+                        <div class="jqGrid_wrapper" id="jqGrid_wrapper" style="margin-bottom:50px">
+                            <table id="styleResult_table"></table>
+                        </div>
+                    </tab-pane>
+                </tabs>
+            </div>
+        <!--</i-form>-->
+    </section>
+    <Modal
+            v-model="showUpload"
+            title="上传文件"
+    >
+        <Upload
+                ref="upload"
+                :on-success="handleSuccess"
+                :max-size="2048"
+                :on-exceeded-size="handleMaxSize"
+                multiple
+                action='${rc.contextPath}/testDocument/fileUploads'>
+            <i-button type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+            <span>文件上传大小限制为2M以内</span>
+        </Upload>
+    </Modal>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+
+<script src='${rc.contextPath}/js/components/ht-img-magnifier.js'></script>
+<script src='${rc.contextPath}/js/quality/test-document/source-list.js'></script>
+<script src='${rc.contextPath}/js/quality/test-document/department-select.js'></script>
+<!--<script src='${rc.contextPath}/js/components/ht-tree.js'></script>-->
+<script src='${rc.contextPath}/js/quality/components/ht-tree.js'></script>
+<script src='${rc.contextPath}/js/quality/components/ht-btns.js'></script>
+
+<script src='${rc.contextPath}/js/quality/components/base-data-list.js'></script>
+<script src='${rc.contextPath}/js/components/ht-close-modal.js'></script>
+<script src='${rc.contextPath}/js/quality/test-document/test-document-add.js'></script>
+
+#parse("modules/public/footer.html")
+</body>
+
+</html>

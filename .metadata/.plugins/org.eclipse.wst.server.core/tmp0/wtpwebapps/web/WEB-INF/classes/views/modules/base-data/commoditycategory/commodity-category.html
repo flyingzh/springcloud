@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>商品分类</title>
+    #parse("modules/public/header.html")
+    <style>
+        div.row {
+            padding: 0;
+        }
+
+        div.row .col-xs-2,
+        div.row .col-xs-10 {
+            padding: 0;
+        }
+
+        #subjectPopup #my_pager_id_left {
+            display: none;
+        }
+
+        #subjectPopup #my_pager_id_right>div {
+            margin-left: 30px
+        }
+
+        html,
+        body,
+        div#paraLevel {
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="paraLevel" v-cloak>
+
+        <div v-if="!isEdit" style="height: 100%;">
+
+
+            <div class="row" style="height: 100%;">
+                <div class="col-xs-2 bg-tree" style="height: 100%;">
+                    <div class="btn-menu">
+                        #if($shiro.hasPermission("basedata:tbasecommoditytype:add"))
+                        <span @click="addCategoty">新增</span>
+                        #end #if($shiro.hasPermission("basedata:tbasecommoditytype:update"))
+                        <span @click="modifyCategoty">修改</span>
+                        #end #if($shiro.hasPermission("basedata:tbasecommoditytype:delete"))
+                        <span @click="delCategory">删除</span>
+                        #end
+                        <span @click="exit">退出</span>
+                    </div>
+                    <ht-tree :url="treeUrl" :setting="setting1" :tid='114534'></ht-tree>
+                </div>
+                <div class="col-xs-10" style="padding-left:10px">
+                    <div class="btn-menu">
+                        #if($shiro.hasPermission("basedata:tbasecommoditytype:add"))
+                        <span @click="add_click">新增</span>
+                        #end #if($shiro.hasPermission("basedata:tbasecommoditytype:add"))
+                        <span @click="copy">复制</span>
+                        #end #if($shiro.hasPermission("basedata:tbasecommoditytype:update"))
+                        <span @click="modify">修改</span>
+                        #end #if($shiro.hasPermission("basedata:tbasecommoditytype:delete"))
+                        <span @click="del_click">删除</span>
+                        #end
+                    </div>
+                    <i-form :model="commodityInfo" label-width="80" v-show="isSearchHide" class="mg-top-md">
+                        <row>
+                            <i-col span="8">
+                                <form-item label="类型编码：">
+                                    <i-input v-model="body.code" class="ht-width-md"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="类型名称：">
+                                    <i-input v-model="body.name" class="ht-width-md"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item>
+                                    <ht-btns @search="sure" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </i-form>
+                    <div style="height: 25px;margin-top: 20px">
+                        <span class="chevron">
+                            <span>
+                                <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                                <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                            </span>
+                        </span>
+                    </div>
+                    <base-data-list table_id="mytable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                </div>
+            </div>
+
+        </div>
+        <div v-show="isEdit">
+            <div id="weight">
+                <div class="btn-menu">
+                    <span @click="save" v-show="buttonFlag">保存</span>
+                    <span @click="cancel">退出</span>
+                </div>
+                <form id="my_from" class="form-horizontal" style="width:100%">
+                    <row>
+                        <i-col span="12">
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    类型编码：
+                                </label>
+                                <div class="col-xs-9">
+                                    <!--<input id="categoryCode" :disabled="codeFlag" class="form-control ht-width-lg" name="infoCode" v-model="commodityInfo.code"-->
+                                        <!--type="text" />-->
+                                    <input placeholder="保存时自动生成" id="categoryCode"
+                                           :disabled="true" class="form-control ht-width-lg" v-model="commodityInfo.code"
+                                        type="text" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    编码规则取码：
+                                </label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" name="infoCodingCodeRules" v-model="commodityInfo.codingCodeRules"
+                                        type="text" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">选中类型：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="typeNameFlag" class="form-control ht-width-lg" v-model="treeName" type="text" />
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">计价方式：</label>
+                                <div class="col-xs-9" style="padding-top: 7px">
+                                    <label for="pricingTypeWeight" style="margin-right: 50px">
+                                        <input class="radio-inline" :disabled="disabledFlag" type="radio" name="pricingType" id="pricingTypeWeight" value="1" v-model="commodityInfo.pricingType">
+                                        按重量计价
+                                    </label>
+                                    <label for="pricingTypeCount">
+                                        <input :disabled="disabledFlag" class="radio-inline" type="radio" name="pricingType" id="pricingTypeCount" value="2" v-model="commodityInfo.pricingType">
+                                        按数量计价
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">计重单位：</label>
+                                <div class="col-xs-9">
+                                    <i-select :disabled="disabledFlag" @on-change="getUnitWeightByGroupId" style="width:119px" v-model="commodityInfo.weightGroupId">
+                                        <i-option disabled value="">请选择</i-option>
+                                        <i-option v-if="item.isDel==1 || item.id == commodityInfo.weightGroupId" v-for="item in unitWeightGroup" :value="item.id">{{item.name}}</i-option>
+                                    </i-select>
+
+                                    <i-select :disabled="disabledFlag" style="width:119px" v-model="commodityInfo.weightUnitId">
+                                        <i-option disabled value="">请选择</i-option>
+                                        <i-option v-if="item.isDel==1 || item.id == commodityInfo.weightUnitId" v-for="item in unitWeight" :value="item.id">{{item.name}}</i-option>
+                                    </i-select>
+                                </div>
+                            </div>
+
+                            <!--<div class="form-group form-group-sm">-->
+                                <!--<label class="col-xs-3 control-label">按数量计价：</label>-->
+                                <!--<div class="col-xs-9">-->
+                                    <!--<label for="pricingTypeCount">-->
+                                        <!--<input :disabled="disabledFlag" class="radio-inline" type="radio" name="pricingType" id="pricingTypeCount" value="2" v-model="commodityInfo.pricingType">-->
+                                    <!--</label>-->
+                                <!--</div>-->
+                            <!--</div>-->
+
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">计量单位：</label>
+                                <div class="col-xs-9">
+                                    <i-select :disabled="disabledFlag" @on-change="getUnitCountByGroupId"  style="width:119px" v-model="commodityInfo.countGroupId">
+                                        <i-option disabled value="">请选择</i-option>
+                                        <i-option v-if="item.isDel==1 || item.id == commodityInfo.countGroupId" v-for="item in unitCountGroup" :value="item.id">{{item.name}}</i-option>
+                                    </i-select>
+                                    <i-select :disabled="disabledFlag" style="width:119px" v-model="commodityInfo.countUnitId">
+                                        <i-option disabled value="">请选择</i-option>
+                                        <i-option v-if="item.isDel==1 || item.id == commodityInfo.countUnitId" v-for="item in unitCount" :value="item.id">{{item.name}}</i-option>
+                                    </i-select>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">数量精度：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" name="quantityAccuracy" type="text" v-model="commodityInfo.quantityAccuracy"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">重量精度：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" type="text" v-model="commodityInfo.weightAccuracy " />
+                                </div>
+                            </div>
+                        </i-col>
+                        <i-col span="12">
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    类型名称：
+                                </label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" type="text" v-model="commodityInfo.name" name="infoName"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">称差上限值：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" name="maxRatingDifferenceName" type="text" v-model="commodityInfo.maxRatingDifference"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">称差下限值：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" name="minRatingDifferenceName" type="text" v-model="commodityInfo.minRatingDifference"
+                                    />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    存货科目代码：
+                                </label>
+                                <div class="col-xs-9">
+
+                                    <i-input name="infoStocktCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('stocktCode')"
+                                        v-model=inputorder.stocktCode.name></i-input>
+
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    销售收入科目代码：
+                                </label>
+                                <div class="col-xs-9">
+
+                                    <i-input name="infoSaleRevenue" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('saleRevenue')"
+                                        v-model=inputorder.saleRevenue.name></i-input>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    销售成本科目代码：
+                                </label>
+                                <div class="col-xs-9">
+
+                                    <i-input name="infoCaleCostCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('saleCostCode')"
+                                        v-model=inputorder.saleCostCode.name></i-input>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">
+                                    <span class="star"></span>
+                                    成本差异科目代码：
+                                </label>
+                                <div class="col-xs-9">
+                                    <i-input name="infoCostDiffCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('costDiffCode')"
+                                        v-model=inputorder.costDiffCode.name></i-input>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">备注：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" class="form-control ht-width-lg" type="text" v-model="commodityInfo.remark" />
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label class="col-xs-3 control-label">状态：</label>
+                                <div class="col-xs-9">
+                                    <input :disabled="disabledFlag" type="radio" id="statusYes" checked="checked" value="1" v-model="commodityInfo.status" />
+                                    <label for="statusYes">有效</label>
+                                    <input :disabled="disabledFlag" type="radio" id="statusNo" value="0" v-model="commodityInfo.status" />
+                                    <label for="statusNo">无效</label>
+                                </div>
+                            </div>
+                        </i-col>
+                    </row>
+
+
+                </form>
+            </div>
+
+        </div>
+        <modal :title="titleName" v-model="openAddCommodity" width="400" @on-cancel="addCancel">
+            <i-form label-width="120" :model="parentCategory" ref="addCommodity" :rules="ruleCommodity">
+                <form-item label="商品分类代码：" class="ht-star">
+                    <i-input v-model="parentCategory.code" disabled placeholder="保存时自动生成"></i-input>
+                </form-item>
+                <form-item label="商品分类名称：" class="ht-star" prop="name">
+                    <i-input v-model="parentCategory.name"></i-input>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" @click="addCancel">取消</i-button>
+                <i-button type="primary" @click="addSure">确定</i-button>
+            </div>
+        </modal>
+        <!--<div class="hide-render" style="position: absolute;left: 10000px;top:0;">-->
+            <!--<form id="category_from" class="form-horizontal ht-form">-->
+                <!--<div id="addCategoty" class="mg-top-md">-->
+                    <!--<label class="col-xs-4 text-right control-label">-->
+                        <!--<span class="star"></span>-->
+                        <!--商品分类代码-->
+                    <!--</label>-->
+                    <!--<div class="col-xs-8">-->
+                        <!--&lt;!&ndash;<input type="text" name="categoryCode" name="categoryCode" v-model="parentCategory.code" class="form-control input-sm">&ndash;&gt;-->
+                        <!--<input type="text" name="categoryCode" placeholder="保存时自动生成"-->
+                               <!--:disabled="true" v-model="parentCategory.code" class="form-control input-sm">-->
+                    <!--</div>-->
+                    <!--<label class="col-xs-4 text-right control-label mg-top-md">-->
+                        <!--<span class="star"></span>-->
+                        <!--商品分类名称-->
+                    <!--</label>-->
+                    <!--<div class="col-xs-8 mg-top-md">-->
+                        <!--<input type="text" name="categoryName" name="categoryName" v-model="parentCategory.name" class="form-control input-sm">-->
+                    <!--</div>-->
+
+                <!--</div>-->
+                <!--<div id="modifyCategoty" class="mg-top-md">-->
+
+                    <!--<label class="col-xs-4 text-right  control-label">-->
+                        <!--<span class="star"></span>-->
+                        <!--商品分类代码-->
+                    <!--</label>-->
+                    <!--<div class="col-xs-8">-->
+                        <!--<input type="text" :disabled="categoryFlag" name="categoryCode" name="categoryCode" v-model="parentCategory.code" class="form-control input-sm">-->
+                    <!--</div>-->
+                    <!--<label class="col-xs-4 text-right control-label mg-top-md">-->
+                        <!--<span class="star"></span>-->
+                        <!--商品分类名称-->
+                    <!--</label>-->
+                    <!--<div class="col-xs-8 mg-top-md">-->
+                        <!--<input type="text" name="categoryName" name="categoryName" v-model="parentCategory.name" class="form-control input-sm">-->
+                    <!--</div>-->
+
+                <!--</div>-->
+            <!--</form>-->
+        <!--</div>-->
+
+        <div>
+            <Modal @on-ok="doSelect" @on-cancel="closeCancel" class-name="source-list" id="subjectPopup" width="800" v-model="showModal"
+                title="选择科目">
+                <div class="content" style="display: flex">
+                    <div style="width: 250px;">
+                        <ht-tree :setting="subjectSetting" url="${rc.contextPath}/tbaseAccountSubject/accountSubjectTree" :tid='1114534'></ht-tree>
+                    </div>
+                    <div style="width: 500px;">
+                        <div>
+                            <i-form @keydown.native.enter.prevent="keyDown" :model="subjectSearchBody" style="display:inline-block; margin-top: 10px;"
+                                :label-width="80">
+                                <row>
+                                    <i-col span="12">
+                                        <form-item label="关键字">
+                                            <i-input v-model="subjectSearchBody.subjectName" aria-placeholder="支持模糊搜索"></i-input>
+                                        </form-item>
+                                    </i-col>
+                                    <i-col span="12">
+                                        <form-item label="余额方向">
+                                            <select v-model="subjectSearchBody.balanceDirection" class="form-control inline-block" style="width:200px">
+                                                <option value="">所有</option>
+                                                <option v-for="item in status" :value="item.value">{{item.label}}</option>
+                                            </select>
+                                        </form-item>
+                                    </i-col>
+
+                                </row>
+                                <row>
+                                    <i-col span="6" offset="18">
+                                        <ht-btns @clear="subClear" @search="search" :is-search="true" :is-add="false"></ht-btns>
+                                    </i-col>
+                                </row>
+                            </i-form>
+                        </div>
+                        <div class="jqGrid_wrapper">
+                            <table id="my_table_id"></table>
+                            <div id="my_pager_id"></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div slot="footer"></div>
+            </Modal>
+        </div>
+
+
+
+    </div>
+
+
+    </div>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+    <script src="${rc.contextPath}/js/basedata/commodity-category.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

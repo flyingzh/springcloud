@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>工资参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>初始参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="salaryEnabledAccountingYear.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="salaryEnabledAccountingPeriod.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="salaryCurrentAccountingYear.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计时间：</label>
+                <div class="col-sm-10">
+                    <input v-model="salaryCurrentAccountingPeriod.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false" />
+                </div>
+            </div>
+
+            <!--<div class="form-group form-group-sm">-->
+                <!--<label class="col-sm-2 control-label">基本选项：</label>-->
+                <!--<div class="col-sm-10">-->
+                    <!--<div class="checkbox">-->
+                        <!--<label>-->
+                            <!--<input type="checkbox" v-model="salarySettleAccountsByAudit.value" true-value="1"-->
+                                <!--false-value="0" />-->
+                            <!--结账前必须审核-->
+                        <!--</label>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                salaryEnabledAccountingYear: {
+                    id: '',
+                    value: '0', //方便监听数据库值为''触发watch
+                    readOnly: '',
+                    sobId: ''
+                },
+                salaryEnabledAccountingYear_init: '',
+                salaryEnabledAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                salaryEnabledAccountingPeriod_init: '',
+                salaryCurrentAccountingYear: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                salaryCurrentAccountingYear_init: '',
+                salaryCurrentAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                salaryCurrentAccountingPeriod_init: '',
+                salarySettleAccountsByAudit: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                salarySettleAccountsByAudit_init: '',
+                canUpdateAccountPeriod: false,
+            },
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.salaryEnabledAccountingPeriod.value != vm.salaryEnabledAccountingPeriod_init) {
+                        vm.salaryEnabledAccountingPeriod.readOnly = 1;
+                        vm.salaryEnabledAccountingYear.readOnly = 1;
+                        array.push(vm.salaryEnabledAccountingYear);
+                        array.push(vm.salaryEnabledAccountingPeriod);
+                        vm.salaryCurrentAccountingYear.value = vm.salaryEnabledAccountingYear.value;
+                        vm.salaryCurrentAccountingPeriod.value = vm.salaryEnabledAccountingPeriod.value;
+                        array.push(vm.salaryCurrentAccountingYear);
+                        array.push(vm.salaryCurrentAccountingPeriod);
+                        vm.salaryEnabledAccountingPeriod_init = vm.salaryEnabledAccountingPeriod.value;
+                    }
+                    if (vm.salarySettleAccountsByAudit.value != vm.salarySettleAccountsByAudit_init) {
+                        array.push(vm.salarySettleAccountsByAudit);
+                        vm.salarySettleAccountsByAudit_init = vm.salarySettleAccountsByAudit.value;
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: 'POST',
+                            contentType: 'application/json;charset=utf-8',
+                            url: '${rc.contextPath}/systemProfileController/updateBatch',
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    alert('更改成功！');
+                                } else {
+                                    alert('更改失败！');
+                                }
+                            }
+
+                        });
+                    } else {
+                        alert('暂无数据提交！');
+                    }
+                }
+            },
+            watch: {
+                'salaryEnabledAccountingYear.value': function (val) {
+                    if (val == '') {
+                        //获取会计起始年度
+                        var getAccountingYearUrl = '${rc.contextPath}/systemProfileController/getAccountYear?sobId=1';
+                        var _this = this;
+                        $.ajax({
+                            type: 'POST',
+                            url: getAccountingYearUrl,
+                            success: function (result) {
+                                _this.salaryEnabledAccountingYear.value = result.data;
+                            }
+                        });
+                    }
+                },
+            },
+            created: function () {
+                //查询系统信息参数
+                var sysUrl = '${rc.contextPath}/systemProfileController/queryByType?type=工资参数&sobId=1'
+                $.ajax({
+                    type: 'POST',
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'salaryEnabledAccountingYear') {
+                                vm.salaryEnabledAccountingYear = dataObj[i];
+                                vm.salaryEnabledAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salaryEnabledAccountingPeriod') {
+                                vm.salaryEnabledAccountingPeriod = dataObj[i];
+                                vm.salaryEnabledAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salaryCurrentAccountingYear') {
+                                vm.salaryCurrentAccountingYear = dataObj[i];
+                                vm.salaryCurrentAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salaryCurrentAccountingPeriod') {
+                                vm.salaryCurrentAccountingPeriod = dataObj[i];
+                                vm.salaryCurrentAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salarySettleAccountsByAudit') {
+                                vm.salarySettleAccountsByAudit = dataObj[i];
+                                vm.salarySettleAccountsByAudit_init = dataObj[i].value;
+                            }
+                        }
+                    }
+                });
+
+                // 查询会计期间是否可以修改
+                var canUpdateAccountPeriodUrl = '${rc.contextPath}/systemProfileController/canUpdateAccountPeriod';
+
+                $.ajax({
+                    type: 'POST',
+                    url: canUpdateAccountPeriodUrl,
+                    data: { "serviceType": "wageInitializedState" },
+                    success: function (result) {
+                        var canUpdateData = result.data;
+                        vm.canUpdateAccountPeriod = canUpdateData;
+                    }
+                });
+            },
+            mounted: function () {
+                $('form').validate();
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

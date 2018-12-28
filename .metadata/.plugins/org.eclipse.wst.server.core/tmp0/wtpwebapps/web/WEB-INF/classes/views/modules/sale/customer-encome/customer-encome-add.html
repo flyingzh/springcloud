@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>客户来款单 - 新增</title>
+</head>
+<body>
+<div id="cust-add" v-cloak>
+
+    <ht-approve-reject :trigger="modalTrigger"
+                       :modal-type="modalType"
+                       :receipt-id="payOrder.custPayOrderNo"
+                       :receipt-status="payOrder.status"
+                       :step-list.sync="stepList"
+                       :table-data.sync="approvalTableData"
+                       url-check='${rc.contextPath}/saleCustPayOrder/findUserOperation'
+                       url-init-approve='${rc.contextPath}/saleCustPayOrder/queryProcessByReceiptsId'
+                       url-approve='${rc.contextPath}/saleCustPayOrder/submitapproval'
+                       url-table-data='${rc.contextPath}/saleCustPayOrder/queryReceiptsById'
+                       @on-auto-approve="approvalOrRejectCallBack"
+                       @on-approve="approvalOrRejectCallBack"
+                       @on-reject="approvalOrRejectCallBack" ref="ar">
+    </ht-approve-reject>
+
+    <div class="btn-menu">
+        <i-button type="text" class="pd-rg-md" @click="saveOrSubmit(0)" :disabled="payOrder.status !==1">保存</i-button>
+        <i-button type="text" class="pd-rg-md" @click="saveOrSubmit(1)" :disabled="payOrder.status !==1">提交</i-button>
+        <i-button type="text" class="pd-rg-md" @click="approval" :disabled="(payOrder.status === 1) ||( payOrder.status === 4)">审核</i-button>
+        <i-button type="text" class="pd-rg-md" @click="reject" :disabled="(payOrder.status === 1) ||( payOrder.status === 4)">驳回</i-button>
+        <i-button type="text" class="pd-rg-md">预览</i-button>
+        <i-button type="text" class="pd-rg-md">打印</i-button>
+        <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+    </div>
+    <div class="ht-approve-stamp" v-show="payOrder.status===4">
+        审核
+    </div>
+    <!-- 客户弹框开始 -->
+    <modal title="选择客户编码" v-model="isShow" :mask-closable="false" width="800">
+        <p slot="header" style="color:#000;height: 50px;padding: 0 20px">
+            <i-form>
+                <row>
+                    <i-col span="9">
+                        <form-item label="客户名称：">
+                            <i-input class="ht-width-md" v-model="customer.name"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="9">
+                        <form-item label="客户编码：">
+                            <i-input class="ht-width-md" v-model="customer.code"></i-input>
+                            <i-button type="primary" @click="searchCut">搜索</i-button>
+                            <i-button type="primary" @click="searchClear">清空</i-button>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </p>
+        <div class="modalCon">
+            <base-data-list :data_config="data_user_list" :need-reload="reload"  :table_id="tabId" v-model="selected"></base-data-list>
+        </div>
+        <div slot="footer" style="display: none">
+        </div>
+    </modal>
+    <!-- 客户弹框结束 -->
+    <!--   客户订单单弹窗   -->
+    <modal class="modalContent" v-model="saleOrderShow" @on-cancel="exitOrder" :mask-closable="false" width="1000">
+        <p slot="header" style="color:#000;padding: 0 20px">
+            <span>关联客户订单</span>
+        </p>
+        <div class="modalCon">
+            <!--<p class="btn-menu">-->
+                <!--<span @click="returnOrder">返回</span>-->
+                <!--<span @click="exitOrder">退出</span>-->
+            <!--</p>-->
+            <i-form>
+                <form-item label="单据编号：">
+                    <i-input class="ht-width-md" v-model="orderNum"></i-input>
+                    <i-button type="primary" size="large" small @click="orderSearch">搜索</i-button>
+                </form-item>
+            </i-form>
+            <div v-show="orderShow">
+                <base-data-list :return-row-data="true" :data_config="data_order_list" :need-reload="orderReload" :table_id="orderId"
+                                v-model="orderSelected"></base-data-list>
+            </div>
+
+        </div>
+        <div slot="footer">
+            <i-button size="large" small @click="exitOrder">取消</i-button>
+            <i-button type="primary" size="large" small @click="returnOrder">确定</i-button>
+        </div>
+    </modal>
+    <!--   客户定单弹窗结束   -->
+    <i-form label-width="100"  ref="formValidate" :model="payOrder" :rules="ruleValidate">
+        <tabs value="base" :animated="false">
+            <tab-pane label="基本信息" name="base">
+                <row>
+                    <i-col span="8">
+                        <form-item class="ht-star" label="单据编号：">
+                            <i-input class="ht-width-md" :disabled="true" v-model="payOrder.custPayOrderNo"
+                                     placeholder="根据单据编码规则自动生成"></i-input>
+                        </form-item>
+                        <form-item class="ht-star" label="日期：" prop="orderDate">
+                            <date-picker transfer type="date" @on-change="htTestChange" v-model="payOrder.orderDate" format="yyyy-MM-dd" class="ht-width-md"  :disabled="sourceTemp" :readonly="sourceTemp"></date-picker>
+                        </form-item>
+                        <form-item label="关联客户订单：">
+                            <i-input v-if="!sourceTemp" class="ht-width-md" v-model="payOrder.saleOrderNo" icon="search" @on-click="orderAction"  :disabled="sourceTemp"></i-input>
+                            <i-input v-else class="ht-width-md" v-model="payOrder.saleOrderNo" :disabled="sourceTemp"></i-input>
+                        </form-item>
+                        <form-item class="ht-star"  label="来款金额：" prop="payAmount">
+                            <input class="ht-width-md ivu-input" maxlength="16"  @input="clearNum(payOrder,'payAmount',2);htTestChange()" @blur="act" v-model="payOrder.payAmount"  :disabled="sourceTemp" :readonly="sourceTemp"></input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item class="ht-star" label="所属组织：">
+                            <i-input class="ht-width-md" v-model="payOrder.organName"
+                                     :disabled="true"></i-input>
+                        </form-item>
+                        <form-item label="业务员：">
+                            <i-select v-model="payOrder.saleMenId" @on-change="saleMan($event);htTestChange()" label-in-value class="ht-width-md" transfer :disabled="sourceTemp">
+                                <i-option v-for="item in employees" :value="item.id">{{item.empCode}}-{{item.empName}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item class="ht-star" label="来款性质：" prop="businessType">
+                            <i-select class="ht-width-md" @on-change="enComeType($event);htTestChange()" v-model="payOrder.businessType" ref="mType" :disabled="sourceTemp" transfer>
+                                <i-option v-for="item in businessTypeList" :value="item.value">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="当日金价：">
+                            <i-input class="ht-width-md" v-model="payOrder.goldPrice"
+                                     :disabled="true"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="客户：" class="ht-star">
+
+                            <!--<i-input v-if="!sourceTemp" class="ht-width-md" icon="search" @on-click="userAction" v-model="payOrder.custName" :disabled="sourceTemp"></i-input>-->
+                            <!--<i-input v-else class="ht-width-md" v-model="payOrder.custName" :disabled="sourceTemp"></i-input>-->
+
+                            <!-- 客户弹窗组件开始 -->
+                            <ht-customer-list
+                                    v-model="selectCustomerObj"
+                                    @sure="closeCustomer"
+                                    :disabled="sourceTemp"
+                                    ref="customerRef"
+                                    @on-change="htTestChange()"
+                            >
+                            </ht-customer-list>
+                        </form-item>
+                        <form-item label="备注：">
+                            <i-input class="ht-width-md"v-model="payOrder.remark" :disabled="sourceTemp" @input="htTestChange()"></i-input>
+                        </form-item>
+                        <form-item label="金料成色："  class="ht-star" prop="goldColor">
+                            <i-select class="ht-width-md" @on-change="goldMoney($event);htTestChange()" :disabled="goldTemp||sourceTemp" v-model="payOrder.goldColor" ref="mType" transfer>
+                                <i-option v-for="item in goldType" :value="item.value">{{item.value}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="锁价金重：">
+                            <i-input class="ht-width-md" v-model="payOrder.goldWeight" :disabled="true"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </tab-pane>
+            <tab-pane label="审批信息" name="name2">
+                <steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                    <step icon="checkmark-circled" v-for="item in stepList"
+                          :title="item.processLevel"
+                          :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                </steps>
+                <table class="table edit-table" style="width: 1100px;">
+                    <tr>
+                        <th>操作类型</th>
+                        <th>开始级次</th>
+                        <th>目的级次</th>
+                        <th>审批人</th>
+                        <th>审批意见</th>
+                        <th>审批时间</th>
+                    </tr>
+                    <tr v-for="item in approvalTableData">
+                        <td>{{item.approvalResult}}</td>
+                        <td>{{item.currentLevel}}</td>
+                        <td>{{item.nextLevel}}</td>
+                        <td>{{item.createName}}</td>
+                        <td>{{item.approvalInfo}}</td>
+                        <td>{{item.createTime}}</td>
+                    </tr>
+                </table>
+            </tab-pane>
+            <tab-pane label="其他" name="other">
+                <row>
+                    <i-col span="8">
+                        <form-item label="创建人：">
+                            <i-input class="ht-width-md" :disabled="true" v-model="payOrder.createName"></i-input>
+                        </form-item>
+                        <form-item label="创建日期：">
+                            <i-input class="ht-width-md" :disabled="true"  v-model="payOrder.createTime"/>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="最后修改人：">
+                            <i-input class="ht-width-md" v-model="payOrder.updateName" :disabled="true"></i-input>
+                        </form-item>
+                        <form-item label="修改日期：">
+                            <i-input class="ht-width-md" v-model="payOrder.updateTime" :disabled="true"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="审核人：">
+                            <i-input class="ht-width-md" v-model="payOrder.auditName" :disabled="true"></i-input>
+                        </form-item>
+                        <form-item label="审核日期：">
+                            <i-input class="ht-width-md" v-model="payOrder.auditTime" :disabled="true"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </tab-pane>
+        </tabs>
+    </i-form>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+<script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+<script src="${rc.contextPath}/js/access/access.js"></script>
+<script src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+<script src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+<script src="${rc.contextPath}/js/sale/customer-encome/customer-encome-add.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

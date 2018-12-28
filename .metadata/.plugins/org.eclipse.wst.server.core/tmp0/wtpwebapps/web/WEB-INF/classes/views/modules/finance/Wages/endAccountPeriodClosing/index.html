@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>期末结账</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        p.w750{
+            max-width: 750px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="employee" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="beginFun" class="ht-btn">开始</button>
+        <button @click="outHtml" class="ht-btn">退出</button>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <div class="ht-subtitle mt10 ml0">
+            <div>操作提示</div>
+        </div>
+        <p class="w750">
+            <Icon type="android-bulb"></Icon>
+            结账后，当前工资模块进入下一个会计期间，结账后不能录入已结账期间的工资数据。若要修改已结账期间的数据，必须进行反结账。
+        </p>
+        <div class="ht-subtitle mt10 ml0">
+            <div>选择操作</div>
+        </div>
+        <div>
+            <label>
+                <input type="radio" value="1" v-model="for1"> 结账
+            </label>
+            <label class="ml20">
+                <input type="radio" value="2" v-model="for1"> 反结账
+            </label>
+        </div>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/finance/Wages/endAccountPeriodClosing/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

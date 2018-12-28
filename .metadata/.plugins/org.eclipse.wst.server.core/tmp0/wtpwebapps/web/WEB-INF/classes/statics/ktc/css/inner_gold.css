@@ -1,0 +1,87 @@
+.ht-width-page{width:800px;}
+.width-auto{width: auto;}
+
+::-webkit-scrollbar {
+    width:6px;
+    height:6px
+}
+::-webkit-scrollbar-button:vertical {
+    display:none
+}
+::-webkit-scrollbar-corner, ::-webkit-scrollbar-track {
+    background-color:#e2e2e2
+}
+::-webkit-scrollbar-thumb {
+    border-radius:0;
+    background-color:rgba(0, 0, 0, .3)
+}
+::-webkit-scrollbar-thumb:vertical:hover {
+    background-color:rgba(0, 0, 0, .35)
+}
+::-webkit-scrollbar-thumb:vertical:active {
+    background-color:rgba(0, 0, 0, .38)
+}
+html,body{background-color:#fff;}
+table{font-size:12px;}
+
+/* Form */
+input[type=text].error,
+input[type=number].error,
+textarea.error,
+select.error{border:solid 1px #FF5722;}
+
+input.error:focus {
+    outline: none;
+    box-shadow:none;
+}
+
+span.star:after{
+    content: '*';
+    color: red;
+    font-size: 13px;
+    width:10px;
+    display:inline-block;
+}
+
+/* color scheme */
+.error{color:#FF5722;font-weight:normal;}
+.bg-inverse-main{background-color:#eeb900 !important;color:#fff !important;}
+.bg-inverse-sub{background-color:#58410b !important;color:#fff !important;}
+
+.ui-jqgrid{border-width:1px 0 0 0;border-radius:0;}
+.ui-jqgrid .ui-jqgrid-bdiv{height:auto !important;}
+input[type=checkbox].cbox{margin:10px 0 0 4px;min-height: auto;}
+.ui-jqgrid .ui-jqgrid-htable thead th input[type=checkbox].cbox{margin-top:4px;}
+.ui-jqgrid .ui-jqgrid-htable thead th{padding: 4px 2px 4px 8px;font-size:12px;height:32px;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}
+.ui-jqgrid .ui-jqgrid-htable .ui-th-div{margin-top:0;line-height:22px;height:22px;}
+.ui-jqgrid .ui-icon-asc{margin-top:0;}
+.ui-jqgrid .ui-icon-desc {margin-top:7px;}
+
+.ht-jqgrid input[type=text], .ht-jqgrid select
+{height:24px;line-height:24px;margin-top:4px !important;margin-bottom:0;font-size:12px;padding:0 5px;width:100% !important;}
+
+.ht-jqgrid .btn-group button{border:0;background-color:transparent;}
+.ht-jqgrid>tbody>tr.success>td, .ht-jqgrid>tbody>tr.success>th, .ht-jqgrid>tbody>tr>td.success, .ht-jqgrid>tbody>tr>th.success, .ht-jqgrid>tfoot>tr.success>td, .ht-jqgrid>tfoot>tr.success>th, .ht-jqgrid>tfoot>tr>td.success, .ht-jqgrid>tfoot>tr>th.success, .ht-jqgrid>thead>tr.success>td, .ht-jqgrid>thead>tr.success>th, .ht-jqgrid>thead>tr>td.success, .ht-jqgrid>thead>tr>th.success
+{background-color: #FEFBF2;}
+
+
+.ht-jqgrid>tbody>tr>td, .ht-jqgrid>tbody>tr>th, .ht-jqgrid>tfoot>tr>td, .ht-jqgrid>tfoot>tr>th, .ht-jqgrid>thead>tr>td, .ht-jqgrid>thead>tr>th
+{padding:0 8px !important;font-size:12px;height:32px;line-height:32px;border-color:#CECECE;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}
+
+.ht-jqgrid>tbody>tr.active>td, .ht-jqgrid>tbody>tr.active>th, .ht-jqgrid>tbody>tr>td.active, .ht-jqgrid>tbody>tr>th.active, .ht-jqgrid>tfoot>tr.active>td, .ht-jqgrid>tfoot>tr.active>th, .ht-jqgrid>tfoot>tr>td.active, .ht-jqgrid>tfoot>tr>th.active, .ht-jqgrid>thead>tr.active>td, .ht-jqgrid>thead>tr.active>th, .ht-jqgrid>thead>tr>td.active, .ht-jqgrid>thead>tr>th.active
+{background-color: transparent;}
+
+.ht-grid-action{margin-left:-4px;}
+
+/* LayUI */
+.layui-tab{margin:0;}
+.layui-tab-content{padding:0;}
+.layui-elem-field legend{width:auto;border:0;margin-bottom:0;}
+.form-group .layui-upload-img{margin-right:10px;}
+
+.ht-list-img{display:block;width:100px;height:100px;margin:8px 0;}
+
+/* Bootstrap */
+.form-horizontal{margin:15px 0 20px;padding:0;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .radio, .form-horizontal .radio-inline
+{padding-top:4px;font-size: 12px;line-height: 22px;}

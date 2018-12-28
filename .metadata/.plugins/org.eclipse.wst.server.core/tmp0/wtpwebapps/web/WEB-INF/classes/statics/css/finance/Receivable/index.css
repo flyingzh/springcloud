@@ -1,0 +1,72 @@
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-cashier-title1{
+    float: left;
+    line-height: 30px;
+    margin-right: 20%;
+    font-size: 20px;
+}
+/*.ht-searchMain{ padding: 20px 0px 20px 66px;background-color: #fff;}*/
+.ht-cashier-title2{line-height: 30px;font-weight: 100;margin: 0px 10px;}
+.ht-tabsMain{background-color: #fff;}
+
+.ht-talList1{overflow: auto;height: 400px;}
+.ht-talList1 .ht-talListHeight{height: 340px;overflow: auto;    margin-bottom: 10px;}
+.ht-talList1 th{word-break: keep-all;text-align: center;}
+.ht-talList1 .ht-tabCheck{width: 30px;}
+.ht-talList1 .ht-tabCheck label{margin-bottom: 0px;margin-right: 0px;}
+.ht-talList1 .ht-tabNoPadding{padding: 0px !important;}
+
+.ht-talList1 .ht-tabNoPadding input{
+    border: none;
+    border-radius: 0px;
+    height: 26px;
+}
+.ht-icon-ok { color: #01AAED;font-weight: bold; }
+.ht-pageMain{padding-right: 40px;}
+.ht-tabMainJq .ht-noData{height: 200px;line-height: 200px;}
+.ht-detailModalContent .ht-table{margin-top: 0px !important;}
+
+.ht-table>tbody>tr.success>td, .ht-table>tbody>tr.success>th, .ht-table>tbody>tr>td.success,
+.ht-table>tbody>tr>th.success, .ht-table>tfoot>tr.success>td, .ht-table>tfoot>tr.success>th,
+.ht-table>tfoot>tr>td.success, .ht-table>tfoot>tr>th.success, .ht-table>thead>tr.success>td,
+.ht-table>thead>tr.success>th, .ht-table>thead>tr>td.success, .ht-table>thead>tr>th.success {
+    background-color: #dff0d8;
+}
+.ht-td-input {
+    padding: 0 !important;
+    max-width: 150px;
+}
+.ht-input::-webkit-outer-spin-button,
+.ht-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+.ht-input[type="number"]{
+    -moz-appearance: textfield;
+}
+
+.ht-input {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+.ht-input:focus {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.ht-input:blur {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+.ht-td-input {
+    padding: 0 !important;
+    max-width: 150px;
+}

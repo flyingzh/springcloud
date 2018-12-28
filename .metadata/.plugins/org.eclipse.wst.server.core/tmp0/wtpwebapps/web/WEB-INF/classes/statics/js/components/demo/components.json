@@ -1,0 +1,18 @@
+{
+    "base-data-list": {
+        "name": "数据列表组件",
+        "url": "./../../../js/components/base-data-list.js"
+    },
+    "area-select": {
+        "name": "地区选择组件",
+        "url": "./../../../js/components/area-select.js"
+    },
+    "ht-tree": {
+        "name": "树形菜单组件",
+        "url": "./../../../js/components/ht-tree.js"
+    },
+    "ht-print-choose": {
+        "name": "打印（勾选模式）",
+        "url": "./../../../js/components/ht-print-choose.js"
+    }
+}

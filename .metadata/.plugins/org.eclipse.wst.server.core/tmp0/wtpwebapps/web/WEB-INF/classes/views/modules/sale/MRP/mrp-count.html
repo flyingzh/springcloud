@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>MRP运算</title>
+    #parse("modules/public/header.html")
+    <style>
+        .ht-box{
+            border-bottom: 3px solid #ccc;
+            height: 30px;
+        }
+        .infoBtn{
+            width: 100px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            color:#fff;
+            background-color: rgba(153, 153, 153, 1);
+        }
+        .contentbox{
+            padding:50px;
+        }
+        .con{
+            padding: 30px;
+        }
+        .tabstore{
+            padding: 30px 30px 0 0;
+        }
+        .ivu-progress-bg,.ivu-progress-inner{
+            border-radius: 0;
+        }
+        .ivu-progress-success .ivu-progress-bg{
+            background: #2db7f5;
+        }
+        .wordInfo{
+            position: relative;
+            left: 352px;
+            top: 36px;
+            font-size: 20px;
+            z-index: 20;
+        }
+        #tabbox .ui-jqgrid-pager{
+            display: none;
+        }
+        .tabBox{
+            /*width: 670px;*/
+            /*overflow-x: auto;*/
+        }
+        .tabBox .ui-jqgrid-htable{
+            width: 1300px !important;
+        }
+        .tabBox #userTabId{
+            width: 1300px !important;
+        }
+        #list6294_right{
+            padding-left: 86px;
+        }
+        .tabBox th{
+            text-align: center;
+        }
+        #userTabId_cb{
+            width: 24px!important;
+        }
+        .tabBox .jqgfirstrow td:nth-child(2){
+            width: 24px!important;
+        }
+        .ui-pager-table > tbody > tr > td > table {
+            margin-left: 0px;
+        }
+        .ui-jqgrid .ui-paging-pager td {
+            padding: 0px;
+        }
+        .ui-jqgrid .ui-pg-table td {
+            font-weight: normal;
+            vertical-align: middle;
+            padding: 3px 0px 3px 0px;
+        }
+    </style>
+</head>
+<body>
+    <div id="mrp-count" v-cloak>
+
+        <!--   动画    -->
+        <Modal v-model="actionShow" :mask-closable="false" width="800" :footer-hide="true" :closable="false">
+            <div>
+                <div style="height: 30px;">
+                    <p v-if="infoShow">正在运算,请稍后......</p>
+                </div>
+                <span class="wordInfo">{{percent}}%</span>
+                <i-progress :percent="percent" :stroke-width="40" :hide-info="true"/>
+            </div>
+                <p v-if="!infoShow"  style="padding-left: 534px;margin-top: 30px">
+                <i-button @click="backMRPCount()">运算完成</i-button>
+                <i-button @click="toMRPCountResult()">查看运算结果</i-button>
+            </p>
+
+        </Modal>
+
+        <row>
+            <i-col span="16" class="con">
+                <div class="ht-box">
+                    <div class="infoBtn">
+                        基本信息
+                    </div>
+                </div>
+                <div class="contentbox">
+                    <i-form class="form-content">
+                        <row>
+                            <i-col span="12">
+                                <form-item label="计算编号">
+                                    <i-input class="ht-width-md"  v-model="countNo" readonly="readonly"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="12">
+                                <form-item label="计算日期">
+                                    <i-input class="ht-width-md"  v-model="countTime" readonly="readonly"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </i-form>
+                    <p>计算公式 ： 净需求 = 毛需求 * （1+损耗率(%)） - （即时库存 - 已分配）</p>
+                </div>
+                <div class="ht-box">
+                    <div class="infoBtn">
+                        需求范围
+                    </div>
+                </div>
+                <!--需求范围表-->
+                <div class="tabBox">
+                    <base-data-list :data_config="data_user_list" :table_id="userTabId" :need-reload="reload" v-model="selected"></base-data-list>
+                </div>
+            </i-col>
+            <!--仓库范围表-->
+            <i-col span="8" class="tabstore">
+                <div class="ht-box">
+                    <div class="infoBtn">
+                        仓库范围
+                    </div>
+                </div>
+                <div id="tabbox" class="jqGrid_wrapper">
+                    <base-data-list :data_config="config" :table_id="tabId" :need-reload="storeReload" v-model="storeSelected"></base-data-list>
+                </div>
+                <i-button type="primary" @click="exit()">取消</i-button>
+                <i-button type="primary" @click="startCount">开始运算</i-button>
+            </i-col>
+        </row>
+    </div>
+#parse("modules/public/footer.html") </body>
+<script src="${rc.contextPath}/js/sale/MRP/mrp-count.js"></script>
+</html>

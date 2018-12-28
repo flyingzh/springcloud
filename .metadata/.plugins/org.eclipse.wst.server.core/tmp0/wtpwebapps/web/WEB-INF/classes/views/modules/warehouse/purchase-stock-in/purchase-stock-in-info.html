@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>采购入库单-查看</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/purchase-stock-in/purchase-stock-in-info.css'>
+    <style>
+        #purchaseDetail td,#goodsDetail td{
+            vertical-align: middle;
+            text-align: center;
+        }
+        .mirror {
+            position: fixed;
+            left:calc(50% - 90px);
+            top: 50%;
+            background:#fff;
+            display: none;
+            z-index:999;
+        }
+        #goodsDetail .ivu-input{
+            line-height: 1.5;
+            border-width: 1px;
+            border-style: solid;
+            border-color: rgb(221, 222, 225);
+            height:30px;
+        }
+        .fixed-table-body{
+            overflow:visible !important;
+        }
+        .can{
+            height: 50px;
+            width: 50px;
+            margin: 0 auto;
+        }
+        .bigimg{
+            position: absolute;
+            width:180px;
+            height:180px;
+            border:1px solid #BFC2C7;
+        }
+        .edit-table td{
+            position: static;
+        }
+        .hidden-input~label {
+            position: static;
+        }
+        .ivu-tabs {
+            overflow: visible;
+        }
+        .invalid{
+            border: 1px solid red;
+        }
+        .is-disabled{
+            pointer-events:none;
+            color:#bbbec4
+        }
+        .calcscrollin {
+            width: 100%;
+            height: 200px;
+        }
+        .calcscrollout{
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 150px;
+            overflow: scroll;
+        }
+        .calcscrollout::-webkit-scrollbar,.fixed-table-body::-webkit-scrollbar{
+            width: 7px;
+            height: 7px;
+            background: #fff;
+        }
+        .calcscrollout::-webkit-scrollbar-track,.fixed-table-body::-webkit-scrollbar-track{
+            background: #fff;
+            border: 1px solid #ddd;
+            margin-right: 4px;
+        }
+        .calcscrollout::-webkit-scrollbar-thumb,.fixed-table-body::-webkit-scrollbar-thumb{
+            height: 7px;
+            border: 1px solid #ccc;
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="ht-approve-stamp" v-show="psiForm.docStatus == 4">
+        审核
+    </div>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="psiForm.stockNo"
+            :receipt-status="psiForm.docStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/purchasestock/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/purchasestock/queryProcessInfoByStockNo'
+            url-approve='${rc.contextPath}/purchasestock/submitapproval'
+            url-table-data='${rc.contextPath}/purchasestock/queryReceiptsById'
+            @on-auto-approve="autoSubmitOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    >
+    </ht-approve-reject>
+    <!-- 按钮栏 -->
+    <div class="btn-menu ">
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':!canBeEdited}" @click="goToAddPage">新增</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled': psiForm.docStatus !== 1}" @click="save('tmp_save')">保存</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled': psiForm.docStatus > 1 }" @click="save('submit','formValidate')">提交</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':openType === 'query' }" @click="approval">审核</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':openType === 'query'}" @click="reject">驳回</span>
+        <span class="pd-rg-md" @click="goBackList">列表</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':!canBeEdited}" @click="">打印</span>
+        <span class="pd-rg-md" @click="exit">退出</span>
+    </div>
+    <!--导航栏-->
+    <i-form label-width="100" ref="formValidate"  :rules="ruleValidate"  :model="psiForm">
+        <tabs :animated="false" class="clearfix">
+            <tab-pane label="基本信息">
+                <row class="mg-top-md">
+                    <i-col span="8">
+                        <div>
+                            <form-item label="单据类型：" class="ht-star" prop="businessType">
+                                <i-select class="ht-input-width" style="width: 200px;display: inline-block;"  v-model="psiForm.businessType" :disabled="(!canBeEdited) || (psiForm.dataSource !== 1)"  @on-change="docTypeChange();htTestChange()">
+                                    <i-option v-for="item in psiDocTypes" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                </i-select>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="psiForm.businessType" name="businessType" required />
+                            </form-item>
+                            <form-item label="单据编号：" class="ht-star">
+                                <i-input style="width:200px" v-model="psiForm.stockNo" disabled></i-input>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="psiForm.stockNo" name="stockNo"  />
+                            </form-item>
+                            <form-item label="入库日期：" class="ht-star" prop="stockTime">
+                                <date-picker type="date" placeholder="请选择入库日期" style="width: 200px" v-model="psiForm.stockTime" @on-change="changeDate" transfer="true" :disabled="!canBeEdited"   :readonly="!canBeEdited"></date-picker>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="psiForm.stockTime" name="stockTime" required />
+                            </form-item>
+                        </div>
+                    </i-col>
+                    <i-col span="8">
+                        <div>
+                            <form-item label="所属组织：" class="ht-star">
+                                <i-input  style="width: 200px" :value="currOrgName" disabled></i-input>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input"   />
+                            </form-item>
+                            <form-item label="收料部门：" icon="search" class="ht-star" prop="recMaterialDepartmentName">
+                                <i-input style="width:200px" @on-focus="showDepartmentTree(true);htTestChange()" v-model="psiForm.recMaterialDepartmentName" transfer="true" :disabled="!canBeEdited"></i-input>
+                                <div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                    <ht-tree url='${rc.contextPath}/purchasestock/queryDeparts' :setting="treeSetting"></ht-tree>
+                                </div>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="psiForm.recMaterialDepartmentName" name="recMaterialDepartmentName" required />
+                            </form-item>
+                            <form-item label="入库员：">
+                                <!--<i-input  style="width: 200px" v-model="psiForm.stockKeeper" :disabled="!canBeEdited"></i-input>-->
+                                <!--<i-input class="hidden-input"   />-->
+                                <i-select :disabled="!canBeEdited"  @on-change="changeEmp" v-model="psiForm.stockKeeperId"  class="ht-width-input" filterable :clearable="isClearable">
+                                    <i-option v-if="item.empStatus == 1"  v-for="item in employees" :value="item.id">{{item.empCode}}-{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </div>
+                    </i-col>
+                    <i-col span="8">
+                        <div>
+                            <form-item label="供应商：" class="ht-star" prop="supplierId">
+                                <!--<i-select class="ht-input-width" :disabled="supplierDisabled" style="width: 200px;display: inline-block;"-->
+                                          <!--transfer="true"   filterable="true" v-model="psiForm.supplierId" @on-change="supplierChange">-->
+                                    <!--<i-option v-for="(item,index) in suppliers" :value="item.value">{{item.label}}</i-option>-->
+                                <!--</i-select>-->
+                                <ht-selectsupplier
+                                        :disabled="supplierDisabled"
+                                        @getinfo="closeSupplier"
+                                        ref="selectSupplier"
+                                        @on-change="htTestChange()">
+
+                                </ht-selectsupplier>
+                                <!--<span class="star"></span>-->
+                                <input class="hidden-input" v-model="psiForm.supplierId" name="supplierId" required />
+                            </form-item>
+                            <form-item label="客户：">
+                                <i-select :disabled="customerDisabled" class="ht-input-width" style="width: 200px;display: inline-block;"
+                                          transfer="true" filterable="true" v-model="psiForm.custId" @on-change="customerChange">
+                                    <i-option v-for="(item,index) in customers" :value="item.value">{{item.label}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="商品类型：" class="ht-star" prop="goodsTypeName">
+
+                                <cascader :data="categoryType" trigger="hover" transfer="true"  :disabled="!canBeEdited || psiForm.dataSource ==  0" :clearable="false"
+                                          v-model="goodsTypes" class="ht-input-width" style="width: 200px;display: inline-block;" @on-change="changeGoodsType">
+                                </cascader>
+                                <!--<span class="star"></span>-->
+                                <i-input class="hidden-input" v-model="psiForm.goodsTypePath" name="goodsTypePath" required />
+                            </form-item>
+                        </div>
+                    </i-col>
+                </row>
+            </tab-pane>
+            <!--审批信息-->
+            <tab-pane label="审批信息">
+                <Steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                    <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                </Steps>
+                <table class="table edit-table" style="width: 1100px;">
+                    <tr>
+                        <th>操作类型</th>
+                        <th>开始级次</th>
+                        <th>目的级次</th>
+                        <th>审批人</th>
+                        <th>审批意见</th>
+                        <th>审批时间</th>
+                    </tr>
+                    <tr v-for="item in approvalTableData">
+                        <td>{{item.approvalResult}}</td>
+                        <td>{{item.currentLevel}}</td>
+                        <td>{{item.nextLevel}}</td>
+                        <td>{{item.createName}}</td>
+                        <td>{{item.approvalInfo}}</td>
+                        <td>{{item.createTime}}</td>
+                    </tr>
+                </table>
+            </tab-pane>
+            <tab-pane label="其他">
+                <row class="mg-top-md">
+                    <i-col span="8">
+                        <div>
+                            <form-item label="创建人：">
+                                <i-input disabled style="width:200px" v-model="psiForm.createName"></i-input>
+                            </form-item>
+                            <form-item label="创建日期：">
+                                <i-input disabled style="width:200px" v-model="psiForm.createTime"></i-input>
+                            </form-item>
+                        </div>
+                    </i-col>
+                    <i-col span="8">
+                        <div>
+                            <form-item label="修改人：">
+                                <i-input disabled style="width:200px" v-model="psiForm.updateName"></i-input>
+                            </form-item>
+                            <form-item label="修改日期：">
+                                <i-input disabled style="width:200px" v-model="psiForm.updateTime"></i-input>
+                            </form-item>
+                        </div>
+                    </i-col>
+                    <i-col span="8">
+                        <div>
+                            <form-item label="审核人：">
+                                <i-input disabled style="width:200px" v-model="psiForm.auditorName"></i-input>
+                            </form-item>
+                            <form-item label="审核日期：">
+                                <i-input disabled style="width:200px" v-model="psiForm.auditTime"></i-input>
+                            </form-item>
+                        </div>
+                    </i-col>
+                </row>
+            </tab-pane>
+            <tab-pane label="附件" name="name4">
+                #parse("modules/public/access.html")
+            </tab-pane>
+        </tabs>
+    </i-form>
+    <!--商品描述、商品明细切换栏-->
+    <i-form label-width="100">
+        <tabs :animated="false"   v-show="isTabulationHide" :value="currentTab"@on-click="clickPurchaseDetail">
+            <tab-pane  label="商品描述" class="wait-pick" name="purchaseDetail" >
+                <div class="table-btn">
+                    <i-button type="text" @click="addDetailRow"  :disabled="!canBeEdited||(psiForm.dataSource ==  0)">新增行</i-button>
+                    <i-button type="text" @click="copyDetailRow" :disabled="!canBeEdited||(psiForm.dataSource ==  0)">复制行</i-button>
+                    <i-button type="text" @click="delDetailRow"  :disabled="!canBeEdited">删除行</i-button>
+                    <i-button type="text" @click="openGoodsTab(purchaseStockDetails[selectedIndex] || [])"  :disabled="!canBeEdited">分称录入</i-button>
+                    <i-button type="text" @click="hideDivided"   :disabled="!canBeEdited">隐藏已分称</i-button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table edit-table" style="table-layout:fixed" id="purchaseDetail">
+
+                        <thead>
+                        <th>序号</th>
+                        <th>明细</th>
+                        <th>批号</th>
+                        <th>商品图片</th>
+                        <th style="width: 220px;"><span class="star"></span>商品编码</th>
+                        <th>商品明细</th>
+                        <th>商品名称</th>
+                        <th>款式类别</th>
+                        <th v-show="false">金料成色</th>
+                        <th>状态</th>
+                        <th>规格</th>
+                        <th style="width: 160px;">证书类型</th>
+                        <th>计数单位</th>
+                        <th>应收数量</th>
+                        <th><span class="star"></span>实收数量</th>
+                        <th>计重单位</th>
+                        <th>应收重量</th>
+                        <th><span class="star"></span>实收重量</th>
+                        <th><span class="star"></span>进货成本</th>
+                        <th>市场成本</th>
+                        <th><span class="star"></span>售价成本</th>
+                        <th>售价总额</th>
+                        <th style="width: 160px;"><span class="star"></span>仓库</th>
+                        <!--<th style="width: 160px;">库位</th>-->
+                        <th>备注</th>
+                        <th>源单类型</th>
+                        <th>单据编号</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in purchaseStockDetails" @click="selectProductDetail(index)"
+                            :class="index === selectedIndex? 'ht-selected':''"  v-if="item.divisionStatus == 1 ? showRows : 'true'">
+                            <td>
+                                {{index+1}}
+                            </td>
+                            <td>
+                                <a @click.prevent="openGoodsTab(item)">明细</a>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.batchNum" :disabled="!canBeEdited" class="ivu-input" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                            </td>
+                            <td style="position: static;">
+                                <ht-select
+                                        :is-disabled="!canBeEdited||(psiForm.dataSource ==  0)"
+                                        :init-model="item.goodsNo"
+                                        @getitem="getSelectedItem($event,index)"
+                                        @getinput="getInputValue($event, index)"
+                                        v-model="item.commodityId"
+                                        :goods-group-path="psiForm.goodsTypePath"
+                                        :option-data="item.options || []" class="goods"
+                                        @on-change="htTestChange()">
+                                </ht-select>
+                            </td>
+
+                            <td v-if="item.detailMark === 1 && item.goodsMainType ==='attr_ranges_gold'" >
+                                <a @click="showGoldDetail(index)">商品明细</a>
+                            </td>
+                            <td  v-if="item.detailMark === 2 || item.goodsMainType !=='attr_ranges_gold'" >
+                               <span class="is-disabled">商品明细</span>
+                            </td>
+                            <td>
+                                {{item.goodsName}}
+                            </td>
+                            <td>
+                                {{item.styleName}}
+                            </td>
+                            <td  v-show="false">
+                            <i-select v-model="item.goldColor" transfer="true" :disabled="!canBeEdited"  @on-change="htTestChange()">
+                            <i-option v-for="(i,index) in item.goldColors" :value="i.value"  :key="i.value">{{i.name}}</i-option>
+                            </i-select>
+                            </td>
+                            <td>
+                                <i-select v-model="item.divisionStatus" disabled>
+                                    <i-option value="0" >未分称</i-option>
+                                    <i-option value="1">已分称</i-option>
+                                </i-select>
+                            </td>
+                            <td>
+                                {{item.goodsNorm}}
+                            </td>
+                            <td>
+                                {{item.certificateTypeId}}
+                            </td>
+                            <td>
+                                {{item.countingUnit}}
+                            </td>
+                            <td>
+                                <input v-model="item.receivableNum" disabled class="ivu-input" @input="clearNoNumber(item,'receivableNum',0);htTestChange()"/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'actualRecNum',0);htTestChange()" :disabled="(psiForm.dataSource ==  0) ||(psiForm.docStatus > 1) || item.goodsMainType == 'attr_ranges_gold'" v-model="item.actualRecNum" :disabled="!canBeEdited" class="ivu-input" />
+                            </td>
+                            <td>
+
+                                {{item.weightUnit}}
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'receivableWeight',3);htTestChange()" class="ivu-input" v-model="item.receivableWeight" disabled/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'actualRecWeight',3);htTestChange()" :disabled="!canBeEdited" class="ivu-input" v-model="item.actualRecWeight" :class="(submitValid || item.actualRecWeight) ? '':'invalid'" :disabled="!canBeEdited" :ref="'td'+index" :id="'actualRecWeight'+index"/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'purchaseCost',3);htTestChange()" :disabled="item.goodsMainType != 'attr_ranges_gold' || !canBeEdited" class="ivu-input" v-model="item.purchaseCost"/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'marketCost',2);htTestChange()" :disabled="item.goodsMainType != 'attr_ranges_gold' || !canBeEdited" class="ivu-input" v-model="item.marketCost"/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'saleCost',2);htTestChange()" :disabled="item.goodsMainType != 'attr_ranges_gold' || !canBeEdited" class="ivu-input" v-model="item.saleCost"/>
+                            </td>
+                            <td>
+                                <input @input="clearNoNumber(item,'totalSaleAmount',2);htTestChange()":disabled="item.goodsMainType != 'attr_ranges_gold' || !canBeEdited" class="ivu-input" v-model="item.totalSaleAmount" />
+                            </td>
+                            <td>
+                                <i-select v-model="item.warehouseId" @on-change="changeWarehouse" transfer="true" :disabled="!canBeEdited" :class="(submitValid || item.warehouseId) ? '':'invalid'">
+                                    <i-option v-for="(item,index) in warehouses" :value="item.value">{{item.label}}</i-option>
+                                </i-select>
+                            </td>
+                            <!--<td>-->
+                                <!--<i-select v-model="item.reservoirPositionId"  :disabled="!canBeEdited || !item.warehouseId" transfer="true" :class="(submitValid || item.reservoirPositionId) ? '':'invalid'">-->
+                                    <!--<i-option v-for="(item,index) in item.warehousePositions" :value="item.value">{{item.label}}</i-option>-->
+                                <!--</i-select>-->
+                            <!--</td>-->
+                            <td>
+                                <input type="text" v-model="item.remark" :disabled="!canBeEdited" class="ivu-input" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                {{item.sourceDocType | sourceDocTypeFormatter}}
+                            </td>
+                            <td>
+                                {{item.sourceDocNo}}
+                            </td>
+                        </tr>
+                        <tr v-show="purchaseStockDetails.length > 0">
+                            <td>
+                                合计
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalReceivableNum}}
+                            </td>
+                            <td>
+                                {{totalActualRecNum}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalReceivableWeight}}
+                            </td>
+                            <td>
+                                {{totalActualRecWeight}}
+                            </td>
+                            <td>
+                                {{totalPurchaseCost}}
+                            </td>
+                            <td>
+                                {{totalMarketCost}}
+                            </td>
+                            <td>
+                                {{totalSaleCost}}
+                            </td>
+                            <td>
+                                {{overAllSaleAmount}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <!--<td>-->
+                            <!--</td>-->
+                            <td>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </tab-pane>
+            <tab-pane label="商品明细" class="finish-pick" name="goodsDetail" disabled>
+                <div class="table-btn">
+                    <i-button type="text"  @click="importGoodsDetail" :disabled="!canBeEdited">导入</i-button>
+                    <i-button type="text" :disabled="!canBeEdited" @click=""><label for="one"><input v-model="importExcelType" type="radio" value="1" id="one"/>覆盖导入</label></i-button>
+                    <i-button type="text" :disabled="!canBeEdited" @click=""><label for="two"><input v-model="importExcelType" type="radio" value="2" id="two"/>追加导入</label></i-button>
+                    <i-button type="text" :disabled="!canBeEdited" @click="exportExcel">可导入excel模板</i-button>
+                    <i-button type="text" :disabled="!canBeEdited" @click="fillColumn">批量填充列</i-button>
+                </div>
+                <div class="table-responsive goods-detail">       <!--style="overflow:scroll;height: 260px;"-->
+                    <table class="table edit-table" style="table-layout:fixed;" id="goodsDetail">
+                        <thead>
+                        <th>序号</th>
+                        <th style="width: 220px;">条码号</th>
+                        <th>商品编码</th>
+                        <th>商品名称</th>
+                        <th>款式类别</th>
+                        <th>商品明细</th>
+                        <th><span class="star"></span>总件重</th>
+                        <th>净金重</th>
+                        <th>主石重</th>
+                        <th style="width: 160px">证书类型</th>
+                        <th>证书编号</th>
+                        <th>进货金价</th>
+                        <th>销售金价</th>
+                        <th>规格</th>
+                        <th>进货金耗 (%)</th>
+                        <th>销售金耗 (%)</th>
+                        <th>进货工费</th>
+                        <th>销售工费</th>
+                        <th>进货证书费</th>
+                        <th>销售证书费</th>
+                        <th>其他费用名</th>
+                        <th>进货其他费</th>
+                        <th>销售其他费</th>
+                        <th><span class="star"></span>进货成本</th>
+                        <th>市场成本</th>
+                        <th><span class="star"></span>销售成本</th>
+                        <th><span class="star"></span>销售倍率</th>
+                        <th>售价</th>
+                        <th>备注</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in goodList"
+                            @click="selectGoodsDetail(index)"
+                            :class="index === detailSelectedIdx? 'ht-selected':''"
+                            :key="'detailSelected'+index">
+                            <td>
+                                {{index+1}}
+                            </td>
+                            <td style="position: static">
+                                <ht-barcode-select
+                                        :is-disabled="showProduct"
+                                        :init-model="item.goodsBarcode"
+                                        @getitem="getGoodsItem($event,index)"
+                                        @getinput="getGoodsBarcodeValue($event, index)"
+                                        v-model="item.id"
+                                        :option-data="item.options || []"
+                                        class="goods-child"
+                                        :codes-used="codesUsed"
+                                        @on-change="htTestChange()">
+
+                                </ht-barcode-select>
+                            </td>
+                            <td>
+                                <a>{{item.goodsNo}}</a>
+                            </td>
+                            <td>
+                                {{item.goodsName}}
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.custStyleType" class="ivu-input" @input="htTestChange"/>
+                            </td>
+                            <td v-if="item.detailMark === 1 || item.goodsMainType === 'attr_ranges_goods'">
+                                <a  @click="showProductDetail(index)">商品明细</a>
+                            </td>
+                            <td v-if="item.detailMark === 2 && item.goodsMainType !== 'attr_ranges_goods'">
+                                <span class="is-disabled">商品明细</span>
+                            </td>
+                            <td>
+                                <input type="text"  v-model="item.totalWeight" class="ivu-input" @input="clearNoNumber(item,'totalWeight',3);getAmount(index);htTestChange()" :disabled="!canBeEdited" :ref="'td'+index" :id="'totalWeight'+index"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.netGoldWeight" class="ivu-input" @input="clearNoNumber(item,'netGoldWeight',3);htTestChange()" disabled  :ref="'td'+index" :id="'netGoldWeight'+index"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.mainStoneWeight" class="ivu-input" @input="clearNoNumber(item,'mainStoneWeight',3);htTestChange()" disabled  :ref="'td'+index" :id="'mainStoneWeight'+index"/>
+                            </td>
+                            <td>
+                                <i-select v-model="item.certificateType"  :disabled="!canBeEdited" transfer="true" @on-change="htTestChange()">
+                                    <i-option v-for="(item,index) in item.certifiTypes" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.certificateNo" class="ivu-input" :disabled="!canBeEdited" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purchaseGoldPrice" class="ivu-input" @input="clearNoNumber(item,'purchaseGoldPrice',2);getAmount(index);htTestChange()" :disabled="!canBeEdited" @change="getInputNumber(index)" :ref="'td'+index" :id="'purchaseGoldPrice'+index"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.goldPrice" @input="clearNoNumber(item,'goldPrice',2);htTestChange()" class="ivu-input" :disabled="!canBeEdited" @input="getAmount(index)" :ref="'td'+index" :id="'goldPrice'+index" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.goodsNorm" class="ivu-input" :disabled="!canBeEdited" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purchaseGoldLose" @input="clearNoNumber(item,'purchaseGoldLose',2);htTestChange()" class="ivu-input" disabled  :ref="'td'+index" :id="'purchaseGoldLose'+index"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.goldPurchase"  @input="clearNoNumber(item,'goldPurchase',2);htTestChange()" class="ivu-input" :disabled="!canBeEdited" @input="getAmount(index)" :ref="'td'+index" :id="'goldPurchase'+index" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purchaseLaborCharge" @input="clearNoNumber(item,'purchaseLaborCharge',2);htTestChange()" class="ivu-input" :disabled="!canBeEdited" @input="getAmount(index)" :ref="'td'+index" :id="'purchaseLaborCharge'+index" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.processingFee"  @input="clearNoNumber(item,'processingFee',2);htTestChange()" class="ivu-input"  @input="getAmount(index)" :ref="'td'+index" :id="'processingFee'+index" :disabled="!canBeEdited" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purCertificateFee"  @input="clearNoNumber(item,'purCertificateFee',2);htTestChange()" class="ivu-input"  :disabled="!canBeEdited"  @input="getAmount(index)" :ref="'td'+index" :id="'purCertificateFee'+index" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.certificateFee"  class="ivu-input"  @input="clearNoNumber(item,'certificateFee',2);htTestChange()"   @input="getAmount(index)" :ref="'td'+index" :id="'certificateFee'+index" :disabled="!canBeEdited" :ref="'td'+index" :id="'certificateFee'+index" @change="getInputNumber(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.otherFeeName"  class="ivu-input"  :disabled="!canBeEdited" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <input type="text" class="ivu-input" v-model="item.purOtherFee"  :disabled="!canBeEdited" :ref="'td'+index" :id="'purOtherFee'+index" @change="getInputNumber(index)" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <input type="text"  v-model="item.otherFee"  class="ivu-input"  :disabled="!canBeEdited" :ref="'td'+index" :id="'otherFee'+index" @change="getInputNumber(index)" @input="htTestChange()"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purchaseCost" class="ivu-input" @input="clearNoNumber(item,'purchaseCost',2);htTestChange()" :ref="'td'+index" :id="'purchaseCost'+index" :disabled="item.goodsMainType ==='attr_ranges_gold'||item.goodsMainType ==='attr_ranges_goods'"/>
+                            </td>
+                            <td>
+                                <input type="text" class="ivu-input" v-model="item.marketCost" @input="clearNoNumber(item,'marketCost',2);htTestChange()"  @input="getAmount(index)" :ref="'td'+index" :id="'marketCost'+index" :disabled="item.goodsMainType ==='attr_ranges_gold'||item.goodsMainType ==='attr_ranges_goods'"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.purPriceCost" class="ivu-input" @input="clearNoNumber(item,'purPriceCost',2);htTestChange()" @input="getAmount(index)" :ref="'td'+index" :id="'purPriceCost'+index"  :disabled="item.goodsMainType ==='attr_ranges_gold'||item.goodsMainType ==='attr_ranges_goods'" @keyup="salePriceAction(index)"/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.saleRate"  class="ivu-input" @input="clearNoNumber(item,'saleRate',2);htTestChange()" @input="getAmount(index)" :ref="'td'+index" :id="'saleRate'+index" :disabled="!canBeEdited" @keyup="salePriceAction(index)" />
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.salePrice=(Number(item.saleRate)*Number(item.purPriceCost)).toFixed(2)"  class="ivu-input" disabled/>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.remark"  :disabled="!canBeEdited"  class="ivu-input" @input="htTestChange()"/>
+                            </td>
+                        </tr>
+                        <tr v-show="goodList.length > 0">
+                            <td>
+                                合计
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{goodsListTotalWeight}}
+                            </td>
+                            <td>
+                                {{totalNetGoldWeight}}
+                            </td>
+                            <td>
+                                {{totalMainStoneWeight}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalPurchaseGoldPrice}}
+                            </td>
+                            <td>
+                                {{totalGoldPrice}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalPurchaseLaborCharge}}
+                            </td>
+                            <td>
+                                {{totalProcessingFee}}
+                            </td>
+                            <td>
+                                {{totalPurCertificateFee}}
+                            </td>
+                            <td>
+                                {{totalCertificateFee}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalPurOtherFee}}
+                            </td>
+                            <td>
+                                {{totalOtherFee}}
+                            </td>
+                            <td>
+                                {{totalDetailPurchaseCost}}
+                            </td>
+                            <td>
+                                {{totalDetailMarketCost}}
+                            </td>
+                            <td>
+                                {{totalPurPriceCost}}
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                {{totalSalePrice}}
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </tab-pane>
+        </tabs>
+    </i-form>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+    <product-detail
+            ref="modalRef"
+            :show-modal="productDetailModal.showModal"
+            :goods-main-type="goodList[detailSelectedIdx] && goodList[detailSelectedIdx].goodsMainType"
+            :ids="productDetailModal.ids"
+            :over-edit="goodList[detailSelectedIdx] && goodList[detailSelectedIdx].overEdit"
+            :order-status="psiForm.docStatus"
+            :t-base-bom-entity="goodList[detailSelectedIdx] && goodList[detailSelectedIdx].tBaseBomEntity"
+            :my-assist-attrs="goodList[detailSelectedIdx] && goodList[detailSelectedIdx].assistAttrs"
+            :is-import="(goodList[detailSelectedIdx] && goodList[detailSelectedIdx].isImport) || false"
+            :import-data="(goodList[detailSelectedIdx] && goodList[detailSelectedIdx].importData) || {}"
+            :special-attr="specialAttr"
+            is-stock="true"
+            @ok="modalSure($event)"
+            @cancel="modalCancel($event)"
+            @weight="handleCalcWeight"
+            :weight-unit-id="purchaseStockDetails[selectedIndex] && purchaseStockDetails[selectedIndex].weightUnitId"
+    ></product-detail>
+    <product-detail
+            ref="goldRef"
+            :show-modal="goldDetailModal.showModal"
+            :goods-main-type="purchaseStockDetails[selectedIndex] && purchaseStockDetails[selectedIndex].goodsMainType"
+            :ids="goldDetailModal.ids"
+            :over-edit="purchaseStockDetails[selectedIndex] && purchaseStockDetails[selectedIndex].overEdit"
+            :order-status="psiForm.docStatus"
+            :t-base-bom-entity="purchaseStockDetails[selectedIndex] && purchaseStockDetails[selectedIndex].tBaseBomEntity"
+            :my-assist-attrs="purchaseStockDetails[selectedIndex] && purchaseStockDetails[selectedIndex].assistAttrs"
+            @ok="goldModalSure($event)"
+            @cancel="goldModalCancel($event)"
+    ></product-detail>
+    <Upload v-show="false"
+            ref="upload"
+            :on-success="handleSuccess"
+            :data="excelParam"
+            show-upload-list="false"
+            :on-progress="handleProcessing"
+            :on-format-error="handleFormatError"
+            :format="['xls','xlsx']"
+            accept=".xls,.xlsx"
+            action='${rc.contextPath}/purchasestock/importGoodsDetailsByExcel'>
+        <i-button v-show="false" type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+        <span>文件上传大小限制为2M以内</span>
+    </Upload>
+</div>
+<script>
+    htLoadJs([
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            'ht-selectsupplier',
+            'ht-barcode-select',
+            '${rc.contextPath}/js/components/ht-close-modal.js',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+            '${rc.contextPath}/js/math.min.js',
+            '${rc.contextPath}/js/warehouse/purchase-stock-in/purchase-stock-in-info.js'
+        ],
+    );
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "msg": "操作成功",
+  "code": "100100",
+  "data": {
+    "totalCount": 15,
+    "pageSize": 10,
+    "totalPage": 2,
+    "currPage": 1,
+    "list": [
+      {
+        "id": 33333,
+        "codes": "QS",
+        "currencyName": "S",
+        "exchangeRate": 2.551,
+        "status": 1,
+        "precisions": 4,
+        "remark": "ggg",
+        "isDel": 1,
+        "createTime": 1527557742000,
+        "createrName": "hmy",
+        "createId": 1,
+        "updateTime": 1527557751000,
+        "updateName": "hmy",
+        "updateId": 1
+      },
+      {
+        "id": 2,
+        "codes": "RWQ",
+        "currencyName": "RMB",
+        "exchangeRate": 2.33,
+        "status": 1,
+        "precisions": 4,
+        "remark": "FFFFFFaa",
+        "isDel": 1,
+        "createTime": 1527557437000,
+        "createrName": "hmy",
+        "createId": 1,
+        "updateTime": 1527557444000,
+        "updateName": "hmy",
+        "updateId": 1
+      }
+    ]
+  }
+}

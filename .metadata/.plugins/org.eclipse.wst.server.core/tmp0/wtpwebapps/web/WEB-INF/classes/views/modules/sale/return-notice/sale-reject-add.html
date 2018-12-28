@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <style>
+        .btn-menu button.ivu-btn{
+            font-size:14px;
+            padding:0px 20px;
+        }
+        .btn-menu>button.ivu-btn.ivu-btn:not([disabled]):focus{
+            -webkit-box-shadow:0 0 0 2px transparent;
+        }
+        .tablist{
+            width: 2400px;
+            border: 1px solid #ccc;
+        }
+        .tablist td,th{
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .tablist>thead>th{
+            width: 200px;
+        }
+        .tablist tr{
+            height: 40px;
+        }
+        .nr{
+            width: 100%;
+            overflow-x: scroll;
+            visibility: visible;
+            padding-bottom: 40px;
+        }
+        .prohibited{
+            color:#ccc
+        }
+        .inpWrite .ivu-input{
+            height: 40px;
+        }
+        .tr-back{
+            background: #55acee !important;
+        }
+        .inpStyle{
+            width: 40px;
+            border: none;
+            height: 20px;
+        }
+    </style>
+    <title>2.8销售退货通知单 - 新增</title>
+</head>
+
+<body>
+    <div id="sale-settlement" v-cloak>
+        <ht-approve-reject
+                :trigger="modalTrigger"
+                :modal-type="modalType"
+                :receipt-id="addBody.documentNo"
+                :receipt-status="addBody.documentStatus"
+                :step-list.sync="stepList"
+                :table-data.sync="approvalTableData"
+                url-check='${rc.contextPath}/tSaleReturnNotice/findUserOperation'
+                url-init-approve='${rc.contextPath}/tSaleReturnNotice/queryProcessByReceiptsId'
+                url-approve='${rc.contextPath}/tSaleReturnNotice/submitApproval'
+                url-table-data='${rc.contextPath}/tSaleReturnNotice/queryReceiptsById'
+                @on-auto-approve="approvalOrRejectCallBack"
+                @on-approve="approvalOrRejectCallBack"
+                @on-reject="approvalOrRejectCallBack">
+        </ht-approve-reject>
+        <!--   销售出库单弹窗   -->
+        <modal class="modalContent" v-model="saleOrderShow" @on-cancel="cancelModal" :mask-closable="false" width="800">
+            <p slot="header" style="color:#000;padding: 0 20px">
+                <span>选择销售出库单</span>
+            </p>
+            <div class="modalCon">
+                <!--<p class="btn-menu">-->
+                    <!--<span @click="returnOrder">确定</span>-->
+                    <!--<span @click="exitOrder">退出</span>-->
+                <!--</p>-->
+                <i-form>
+                    <form-item label="单据编号">
+                        <i-input class="ht-width-md" v-model="orderSearchNum.outStockNo"></i-input>
+                        <i-button type="primary" size="large" small @click="orderSearch">搜索</i-button>
+                    </form-item>
+                </i-form>
+                <div v-show="orderShow">
+                    <base-data-list :data_config="data_order_list"  :need-reload="reload"  :table_id="orderId" v-model="selected"></base-data-list>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button size="large" small @click="exitOrder">取消</i-button>
+                <i-button type="primary" size="large" small @click="returnOrder">确定</i-button>
+            </div>
+        </modal>
+
+        <div class="btn-menu">
+            <i-button type="text" class="pd-rg-md" @click="save" :disabled="isSaveDisable">保存</i-button>
+            <i-button type="text" class="pd-rg-md" @click="submit" :disabled="addBody.documentStatus != 1">提交</i-button>
+            <i-button type="text" class="pd-rg-md" @click="quality" v-if="addBody.documentStatus === 2" :disabled="addBody.businessStatus === 2 || addBody.businessStatus === 0">质检判定</i-button>
+            <i-button type="text" class="pd-rg-md" @click="approve" :disabled="(addBody.documentStatus === 1 ) ||( addBody.documentStatus === 4)">审核</i-button>
+            <i-button type="text" class="pd-rg-md" @click="reject" :disabled="(addBody.documentStatus === 1) ||( addBody.documentStatus === 4) ">驳回</i-button>
+            <i-button type="text" class="pd-rg-md" :disabled="true">预览</i-button>
+            <i-button type="text" class="pd-rg-md" :disabled="true">打印</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div class="ht-approve-stamp" v-show="addBody.documentStatus==4">
+            审核
+        </div>
+        <i-form label-width="100" ref="formValidate" :model="addBody" :rules="ruleValidate">
+            <tabs value="base" :animated="false" >
+                <tab-pane label="基本信息" name="base">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="单据编号：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="addBody.documentNo" :disabled="isDisable" placeholder="根据单据编码规则自动生成"></i-input>
+                            </form-item>
+                            <form-item class="ht-star" label="日期：" prop="returnDate">
+                                <date-picker type="date" @on-change="htTestChange" v-model="addBody.returnDate" transfer format="yyyy/MM/dd" class="ht-width-md" :disabled="isView" :readonly="isView"></date-picker>
+                            </form-item>
+                            <form-item class="ht-star" label="商品类型：" prop="goodsType" style="position: relative">
+                                <cascader :data="productTypeList" transfer
+                                      v-model="typeValue" :disabled="addBody.documentStatus != 1" :clearable="false" trigger="hover" class="ht-width-md inline-block"
+                                          @on-visible-change="isHintShow" @on-change="changeProductType">
+                                </cascader>
+                             </form-item>
+                            <form-item label="销售出库单：">
+                                <i-input class="ht-width-md" v-if="!isView"  icon="search" @on-click="saleOrder"></i-input>
+                                <i-input class="ht-width-md" v-if="isView" :disabled="isView"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织：">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="user.organizationName"></i-input>
+                            </form-item>
+                            <form-item class="ht-star" label="业务类型：" prop="businessType">
+                                    <i-select class="ht-width-md" :disabled="isView" v-model="addBody.businessType" @on-change="changeBusType($event);htTestChange()">
+                                        <i-option v-for="item in businessTypeList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                                    </i-select>
+                            </form-item>
+                            <form-item label="业务员：">
+                                <i-input class="ht-width-md" v-model="addBody.businessManName" v-if="isView" :disabled="true"></i-input>
+                                <i-select  @on-change="changeEmp($event);htTestChange()" v-if="!isView" :disabled="isView" v-model="addBody.businessManId" label-in-value class="ht-width-input" transfer filterable :clearable="false">
+                                    <i-option v-if="item.empStatus == 1"  v-for="item in employees" :value="item.id">{{item.empCode}}-{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item class="ht-star" label="退货客户：">
+                                <ht-customer-list
+                                        v-model="selectCustomerObj"
+                                        @sure="closeCustomer"
+                                        :disabled="isView"
+                                        ref="customerRef"
+                                        @on-change="htTestChange"
+                                >
+                                </ht-customer-list>
+                                <!--<i-input type="text" v-if="isView" :disabled="isView" class="ht-width-md" v-model="addBody.custNo"/>-->
+                            </form-item>
+                            <form-item label="退货原因：">
+                                <i-input class="ht-width-md" :disabled="isView" type="textarea" v-model="addBody.reason"@input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="审批信息" name="approve">
+                    <steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </steps>
+                    <!--<base-data-list :data_config="data_config_approval" table_id="approvalList" :need-reload= "needReload"></base-data-list>-->
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>序号</th>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="(item,index) in approvalTableData">
+                            <td>{{index+1}}</td>
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="客户信息" name="userinfo">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="客户：" class="ht-star">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.custName"></i-input>
+                            </form-item>
+                            <form-item label="邮箱：">
+                                <i-input class="ht-width-md" :disabled="isView" v-model="addBody.saleCustInfoEntity.email"></i-input>
+                            </form-item>
+                            <form-item label="地址：">
+                                <area-select v-model="area" :init="areaInit"
+                                             url="${rc.contextPath}/baseaddress/queryAddress"
+                                             :disabled="isView"></area-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="联系人：">
+                                <i-input class="ht-width-md" :disabled="isView" v-model="addBody.saleCustInfoEntity.name"></i-input>
+                            </form-item>
+                            <form-item label="邮编：">
+                                <i-input class="ht-width-md"  :disabled="isView" v-model="addBody.saleCustInfoEntity.zipCode"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="联系方式：">
+                                <i-input class="ht-width-md" :disabled="isView" v-model="addBody.saleCustInfoEntity.phone" @on-blur="checkPhone()"></i-input>
+                            </form-item>
+                            <form-item label="微信号：">
+                                <i-input class="ht-width-md" :disabled="isView" v-model="addBody.saleCustInfoEntity.weChatNo" @on-blur="checkWeChat()"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+
+                </tab-pane>
+                <tab-pane label="其他" name="other">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="创建人：">
+                                <i-input class="ht-width-md" v-model="addBody.createName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="创建日期；">
+                                <i-input class="ht-width-md" v-model="addBody.createTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="最后修改人：">
+                                <i-input class="ht-width-md" v-model="addBody.updateName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="修改日期：">
+                                <i-input class="ht-width-md" v-model="addBody.updateTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="审核人：">
+                                <i-input class="ht-width-md" v-model="addBody.auditName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="审核日期：">
+                                <i-input class="ht-width-md" v-model="addBody.auditTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件" name="name4">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+        <!--折叠按钮开始-->
+        <div style="height: 25px;margin-top:20px">
+                <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </span>
+        </div>
+        <!--折叠按钮结束-->
+        <i-from>
+            <tabs active-key="key1" :animated="false" v-show="isSearchHide">
+                <tab-pane label="商品信息" name="goodsinfo">
+                    <div class="btn-menu" v-if="!isView">
+                        <span class="pd-rg-sm pd-lf-sm" @click="addInfo(goodList,oneinfo)">新增行</span>
+                        <span class="pd-rg-sm pd-lf-sm" @click="delInfo(goodList,selectIndex)">删除</span>
+                    </div>
+                    <!--列表-->
+                    <div class="nr">
+                        <table class="tablist edit-table">
+                            <thead>
+                            <th>序号</th>
+                            <th>条码号</th>
+                            <th>商品图片</th>
+                            <th>
+                                <span class="star"></span>
+                                商品编码
+                            </th>
+                            <th>商品名称</th>
+                            <th>款式类别</th>
+                            <th>商品明细</th>
+                            <th>规格</th>
+                            <th>批号</th>
+                            <th>
+                                <span class="star"></span>
+                                计数单位
+                            </th>
+                            <th>
+                                <span class="star"></span>
+                                数量
+                            </th>
+                            <th>
+                                <span class="star"></span>
+                                计重单位
+                            </th>
+                            <th>
+                                <span class="star"></span>
+                                重量
+                            </th>
+                            <th>金重</th>
+                            <th>主石重</th>
+                            <th>副石重</th>
+                            <th>证书类型</th>
+                            <th>证书编号</th>
+                            <th>
+                                <span class="star"></span>
+                                退货日期
+                            </th>
+                            <th>金额</th>
+                            <th>源单类型</th>
+                            <th>源单单号</th>
+                            <th>
+                                <span class="star"></span>
+                                退货处理方式
+                            </th>
+                            <th>质检判定</th>
+                            </thead>
+                            <tbody>
+                            <tr class="tdInfo" v-for="(item,index) in goodList" :key="index" :class="index === selectIndex ? 'ht-selected':''" @click="selectedTr(index)">
+                                <td>{{index+1}}</td>
+                                <td>
+                                    <ht-barcode-select
+                                            :is-disabled="isView"
+                                            :init-model="item.goodsBarcode"
+                                            @getitem="getGoodsItem($event,index)"
+                                            @getinput="getGoodsBarcodeValue($event, index)"
+                                            v-model="item.goodsBarcode"
+                                            :option-data="options || []"
+                                            class="goods-child"
+                                            :codes-used="codesUsed"
+                                    >
+                                    </ht-barcode-select>
+                                </td>
+                                <td>
+                                    <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                                </td>
+                                <td>{{item.goodsCode}}</td>
+                                <td>{{item.goodsName}}</td>
+                                <td>{{item.styleName}}</td>
+                                <td v-if="item.detailMark !=2" @click="showProductDetail(index)">
+                                    <a>商品明细</a>
+                                </td>
+                                <td v-if="item.detailMark ==2">
+                                    <a>商品明细</a>
+                                </td>
+                                <td>{{item.goodsNorm}}</td>
+                                <td>{{item.batchNum}}</td>
+                                <td>{{item.countingUnit}}</td>
+                                <td>{{item.num}}</td>
+                                <td>{{item.weightUnit}}</td>
+                                <td>{{item.weight}}</td>
+                                <td>{{item.goldWeight}}</td>
+                                <td>{{item.mainStoneWeight}}</td>
+                                <td>{{item.viceStoneWeight}}</td>
+                                <td>{{item.certificateType}}</td>
+                                <td>{{item.certificateNo}}</td>
+                                <td style="width: 150px">
+                                    <date-picker type="date" v-model="item.returnDate" placeholder="请选择日期" transfer
+                                                 :disabled="isView" :readonly="isView" @on-change="htTestChange"></date-picker>
+                                </td>
+                                <td>
+                                    <input class="inpStyle  ivu-input" v-model="item.amount" :disabled="isView" @input="clearNum(item,'amount',2);htTestChange()" >
+                                </td>
+                                <td>{{item.sourceType=='S_OUT_STOCK'?'销售出库单':''}}</td>
+                                <td>{{item.sourceNo}}</td>
+                                <td>
+                                    <i-select v-model="item.reProcessMethod" transfer :disabled="isView"@on-change="htTestChange">
+                                        <i-option v-for="item in returnGoodsType" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                                    </i-select>
+                                </td>
+                                <td>
+                                    <!--<i-input v-if="qualityShow" :disabled="qualityShow" v-model="item.qualityResult"></i-input>-->
+                                    <i-select v-model="item.qualityResult"  transfer :disabled="qualityShow"@on-change="htTestChange">
+                                        <i-option v-for="item in qualityWay" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                                    </i-select>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </tab-pane>
+            </tabs>
+        </i-from>
+        <product-detail ref="modalRef" :show-modal="productDetailModal.showModal"
+                        :goods-main-type="goodList[selectedIndex] && goodList[selectedIndex].goodsMainType"
+                        :ids="productDetailModal.ids"
+                        :over-edit="goodList[selectedIndex] && goodList[selectedIndex].overEdit"
+                        :order-status="updateFlag"
+                        :t-base-bom-entity="goodList[selectedIndex] && goodList[selectedIndex].tBaseBomEntity"
+                        :my-assist-attrs="goodList[selectedIndex] && goodList[selectedIndex].assistAttrs"
+                        @ok="modalSure($event)" @cancel="modalCancel($event)">
+
+        </product-detail>
+        <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+
+    </div>
+
+    <script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-product-detail.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-barcode-select.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-img-magnifier.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/sale/ht-base-fun.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+    <script src="${rc.contextPath}/js/access/access.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/sale/return-notice/sale-reject-add.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

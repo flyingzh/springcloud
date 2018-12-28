@@ -1,0 +1,24 @@
+.control-label{
+    margin-bottom: 15px;
+}
+.date{
+    margin-right: 26px;
+}
+.litle-icon{
+    margin-left: 5px;
+    color: red;
+    font-weight: 900;
+}
+.control-label{
+    position: relative;
+}
+span.star:after {
+     content: '*';
+     color: red;
+     font-size: 13px;
+     width: 10px;
+     display: inline-block;
+ }
+.ui-jqgrid .ui-jqgrid-pager .ui-pager-table{
+    display: none;
+}

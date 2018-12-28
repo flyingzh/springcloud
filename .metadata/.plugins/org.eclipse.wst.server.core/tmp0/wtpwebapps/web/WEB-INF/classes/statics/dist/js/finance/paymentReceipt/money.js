@@ -1,0 +1,1 @@
+"use strict";Number.prototype.add=function(t){var r,h;try{r=this.toString().split(".")[1].length}catch(t){r=0}try{h=t.toString().split(".")[1].length}catch(t){h=0}var i,n=(i=((this*(i=Math.pow(10,Math.max(r,h)))+t*i)/i).toString()).split(".");1<n.length&&(n[1].length<2&&(i+="0"));return i};

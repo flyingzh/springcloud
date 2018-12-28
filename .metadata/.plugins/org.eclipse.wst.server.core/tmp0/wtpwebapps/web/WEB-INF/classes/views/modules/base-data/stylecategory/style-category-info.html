@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        html,
+        body {
+            height: 100%
+        }
+    </style>
+    <title>款式类别</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="paraLevel" v-cloak class="ht-common-list">
+        <div class="btn-menu">
+            #if($shiro.hasPermission("basedata:tbasestylecategory:add"))
+            <span @click="addStyle">新增</span>
+            #end #if($shiro.hasPermission("basedata:tbasestylecategory:add"))
+            <span @click="copy">复制</span>
+            #end #if($shiro.hasPermission("basedata:tbasestylecategory:update"))
+            <span @click="modifyStyle">修改</span>
+            #end #if($shiro.hasPermission("basedata:tbasestylecategory:delete"))
+            <span @click="delStyle">删除</span>
+            #end #if($shiro.hasPermission("basedata:tbasestylecategory:add"))
+            <span @click="save" v-show="buttonFlag">保存</span>
+            #end
+            <span @click="exit">退出</span>
+        </div>
+        <row style="height: 100%">
+            <i-col span="4" class="bg-tree" style="height: 100%">
+                <ht-tree ref="myTree" :url="treeUrl" :setting="setting1" tid='tree'></ht-tree>
+            </i-col>
+            <i-col span="20">
+                <!--<fieldset class="layui-elem-field layui-field-title">-->
+                <!--<legend>款式明细</legend>-->
+                <!--</fieldset>-->
+                <form v-show="isShow" id="my_from" class="form-horizontal ht-form">
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            代码：
+                        </label>
+                        <div class="col-xs-9">
+                            <input placeholder="保存时自动生成"   :disabled="true"  class="form-control input-sm"  v-model="body.styleCode" type="text" />
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            编码规则取码：
+                        </label>
+                        <div class="col-xs-9">
+                            <input :disabled="codeFlag" class="form-control input-sm" name="codingCodeRules" v-model="body.codingCodeRules" type="text"
+                            />
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            款式类别名称：
+                        </label>
+                        <div class="col-xs-9">
+                            <input :disabled="disabledFlag" class="form-control input-sm" name="styleName" v-model="body.styleName" type="text" />
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            父类名称：
+                        </label>
+                        <div id="parentName" class="col-xs-9">
+                            <input :disabled="parentNameFlag" class="form-control input-sm" v-model="body.parentName" type="text" />
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">有效状态：</label>
+                        <div class="col-xs-9">
+                            <input :disabled="disabledFlag" type="radio" style="width: 30px;" id="statusYes" value="1" v-model="body.status" />
+                            <label for="statusYes">有效</label>
+                            <input :disabled="disabledFlag" type="radio" style="width: 30px;" id="statusNo" value="0" v-model="body.status" />
+                            <label for="statusNo">无效</label>
+                        </div>
+                    </div>
+                    <div :disabled="disabledFlag" class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">描述：</label>
+                        <div class="col-xs-9">
+                            <!--<i-input :disabled="disabledFlag" class="form-control input-sm" v-model="body.remark" type="textarea" ></i-input>-->
+                            <textarea :disabled="disabledFlag" class="form-control input-sm" v-model="body.remark"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </i-col>
+        </row>
+        <div>
+            <!--<div>-->
+
+            <!--<ht-tree url=contextPath+"/tbasestylecategory/list" :setting="setting1" tid='tree'></ht-tree>-->
+            <!--</div>-->
+
+            <!--<div>-->
+            <!---->
+            <!--</div>-->
+
+
+        </div>
+    </div>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <!--<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>-->
+    <script src='${rc.contextPath}/js/components/ht-tree.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+    <script src="${rc.contextPath}/js/basedata/style-category-info.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

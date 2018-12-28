@@ -1,0 +1,18 @@
+package com.micro.springcloud.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@RequestMapping("/test")
+@RestController
+public class RestController {
+
+	@RequestMapping("/enq")
+	@ResponseBody
+	public String enq(@RequestParam String enq) {
+		return "hello: "+enq;
+	}
+	
+}

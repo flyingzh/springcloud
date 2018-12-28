@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>总账-初期录入</title>
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.css"> #parse("modules/public/header.html")
+    <style scoped>
+        .ht-table {
+            margin: 0;
+        }
+
+        .ht-table tr th {
+            text-align: center;
+        }
+
+        .ht-table tr td {
+            min-width: 70px;
+        }
+
+        .ht-table tr td span {
+            padding: 0 5px;
+        }
+
+        .ht-currency {
+            float: right;
+            padding-right: 20px;
+        }
+
+        .ht-table-select {
+            width: 200px;
+            display: inline;
+            margin-right: 10px;
+            height: 30px !important;
+            line-height: 30px !important;
+        }
+
+        .ht-input {
+            border: none;
+            box-shadow: none;
+            background-color: #ffffff;
+        }
+
+        .ht-input:focus {
+            border: 1px solid #cccccc;
+            background-color: #ffffff;
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+        }
+
+        .ht-input:blur {
+            border: none;
+            box-shadow: none;
+            background-color: transparent;
+        }
+
+        .ht-input:disabled {
+            background-color: #fff4e8;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .ht-td-input {
+            padding: 0 !important;
+            max-width: 150px;
+            background-color: #ffffff;
+        }
+
+        .ht-icon-ok {
+            color: #01AAED;
+            font-weight: bold;
+        }
+
+        .ht-input-bg {
+            background-color: #fff4e8;
+        }
+
+        .ht-no-margin {
+            margin: 0 !important;
+        }
+
+        .ht-red-color {
+            color: red;
+        }
+    </style>
+</head>
+
+<body style="height: 100%;" class="copyright_content">
+    <div id="ledger-enter" v-cloak>
+        <div class="ht-finance-menu-cl ht-backgroundF2">
+            <i-button type="text" @click="reload">刷新</i-button>
+            <i-button type="text" @click="save_balance">保存</i-button>
+            <i-button type="text" @click="exportExcel">引出</i-button>
+            <i-button type="text" id="importExcel">引入</i-button>
+            <i-button type="text" @click="is_balance">试算平衡</i-button>
+            <i-button type="text" @click="endInitialization">结束初始化</i-button>
+            <i-button type="text" @click="inverseInitialization">反初始化</i-button>
+            <i-button type="text" @click="closeWindow">退出</i-button>
+        </div>
+        <table class="layui-table ht-table ht-marginTop35" lay-size="sm">
+            <caption class="ht-table-title">
+                <h2 class="text-center">科目初始数据</h2>
+                <div class="ht-currency">
+                    <label>
+                        汇率：
+                        <input v-model="exchangeRate" class="form-control input-sm ht-table-select" type="number" />
+                    </label>
+                    <label>
+                        币别：
+                        <select v-model="currencyId" class="form-control input-sm ht-table-select" @change="change_currency($event.target.value)">
+                            <option v-for="item in currencyArr" :value="item.value">
+                                {{item.label}}
+                            </option>
+                        </select>
+                        <span style="display: none">Selected: {{ currencyId }}</span>
+                    </label>
+                </div>
+            </caption>
+            <thead>
+                <tr>
+                    <th colspan="2">科目</th>
+                    <th :colspan="colNumber" v-if="!isFristPeriod">
+                        本年累计借方
+                    </th>
+                    <th :colspan="colNumber" v-if="!isFristPeriod">
+                        本年累计贷方
+                    </th>
+                    <th :colspan="colCurrency">初期余额</th>
+                    <th :colspan="colNumber" v-if="isPlAccount&&!isFristPeriod">
+                        实际损益发生额
+                    </th>
+                    <th rowspan="2">核算项目</th>
+                </tr>
+                <tr>
+                    <th>代码</th>
+                    <th>名称</th>
+                    <th v-if="!isFristPeriod">原币</th>
+                    <th v-if="isShowCol&&!isFristPeriod">本位币</th>
+                    <th v-if="!isFristPeriod">原币</th>
+                    <th v-if="isShowCol&&!isFristPeriod">本位币</th>
+                    <th>方向</th>
+                    <th>原币</th>
+                    <th v-if="isShowCol">本位币</th>
+                    <th v-if="isPlAccount&&!isFristPeriod">原币</th>
+                    <th v-if="isShowCol&&isPlAccount&&!isFristPeriod">本位币</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item,index) in tableData" @click="click_tr(item)" :key="index">
+                    <td>
+                        <span>{{item.accountCode}}</span>
+                    </td>
+                    <td>
+                        <span>{{item.accountName}}</span>
+                    </td>
+                    <td v-if="!isFristPeriod" @click.stop="stop_buble" class="ht-td-input" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                            @blur="blur_money(item,'ytdDebit')" v-model="item.ytdDebitFor" />
+                    </td>
+                    <td v-if="isShowCol&&!isFristPeriod" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <span>{{item.ytdDebit}}</span>
+                    </td>
+                    <td v-if="!isFristPeriod" @click.stop="stop_buble" class="ht-td-input" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                            @blur="blur_money(item,'ytdCredit')" v-model="item.ytdCreditFor" />
+                    </td>
+                    <td v-if="isShowCol&&!isFristPeriod" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <span>{{item.ytdCredit}}</span>
+                    </td>
+                    <td :class="[input_disable(item)?'ht-input-bg':'']">
+                        <span>{{item.direction | fiterDirection}}</span>
+                    </td>
+                    <td @click.stop="stop_buble" class="ht-td-input" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                            @blur="blur_money(item,'beginBalance')" v-model="item.beginBalanceFor" />
+                    </td>
+                    <td v-if="isShowCol" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <span>{{item.beginBalance}}</span>
+                    </td>
+                    <td v-if="isPlAccount&&!isFristPeriod" class="ht-td-input" @click.stop="stop_buble" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                            @blur="blur_money(item,'plAmount')" v-model="item.plAmountFor" />
+                    </td>
+                    <td v-if="isShowCol&&isPlAccount&&!isFristPeriod" :class="[input_disable(item)?'ht-input-bg':'']">
+                        <span>{{item.plAmount}}</span>
+                    </td>
+                    <td @click.stop="stop_buble" class="text-center">
+                        <i v-if="item.relateItem===1" @click="show_relate(item)" class="layui-icon ht-icon-ok">
+                            &#xe605;
+                        </i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <Modal v-model="detailVisible" width="800" :title="detailTitle" :mask-closable="false">
+            <table class="layui-table table-hover table-bordered ht-table" lay-size="sm">
+                <thead>
+                    <tr @click="click_all">
+                        <th rowspan="2" v-if="!isSynthesize">
+                            <checkbox v-model="allShow"></checkbox>
+                        </th>
+                        <th rowspan="2" v-for="item in relateCols" :key="item.itemClass">
+                            {{item.itemClassName}}
+                        </th>
+                        <th :colspan="colNumber" v-if="!isFristPeriod">
+                            本年累计借方
+                        </th>
+                        <th :colspan="colNumber" v-if="!isFristPeriod">
+                            本年累计贷方
+                        </th>
+                        <th :colspan="colNumber">期初余额</th>
+                        <th :colspan="colNumber" v-if="isPlAccount&&!isFristPeriod">
+                            实际损益发生额
+                        </th>
+                    </tr>
+                    <tr @click="click_all">
+                        <th v-if="!isFristPeriod">原币</th>
+                        <th v-if="isShowCol&&!isFristPeriod">本位币</th>
+                        <th v-if="!isFristPeriod">原币</th>
+                        <th v-if="isShowCol&&!isFristPeriod">本位币</th>
+                        <th>原币</th>
+                        <th v-if="isShowCol">本位币</th>
+                        <th v-if="isPlAccount&&!isFristPeriod">原币</th>
+                        <th v-if="isShowCol&&isPlAccount&&!isFristPeriod">本位币</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item,index) in subjectData" :key="item.id">
+                        <td v-if="!isSynthesize" @click="change_tr(item)">
+                            <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                        </td>
+                        <td v-for="(row,i) in item.itemDetail" :key="row.itemClass" class="ht-td-input">
+                            <i-select v-model="row.init" :disabled="isSynthesize" @on-change="select_item" filterable>
+                                <i-option v-for="it in relateCols[i].itemList" :value="relateCols[i].itemClass+'._.'+it.itemId+'._.'+relateCols[i].itemClassName+'._.'+it.itemCode+'._.'+it.itemName"
+                                    :key="it.itemName">
+                                    <slot>{{ it.itemName }}</slot>
+                                </i-option>
+                            </i-select>
+                        </td>
+                        <td v-if="!isFristPeriod" class="ht-td-input">
+                            <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                                @blur="blur_money(item,'ytdDebit')" v-model="item.ytdDebitFor" />
+                        </td>
+                        <td v-if="isShowCol&&!isFristPeriod" class="ht-td-input">
+                            <span>{{item.ytdDebit}}</span>
+                        </td>
+                        <td v-if="!isFristPeriod" class="ht-td-input">
+                            <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                                @blur="blur_money(item,'ytdCredit')" v-model="item.ytdCreditFor" />
+                        </td>
+                        <td v-if="isShowCol&&!isFristPeriod" class="ht-td-input">
+                            <span>{{item.ytdCredit}}</span>
+                        </td>
+                        <td class="ht-td-input">
+                            <input type="input_disable(item)" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                                @blur="blur_money(item,'beginBalance')" v-model="item.beginBalanceFor" />
+                        </td>
+                        <td v-if="isShowCol" class="ht-td-input">
+                            <span>{{item.beginBalance}}</span>
+                        </td>
+                        <td v-if="isPlAccount&&!isFristPeriod" class="ht-td-input">
+                            <input type="number" :disabled="input_disable(item)" class="form-control input-sm ht-input"
+                                @blur="blur_money(item,'plAmount')" v-model="item.plAmountFor" />
+                        </td>
+                        <td v-if="isShowCol&&isPlAccount&&!isFristPeriod" class="ht-td-input">
+                            <span>{{item.plAmount}}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div slot="footer">
+                <i-button @click="insert" v-if="!isSynthesize">插入</i-button>
+                <i-button @click="del" v-if="!isSynthesize">删除</i-button>
+                <i-button type="primary" @click="save" v-if="!isSynthesize">保存</i-button>
+                <i-button @click="cancel(1)">{{ isSynthesize ? '关闭' : '取消' }}</i-button>
+            </div>
+        </Modal>
+        <Modal v-model="balanceVisible" width="600" title="试算借贷平衡">
+            <div>
+                <table class="layui-table table-hover table-bordered ht-table" lay-size="sm">
+                    <thead>
+                        <tr>
+                            <th>试算项</th>
+                            <th>借方</th>
+                            <th>贷方</th>
+                            <th>差额</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in trialList" :key="index">
+                            <td>{{item.trialItem}}</td>
+                            <td>{{item.ytdDebit | filtersTableNumber}}</td>
+                            <td>{{item.ytdCredit | filtersTableNumber}}</td>
+                            <td>{{item.diff | filtersTableNumber}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h4 :class="['mt20',isBalance? '' : 'ht-red-color' ]">{{isBalance | filterBalance}}</h4>
+            </div>
+            <div slot="footer">
+                <i-button @click="cancel(2)">关闭</i-button>
+            </div>
+        </Modal>
+        <Modal v-model="deleteVisible" title="操作确认" :loading="deleteLoading" @on-ok="del_data">
+            <p>确认要删除所选数据？</p>
+            <div slot="footer">
+                <i-button @click="cancel(2)">关闭</i-button>
+            </div>
+        </Modal>
+    </div>
+
+    <!-- <script src="${rc.contextPath}/js/jquery-1.10.2.min.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/ktc/components/accounting/dist/iview.min.js"></script>
+    <script src="${rc.contextPath}/js/utils.js"></script>
+    <script src="${rc.contextPath}/js/http.js"></script> -->
+    <script src="${rc.contextPath}/plugins/layui/layui.js"></script>
+    <script src="${rc.contextPath}/js/finance/balanceinit/balanceinit.js"></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

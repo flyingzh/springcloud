@@ -1,0 +1,146 @@
+<!--<html>-->
+<!--<head>-->
+<script src="${rc.contextPath}/js/access/access.js"></script>
+<style>
+/*.ivu-select{*/
+/*width:200px !important;*/
+/*}*/
+.ht-width-input {
+	width: 200px !important;
+	border: 1px solid #dddee1 !important;
+}
+
+.ivu-input-icon-normal+.ivu-input {
+	width: 305px;
+}
+
+table.edit-table td, th {
+	width: 150px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #C9C9C9;
+	position: relative;
+}
+.control-label
+
+
+:not
+
+ 
+
+(
+.ivu-select
+
+ 
+
+)
+{
+text-align
+
+
+:
+
+ 
+
+right
+
+
+;
+}
+</style>
+<!--</head>-->
+<!--<body>-->
+	<script>
+		console.log("!accessVm.isEdit:" + accessVm.isEdit);
+	</script>
+	<div id="access-info" class="" style="width: 100%">
+		<div v-show="accessVm.isEdit" style="display: block;">
+			<div>
+
+				<div class="layui-tab-item" style="display: block;">
+					<i-button type="primary" @click="accessVm.uploadfile">上传文件</i-button>
+					<form action="">
+						<table class="edit-table">
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>文件名</th>
+									<th>文件大小</th>
+									<th>上传人</th>
+									<th>上传时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="(item,index) in accessVm.access.sysFile.fileDetails"
+									v-show="!item.del">
+									<td>{{index+1}}</td>
+									<td>{{item.fdName}}</td>
+									<td>{{item.fdSize}}</td>
+									<td>{{item.uploadUser}}</td>
+									<td>{{item.uploadTime}}</td>
+									<td><a href="" @click.prevent="accessVm.download(item)">下载</a>
+										<a href="" @click.prevent="accessVm.delFile(item)">删除</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div v-show="accessVm.isShow">
+			<div class="layui-tab-item" style="display: block;">
+				<form action="">
+					<table class="layui-table" lay-size="sm">
+						<thead>
+							<tr>
+								<th>序号</th>
+								<th>文件名</th>
+								<th>文件大小</th>
+								<th>上传人</th>
+								<th>上传时间</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(item,index) in accessVm.access.sysFile.fileDetails">
+								<td>{{index+1}}</td>
+								<td>{{item.fdName}}</td>
+								<td>{{item.fdSize}}</td>
+								<td>{{item.uploadUser}}</td>
+								<td>{{item.uploadTime}}</td>
+								<td><a href="" @click.prevent="accessVm.download(item)">下载</a>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</div>
+		</div>
+
+
+		<Modal v-model="accessVm.showUpload" title="上传文件"
+			@on-ok="accessVm.modalOk" @on-cancel="accessVm.modalCancel">
+		<Upload ref="upload" :on-success="accessVm.handleSuccess"
+			:max-size="2048" :on-format-error="accessVm.handleFormatError"
+			:on-exceeded-size="accessVm.handleMaxSize"
+			:before-upload="accessVm.handleBeforeUpload" multiple
+			action='${rc.contextPath}/fileAccess/fileUploads'> <i-button
+			type="ghost" icon="ios-cloud-upload-outline">开始上传 </i-button> <span>文件上传大小限制为2M以内</span>
+		</Upload> </Modal>
+	</div>
+	<div class="hide-render" style="display: block;">
+		<div id="uploadConfirm" style="display: block;">
+			<p>可批量上传jpg、png、bmp、jpeg等图片文件，电子发票支持pdf文件，最大支持批量上传2M</p>
+			<input id="upload" type="file" multiple="multiple" />
+			<ul id="fileUl"></ul>
+		</div>
+
+	</div>
+
+	<!--</div>-->
+<!--#parse("modules/public/footer.html") </body>-->
+<!--</html>-->
+

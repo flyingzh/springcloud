@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> #parse("modules/public/header.html")
+    <title>待维修发出列表</title>
+</head>
+
+<body>
+    <div id="wait-sendout-list" v-cloak>
+        <!-- 按钮栏开始 -->
+        <div class="btn-menu">
+            <i-button type="text" @click="refresh">刷新</i-button>
+            <i-button type="text" @click="produceSendOutOrder">生成维修发出单</i-button>
+            <i-button type="text" @click="exit">退出</i-button>
+        </div>
+        <!-- 按钮栏结束 -->
+        <!-- 搜索选项开始 -->
+        <i-form label-width="120" class="search-menu ht-menu-top" v-show="isHideSearch">
+            <row>
+                <i-col span="8">
+                    <form-item label="商品类型：" >
+                        <ht-commodity-type :show-tip="false" @change="changeProductType" ref="gtype"></ht-commodity-type>
+                    </form-item>
+                    <form-item label="客户：" >
+                        <!--<i-input class="ht-width-md" v-model="body.custName" placeholder="可模糊搜索"></i-input>-->
+                        <ht-customer-list
+                                v-model="customerModel"
+                                @sure="closeCustomer"
+                                ref="customerRef"
+                        >
+                        </ht-customer-list>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="源单编号：">
+                        <i-input class="ht-width-md" v-model="body.repairOrderNo" placeholder="可模糊搜索"></i-input>
+                    </form-item>
+                    <form-item label="业务类型：">
+                        <i-select transfer class="ht-width-md" v-model="body.businessType" ref="bType">
+                            <i-option v-for="item in businessType" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="日期：">
+                        <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"  placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                    </form-item>
+                    <form-item label="维修厂家：" >
+                        <!--<i-input class="ht-width-md" v-model="body.supplierName" placeholder="可模糊搜索"></i-input>-->
+                        <ht-selectsupplier
+                                @getinfo="closeSupplier"
+                                ref="repairList"
+                        >
+                        </ht-selectsupplier>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                 class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <!-- 搜索选项结束 -->
+        <div>
+            <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+        </div>
+        <!-- 列表部分开始 -->
+        <div>
+            <base-data-list :return-row-data="true" table_id="myTable" v-show="isHideList" :data_config="data_config" :need-reload="reload"
+                            v-model="selected"></base-data-list>
+        </div>
+        <!-- 列表部分结束 -->
+    </div>
+    <script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+    <script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-commodity-type.js"></script>
+    <script src='${rc.contextPath}/js/components/ht-selectsupplier.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-customer-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+    <script src="${rc.contextPath}/js/repair/sendout/wait-sendout-list.js"></script>
+    #parse("modules/public/footer.html")
+
+</body>
+
+</html>

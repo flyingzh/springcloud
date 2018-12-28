@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    #parse("modules/public/header.html")
+    <title>来料检验单</title>
+    <style>
+        /*.ivu-col-span-6{*/
+            /*width: 30%;*/
+        /*}*/
+    </style>
+</head>
+
+<body>
+<div id="imcomingReportList" v-cloak>
+
+    <ht-approve-reject
+            :can-reject-when-audit="true"
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="documentCode"
+            :receipt-status="documentStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/documentAllController/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/documentAllController/queryProcessInfoByStockNo'
+            url-approve='${rc.contextPath}/documentAllController/submitapproval'
+            url-table-data='${rc.contextPath}/documentAllController/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    >
+    </ht-approve-reject>
+
+    <section>
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-md" @click="refresh">刷新</span>
+            <span class="pd-rg-md" @click="add">新增</span>
+             <span class="pd-rg-md" @click="submit">提交</span>
+            <span class="pd-rg-md" @click="approval">审核</span>
+            <span class="pd-rg-md" @click="reject">驳回</span>
+            <span class="pd-rg-md" @click="update">修改</span>
+            <span class="pd-rg-md" @click="DeleteOneRow">删除</span>
+            <!--#if($shiro.hasPermission("quality:testDocumentKC:addReport"))-->
+                <span class="pd-rg-md" @click="createReport">生成报告单</span>
+           <!-- #end-->
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+    </section>
+    <div style="height:35px"></div>
+    <div class="search-menu"  v-show="isSearchHide">
+
+        <i-form label-width="120" :model="body">
+            <row>
+                <i-col span="8">
+                    <form-item label="被检组织：">
+                        <i-select v-model="body.testedOrganizationName" class="ht-width-input" clearable>
+                            <i-option :value="item.id" v-for="item in organList">{{item.name}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="商品类型：">
+                        <cascader :data="categoryType" trigger="hover" @on-change="changeproductTypeName"
+                                  v-model="commodityCategoty" class="ht-width-input">
+                        </cascader>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="单据编号：">
+                        <i-input v-model='body.documentCode' placeholder="可模糊搜索" class="ht-width-input"></i-input>
+                    </form-item>
+                    <form-item label="质检员：">
+                        <i-select v-model="body.inspectorName" filterable class="ht-width-input" ref="inspet" clearable>
+                            <i-option v-for="item in inspectorNameList" :key="'inspet'+item.empName" :value="item.empName" >{{item.empCode + '|' + item.empName }}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="单据日期：">
+                        <date-picker :value="dataValue" @on-change="changeDate" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="Select date" class="ht-width-input"></date-picker>
+                    </form-item>
+                    <form-item label="单据状态：">
+                        <i-select v-model="body.documentStatus" class="ht-width-input" clearable>
+                            <i-option :value="item.value" v-for="item in statusList">{{item.name}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                 ></ht-btns>
+                    </form-item>
+                </i-col>
+
+            </row>
+        </i-form>
+    </div>
+    <div style="height: 25px;">
+        <sapn class="chevron">
+            <span v-show="isTabulationHide">
+                <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+            </span>
+        </sapn>
+    </div>
+    <!--<correct-prevent-list :data_config="data_config" :need-reload="reload" v-model="selected" v-show="isTabulationHide"></correct-prevent-list>-->
+    <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"  :return-row-data=true v-show="isTabulationHide"></base-data-list>
+</div>
+
+<!--<script src="${rc.contextPath}/js/quality/correct-prevent-list.js"></script>
+<script src='${rc.contextPath}/js/quality/test-document-list.js'></script>-->
+
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'ht-approve-reject',
+        'base-data-list',
+        '${rc.contextPath}/js/quality/test-document-list.js',
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+
+</html>

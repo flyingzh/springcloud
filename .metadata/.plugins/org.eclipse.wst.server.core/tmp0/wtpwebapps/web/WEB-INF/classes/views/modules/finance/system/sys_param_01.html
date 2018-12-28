@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>系统信息</title>
+    <!-- #parse("modules/public/header.html") -->
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+
+    <script type="text/javascript" src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/common.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>企业信息</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">公司名称：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyName.value" class="form-control required" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">税号：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyTax.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">银行账号：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyBankAccount.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">地址：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyAddress.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">电话：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyPhone.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">传真：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyFax.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">E-mail：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysCompanyEmail.value" class="form-control" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">公司纳税性质：</label>
+                <div class="col-sm-10">
+                    <label class="radio-inline">
+                        <input v-model="sysTaxType.value" type="radio" name="taxType" value="0"> 一般纳税人
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="sysTaxType.value" type="radio" name="taxType" value="1"> 小规模纳税人
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">税率（%）：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysTaxRate.value" class="form-control" type="number" min="0" max="100" />
+                </div>
+            </div>
+
+            <fieldset class="layui-elem-field layui-field-title mt30">
+                <legend>记账本位币</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">代码：</label>
+                <div class="col-sm-10">
+                    <select v-model="sysStandardMoneyCode.value" class="form-control input-sm inline" :disabled="sysStandardMoneyCode.readOnly==1">
+                        <option v-for="currency in currencies" :value="currency.codes">{{currency.codes}}</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">名称：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysStandardMoneyName.value" class="form-control" type="text" disabled />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">小数位：</label>
+                <div class="col-sm-10">
+                    <input v-model="sysAmountDecimal.value" class="form-control" type="number" :disabled="sysAmountDecimal.readOnly==1"
+                        min="0" max="6" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <i-button @click="save" type="primary">保存</i-button>
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                sysCompanyName: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyTax: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyBankAccount: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyAddress: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyPhone: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyFax: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyEmail: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysTaxType: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysTaxRate: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysStandardMoneyCode: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysStandardMoneyName: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysAmountDecimal: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                sysCompanyName_init: '',
+                sysCompanyTax_init: '',
+                sysCompanyBankAccount_init: '',
+                sysCompanyAddress_init: '',
+                sysCompanyPhone_init: '',
+                sysCompanyFax_init: '',
+                sysCompanyEmail_init: '',
+                sysTaxType_init: '',
+                sysTaxRate_init: '',
+                sysStandardMoneyCode_init: '',
+                sysStandardMoneyName_init: '',
+                sysAmountDecimal_init: '',
+                currencies: [],
+                taxRateInit: {
+                    general: 16,
+                    smallScale: 3,
+                },
+            },
+            watch: {
+                'sysStandardMoneyCode.value': function (val) {
+                    var len = 0;
+                    for (var i = 0, len = vm.currencies.length; i < len; i++) {
+                        var currency = vm.currencies[i];
+                        if (currency.codes == val) {
+                            vm.sysStandardMoneyName.value = currency.currencyName;
+                        }
+                    }
+
+                },
+                'sysTaxType.value': function (val) {
+                    if (val == 0) {
+                        vm.sysTaxRate.value = vm.taxRateInit.general;
+                    } else {
+                        vm.sysTaxRate.value = vm.taxRateInit.smallScale;
+                    }
+                }
+            },
+
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.sysCompanyName.value != vm.sysCompanyName_init) {
+                        array.push(vm.sysCompanyName);
+                        vm.sysCompanyName_init = vm.sysCompanyName.value
+                    }
+                    if (vm.sysCompanyTax.value != vm.sysCompanyTax_init) {
+                        array.push(vm.sysCompanyTax);
+                        vm.sysCompanyTax_init = vm.sysCompanyTax.value
+                    }
+                    if (vm.sysCompanyBankAccount.value != vm.sysCompanyBankAccount_init) {
+                        array.push(vm.sysCompanyBankAccount);
+                        vm.sysCompanyBankAccount_init = vm.sysCompanyBankAccount.value
+                    }
+                    if (vm.sysCompanyAddress.value != vm.sysCompanyAddress_init) {
+                        array.push(vm.sysCompanyAddress);
+                        vm.sysCompanyAddress_init = vm.sysCompanyAddress.value
+                    }
+                    if (vm.sysCompanyPhone.value != vm.sysCompanyPhone_init) {
+                        array.push(vm.sysCompanyPhone);
+                        vm.sysCompanyPhone_init = vm.sysCompanyPhone.value
+                    }
+                    if (vm.sysCompanyFax.value != vm.sysCompanyFax_init) {
+                        array.push(vm.sysCompanyFax);
+                        vm.sysCompanyFax_init = vm.sysCompanyFax.value
+                    }
+                    if (vm.sysCompanyEmail.value != vm.sysCompanyEmail_init) {
+                        array.push(vm.sysCompanyEmail);
+                        vm.sysCompanyEmail_init = vm.sysCompanyEmail.value
+                    }
+                    if (vm.sysTaxType.value != vm.sysTaxType_init) {
+                        array.push(vm.sysTaxType);
+                        vm.sysTaxType_init = vm.sysTaxType.value
+                    }
+                    if (vm.sysTaxRate.value != vm.sysTaxRate_init) {
+                        array.push(vm.sysTaxRate);
+                        vm.sysTaxRate_init = vm.sysTaxRate.value
+                    }
+                    if (vm.sysStandardMoneyCode.value != vm.sysStandardMoneyCode_init) {
+                        vm.sysStandardMoneyCode.readOnly = 1;
+                        array.push(vm.sysStandardMoneyCode);
+                        vm.sysStandardMoneyCode_init = vm.sysStandardMoneyCode.value
+                    }
+                    if (vm.sysStandardMoneyName.value != vm.sysStandardMoneyName_init) {
+                        vm.sysStandardMoneyName.readOnly = 1;
+                        array.push(vm.sysStandardMoneyName);
+                        vm.sysStandardMoneyName_init = vm.sysStandardMoneyName.value
+                    }
+                    if (vm.sysAmountDecimal.value != vm.sysAmountDecimal_init) {
+                        vm.sysAmountDecimal.readOnly = 1;
+                        array.push(vm.sysAmountDecimal);
+                        vm.sysAmountDecimal_init = vm.sysAmountDecimal.value
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: 'POST',
+                            contentType: 'application/json;charset=utf-8',
+                            url: '${rc.contextPath}/systemProfileController/updateBatch',
+                            //data: JSON.stringify(vm.data),
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    // alert('更改成功！');
+                                    vm.$Modal.success({
+                                        title: '提示信息',
+                                        content: '<p>更改成功！</p >'
+                                    });
+                                } else {
+                                    // alert('更改失败！');
+                                    vm.$Modal.success({
+                                        title: '提示信息',
+                                        content: '<p>更改失败！</p >'
+                                    });
+                                }
+
+                            }
+
+                        });
+                    } else {
+                        vm.$Modal.success({
+                            title: '提示信息',
+                            content: '<p>更改成功！</p >'
+                        });
+                        // alert('更改成功！');   // 当没有更改表单数据时，直接提示更改成功！
+                    }
+
+                },
+            }
+            ,
+            created: function () {
+                //1.获取币别列表
+                var currencyUrl = '${rc.contextPath}/systemProfileController/queryCurrencyListAll'
+                $.ajax({
+                    type: 'POST',
+                    url: currencyUrl,
+                    success: function (result) {
+                        var data = result.data;
+                        vm.currencies = data;
+
+                    }
+                })
+
+
+                //2.查询系统信息参数
+                var sysUrl = '${rc.contextPath}/systemProfileController/queryByType?type=系统信息&sobId=1'
+                $.ajax({
+                    type: 'POST',
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'sysCompanyName') {
+                                vm.sysCompanyName = dataObj[i];
+                                vm.sysCompanyName_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyTax') {
+                                vm.sysCompanyTax = dataObj[i];
+                                vm.sysCompanyTax_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyBankAccount') {
+                                vm.sysCompanyBankAccount = dataObj[i];
+                                vm.sysCompanyBankAccount_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyAddress') {
+                                vm.sysCompanyAddress = dataObj[i];
+                                vm.sysCompanyAddress_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyPhone') {
+                                vm.sysCompanyPhone = dataObj[i];
+                                vm.sysCompanyPhone_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyFax') {
+                                vm.sysCompanyFax = dataObj[i];
+                                vm.sysCompanyFax_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysCompanyEmail') {
+                                vm.sysCompanyEmail = dataObj[i];
+                                vm.sysCompanyEmail_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysTaxType') {
+                                vm.sysTaxType = dataObj[i];
+                                vm.sysTaxType_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysTaxRate') {
+                                vm.sysTaxRate = dataObj[i];
+                                vm.sysTaxRate_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysStandardMoneyCode') {
+                                vm.sysStandardMoneyCode = dataObj[i];
+                                vm.sysStandardMoneyCode_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysStandardMoneyName') {
+                                vm.sysStandardMoneyName = dataObj[i];
+                                vm.sysStandardMoneyName_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'sysAmountDecimal') {
+                                vm.sysAmountDecimal = dataObj[i];
+                                vm.sysAmountDecimal_init = dataObj[i].value;
+                            }
+
+                        }
+                    }
+                });
+            },
+            mounted: function () {
+                $('form').validate();
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

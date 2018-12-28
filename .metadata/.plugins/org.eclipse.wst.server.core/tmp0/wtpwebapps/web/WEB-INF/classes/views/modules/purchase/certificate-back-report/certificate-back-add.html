@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证书商品收回单</title>
+    #parse("modules/public/header.html")
+    <style>
+        .hidden-input~label{
+            position:absolute;
+            top:0;
+            left:100px;
+        }
+    </style>
+</head>
+<body>
+<div id="retrieveReport" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="saveCertiBackVo.orderNo"
+            :receipt-status="saveCertiBackVo.orderStatus"
+            :step-list.sync="steplist"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/certificateBackInfo/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/certificateBackInfo/queryProcessInfoByOrderNo'
+            url-approve='${rc.contextPath}/certificateBackInfo/approvalCertiBack'
+            url-table-data='${rc.contextPath}/certificateBackInfo/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <!--<i-button type="text" class="pd-rg-md" @click="add">新增</i-button>-->
+            <i-button type="text" class="pd-rg-md" @click="saveClick('save')"  :disabled="isSave">保存</i-button>
+            <i-button type="text" class="pd-rg-md" @click="saveClick('submit')"  :disabled="isSub" >提交</i-button>
+            <i-button type="text" class="pd-rg-md" @click="approval" :disabled="isApprovel">审核</i-button>
+            <i-button type="text" class="pd-rg-md" @click="reject" :disabled="isReback">驳回</i-button>
+            <!--<i-button type="text" class="pd-rg-md">列表</i-button>-->
+            <i-button type="text" class="pd-rg-md" disabled>预览</i-button>
+            <i-button type="text" class="pd-rg-md" disabled>打印</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div class="ht-approve-stamp" v-show="saveCertiBackVo.orderStatus === 4">
+            审核
+        </div>
+        <div style="height: 45px"></div>
+        <i-form label-width="120" ref="saveCertiBackVo" :model="saveCertiBackVo" :rules="CertiValidate">
+            <tabs value="name1" v-show="isSearchHide" :animated="false" class="clearfix">
+                <tab-pane label="基本信息" name="name1">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="业务类型" prop="businessType">
+                                <i-select class="ht-width-input" v-model="saveCertiBackVo.businessType"
+                                          :disabled="isGenerate || isView">
+                                    <i-option value="P_CREDENTIAL_OUT_01">标配证书</i-option>
+                                    <i-option value="P_CREDENTIAL_OUT_02">特殊证书</i-option>
+                                </i-select>
+                            </form-item>
+
+                            <form-item label="单据编号">
+                                <i-input class="ht-width-input" v-model="saveCertiBackVo.orderNo"
+                                         disabled></i-input>
+                            </form-item>
+                            <form-item label="收料日期" prop="receiptDate">
+                                <date-picker @on-change="saveCertiBackVo.receiptDate=$event" format="yyyy-MM-dd"
+                                             type="date"
+                                             v-model="saveCertiBackVo.receiptDate" :key="saveCertiBackVo.receiptDate"
+                                             transfer
+                                             placement="bottom-end" placeholder="Select date" class="ht-width-md"
+                                             :disabled="isView"
+                                             :readonly="isView">
+                                </date-picker>
+                            </form-item>
+
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织" class="ht-star">
+                                <i-input v-show="showOrgan" class="ht-width-input" icon="search"
+                                         v-model="saveCertiBackVo.organizationId"></i-input>
+                                <i-input class="ht-width-input" icon="search" v-model="saveCertiBackVo.organizationName"
+                                         disabled></i-input>
+                            </form-item>
+                            <form-item label="商品类型" prop="goodsTypePath">
+                                <cascader  @on-change="changeProductType"
+                                           :data="productTypeList" trigger="hover" @on-visible-change="isHintShow"
+                                           v-model="typeValue"
+                                           transfer
+                                           class="ht-width-input inline-block"
+                                           :disabled="!((param.type === 'add' && (saveCertiBackVo.orderStatus == '' || saveCertiBackVo.orderStatus == 1 )) || ( (param.type === 'update') && (saveCertiBackVo.dataSource == 1) && (saveCertiBackVo.orderStatus == 1) ))">
+                                </cascader>
+                            </form-item>
+                            <form-item label="证书类型" prop="certificateType">
+                                <i-select class="ht-width-input" v-model="saveCertiBackVo.certificateType"
+                                          :disabled="isGenerate || isView" transfer>
+                                    <i-option value="国检NGTC">国检NGTC</i-option>
+                                    <i-option value="HRD">HRD</i-option>
+                                    <i-option value="GIA">GIA</i-option>
+                                    <i-option value="IGI">IGI</i-option>
+                                    <i-option value="EGL">EGL</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="供应商" class="ht-star">
+                                <ht-selectsupplier title="供应商" @getinfo="closeSupplier" ref="supplier" :disabled="isGenerate || isView"></ht-selectsupplier>
+                            </form-item>
+                            <form-item label="业务员">
+                                <i-select  @on-change="changeEmp" v-model="saveCertiBackVo.salesmanId" label-in-value class="ht-width-input" :disabled="isView" transfer>
+                                    <i-option v-if='item.empStatus == 1' v-for='item in employees' :value='item.id'>{{item.empCode}}--{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="备注">
+                                <i-input class="ht-width-input" v-model="saveCertiBackVo.remark"
+                                         :disabled="isView" maxlength="100"></i-input>
+
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+
+                <tab-pane label="审批信息" name="name2">
+                    <steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </steps>
+                    <!--<base-data-list :data_config="data_config_approval" table_id="approvalList" :need-reload= "needReload"></base-data-list>-->
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="item in approvalTableData">
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="其他" name="name3">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="创建人：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.createName"></i-input>
+                                </form-item>
+                                <form-item label="创建日期：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.createTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="修改人：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.updateName"></i-input>
+                                </form-item>
+                                <form-item label="修改日期：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.updateTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="审核人：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.auditor"></i-input>
+                                </form-item>
+                                <form-item label="审核日期：">
+                                    <i-input disabled class="ht-width-input" v-model="saveCertiBackVo.auditTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                </tab-pane>
+
+                <tab-pane label="附件" name="name4">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+            <tabs value="tab1" v-show="isTabulationHide">
+                <tab-pane label="明细信息" name="tab1">
+                    <div style="margin-left: 20px;">
+                        <div class="btn-menu">
+                            <i-button type="text" @click="addOrDel('add')" :disabled="isGenerate || isView ">新增行</i-button>
+                            <i-button type="text" @click="addOrDel('del')" :disabled="isView" >删除行</i-button>
+                        </div>
+                        <table class="edit-table">
+                            <thead>
+                            <th class="width-xs">序号</th>
+                            <th v-if="saveCertiBackVo.dataSource !=1">源单类型</th>
+                            <th style="width:200px;" v-if="saveCertiBackVo.dataSource !=1">源单编号</th>
+                            <th><span class="star"></span>证书数量</th>
+                            <th>收货数量</th>
+                            <th>收货重量</th>
+                            <th><span class="star"></span>证书费用</th>
+                            <th>总成本</th>
+                            <!--<th>仓库</th>-->
+                            <!--<th>库位</th>-->
+                            <th style="width:200px;">备注</th>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item,index) in saveCertiBackVo.certificateDetailList" @click="selectOneRow(index)" :class="index ===selectedRowIndex? 'ht-selected':''">
+                                <!--序号-->
+                                <td class="width-xs text-center">{{index+1}}</td>
+                                <!--源单类型-固定-->
+                                <td class="text-center" v-if="saveCertiBackVo.dataSource !=1">
+                                    {{item.sourceType}}
+                                    <!--<input type="text" v-model="item.sourceType" disabled>-->
+                                </td>
+                                <!--源单编号-带出-->
+                                <td class="text-center" width="150px" v-if="saveCertiBackVo.dataSource !=1">
+                                    <!--<input type="text" v-model="item.sourceNumber" disabled>-->
+                                    {{item.sourceNumber}}
+                                </td>
+                                <!--证书数量-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.certificateNumber" @input="clearNoNum(item,'certificateNumber',0)" :disabled="isGenerate || isView">
+                                </td>
+                                <!--收货数量-可编辑-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.receiverGoodsNumber" @input="clearNoNum(item,'receiverGoodsNumber',0)" :disabled="isGenerate || isView">
+                                </td>
+                                <!--收货重量-可编辑-->
+                                <!--<td>-->
+                                <!--{{item.receiverWeight}}-->
+                                <!--</td>-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.receiverWeight" @input="clearNoNum(item,'receiverWeight',2)" :disabled="isView">
+                                </td>
+                                <!--证书费用-可编辑-->
+                                <!--<td>-->
+                                <!--{{item.certificateCost}}-->
+                                <!--</td>-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.certificateCost" @input="clearNoNum(item,'certificateCost',2)" :disabled="isGenerate || isView">
+
+                                </td>
+                                <!--总成本-可编辑-->
+                                <!--<td>-->
+                                <!--{{item.totalCost}}-->
+                                <!--</td>-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.totalCost" @input="clearNoNum(item,'totalCost',2)" :disabled="isView">
+                                </td>
+                                <!--<td>-->
+                                    <!--<select @change="getLocationList($event,index)" v-model="item.warehouseId">-->
+                                        <!--<option v-for="item in wareHouseList" :value="item.id">{{item.name}}</option>-->
+                                    <!--</select>-->
+                                <!--</td>-->
+                                <!--<td>-->
+                                    <!--<select v-model="item.reservoirPositionId">-->
+                                        <!--<option v-for="item in locationList[index]" :value="item.id">{{item.name}}-->
+                                        <!--</option>-->
+                                    <!--</select>-->
+                                <!--</td>-->
+                                <!--备注-->
+                                <td>
+                                    <input class="text-center ivu-input" type="text" v-model="item.remark" @blur="remarkNumber(item)"  :disabled="isGenerate || isView">
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td class="width-xs text-center">合计</td>
+                                <td v-if="saveCertiBackVo.dataSource !=1"></td>
+                                <td v-if="saveCertiBackVo.dataSource !=1"></td>
+                                <td>{{totalCertificateNumber}}</td>
+                                <td>{{totalReceiverGoodsNumber}}</td>
+                                <td>{{totalReceiverWeight}}</td>
+                                <td>{{totalCertificateCost}}</td>
+                                <td>{{finalCost}}</td>
+                                <!--<td></td>-->
+                                <!--<td></td>-->
+                                <td></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </tab-pane>
+            </tabs>
+        </i-form>
+        <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+    </div>
+</div>
+
+<script>
+    htLoadJs([
+            '${rc.contextPath}/js/components/ht-toggle.js',
+            '${rc.contextPath}/js/components/ht-select.js',
+            '${rc.contextPath}/js/access/access.js',
+            '${rc.contextPath}/js/components/ht-approve-reject.js',
+            '${rc.contextPath}/js/components/ht-selectsupplier.js',
+            '${rc.contextPath}/js/quality/components/ht-btns.js',
+            '${rc.contextPath}/js/components/ht-close-modal.js',
+            '${rc.contextPath}/js/purchase/certificate-back-add.js'],
+        'debug'
+    );
+</script>
+#parse("modules/public/footer.html") </body>
+</html>

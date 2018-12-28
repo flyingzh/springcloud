@@ -1,0 +1,16 @@
+#Tomcat publish data
+#Wed Dec 26 17:40:32 CST 2018
+org.eclipse.jst.j2ee.server\:common-model=WEB-INF/lib/common-model-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-velocity=WEB-INF/lib/common-velocity-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-remote=WEB-INF/lib/common-remote-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-config=WEB-INF/lib/common-config-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-utils=WEB-INF/lib/common-utils-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-httpclient=WEB-INF/lib/common-httpclient-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-entity=WEB-INF/lib/common-entity-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-exception=WEB-INF/lib/common-exception-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-log=WEB-INF/lib/common-log-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-fastdfs=WEB-INF/lib/common-fastdfs-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-shiro=WEB-INF/lib/common-shiro-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.jee.server\:/binary\:D\:\\application\\java\\Repository\\org\\springframework\\spring-web\\4.3.12.RELEASE\\spring-web-4.3.12.RELEASE.jar=WEB-INF/lib/spring-web-4.3.12.RELEASE.jar
+org.eclipse.jst.j2ee.server\:util-consul=WEB-INF/lib/util-consul-1.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:common-webconfig=WEB-INF/lib/common-webconfig-1.0.1-SNAPSHOT.jar

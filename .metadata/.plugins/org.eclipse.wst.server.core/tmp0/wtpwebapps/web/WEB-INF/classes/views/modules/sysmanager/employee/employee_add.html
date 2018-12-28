@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>人员 - 列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/sysmanager/employee/employee_add.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <!--新增-->
+        <div class="btn-menu ">
+            <span class="pd-rg-md"  @click="save('formValidate')">保存</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <i-form label-width="110" ref="formValidate"  :rules="ruleValidate"  :model="body">
+            <tabs :animated="false">
+                <tab-pane label="基本信息">
+                    <!--基本信息-->
+                    <div>
+                        <div class="ht-subtitle">
+                            <div>基本信息</div>
+                        </div>
+                        <row>
+                            <i-col  span="8">
+                                <form-item label="员工工号：" placeholder="保存时自动生成" prop="empCode" >
+                                    <i-input style="width: 200px;"  v-model="body.empCode" disabled></i-input>
+                                </form-item>
+                                <form-item label="身份证号码：" prop="idCard">
+                                    <i-input v-model="body.idCard" style="width: 200px" placeholder="请输入18位身份证号码" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="性别：">
+                                    <i-select v-model="body.sex"  style="width: 200px"  @on-change="htTestChange">
+                                        <i-option v-for="(item,index) in selectSex" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="出生日期：">
+                                    <date-picker type="date"
+                                                 placeholder="Select date"
+                                                 style="width: 200px"
+                                                 class="ht-input-width"
+                                                 v-model="body.birthDate"
+                                                 @on-change="htTestChange"></date-picker>
+                                </form-item>
+                                <form-item label="籍贯：">
+                                    <i-input v-model="body.nativePlace" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="政治面貌：">
+                                    <i-input v-model="body.politicsStatus" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="紧急联系人：">
+                                    <i-input v-model="body.emergencyContact" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="婚姻状况：">
+                                    <i-select v-model="body.maritalStatus" style="width: 200px" @on-change="htTestChange">
+                                        <i-option v-for="item in selectMaritalStatus" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="员工姓名：" class="ht-star" prop="empName">
+                                    <i-input style="width: 200px;" v-model="body.empName" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="民族：">
+                                    <i-input v-model="body.ethnic" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="学历：">
+                                    <i-select v-model="body.education" style="width: 200px" @on-change="htTestChange">
+                                        <i-option v-for="(item,index) in selectEducation" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="邮箱：" prop="mailbox">
+                                    <i-input v-model="body.mailbox" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="户口所在地：">
+                                    <i-input v-model="body.domicilePlace" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="联系电话：" prop="phone">
+                                    <i-input v-model="body.phone" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                                <form-item label="紧急联系人联系电话：" label-width="110px" style="margin-left: -20px" prop="emergencyTelephone">
+                                    <i-input v-model="body.emergencyTelephone" style="width: 200px" @on-change="htTestChange"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <div class="upload-container">
+                                    <div class="demo-upload">
+                                        <img class="photoShow upload" id="frontImg" :src="body.pictureUrl"/>
+                                    </div>
+                                    <upload action="${rc.contextPath}/fileUploadController/upload" :on-success="sideHandleSuccess" :show-upload-list="false"
+                                            :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
+                                            :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <a>上传</a>
+                                        </div>
+                                    </upload>
+                                </div>
+                            </i-col>
+                            </row>
+                        <row>
+                            <form-item label="家庭住址：">
+                                <area-select v-model="area" url='${rc.contextPath}/baseaddress/queryAddress' :init="areaInit"  area-temp="true"></area-select>
+                            </form-item>
+                        </row>
+                        </div>
+                    <!--岗位信息-->
+                        <div>
+                            <div class="ht-subtitle">
+                                <div>岗位信息</div>
+                            </div>
+                            <row>
+                                <i-col span="8">
+
+                                    <form-item label="所属部门：" class="ht-star" style="position: relative;" prop="deptName" >
+                                        <i-input class="ht-width-input"
+                                                 icon="search"
+                                                 v-model="body.deptName"
+                                                 @on-click="showDepartmentTree(true)"
+                                                 readonly
+                                        ></i-input>
+                                        <div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree
+                                                    url="${rc.contextPath}/dept/queryDeptByOrganidAll"
+                                                    :setting="treetSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                    <form-item label="岗位：">
+                                    <i-select v-model="body.station"  style="width: 200px">
+                                        <i-option v-for="(item,index) in selectStation" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                    </form-item>
+                                    <form-item label="离职日期：">
+                                        <date-picker type="date"
+                                                     placeholder="Select date"
+                                                     style="width: 200px"
+                                                     class="ht-input-width"
+                                                     v-model="body.dimissionDate" ></date-picker>
+                                    </form-item>
+                                    <form-item label="是否签保密协议：">
+                                        <i-select v-model="body.isSecrecyAgreement"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectIsSecrecyAgreement" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="工作性质：">
+                                        <i-select v-model="body.jobNature"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectJobNature" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="入职日期：">
+                                        <date-picker type="date"
+                                                     placeholder="Select date"
+                                                     style="width: 200px"
+                                                     class="ht-input-width"
+                                                     v-model="body.entryDate" ></date-picker>
+                                    </form-item>
+                                    <form-item label="员工状态：">
+                                        <i-select v-model="body.empStatus"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectEmpStatus" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="职级：">
+                                        <i-select v-model="body.rank"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectRank" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="岗位等级：">
+                                        <i-select v-model="body.stationLevel"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectStationLevel" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="是否签敬业协议：">
+                                        <i-select v-model="body.isTrustAgreement"  style="width: 200px">
+                                            <i-option v-for="(item,index) in selectIsTrustAgreement" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                        </div>
+
+                    <!--其他信息-->
+                        <div>
+                        <div class="ht-subtitle">
+                            <div>其他信息</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="语言能力：">
+                                    <i-input v-model="body.languageAbility" style="width: 200px"></i-input>
+                                </form-item>
+                                <form-item label="户名：">
+                                    <i-input v-model="body.accountName" style="width: 200px"></i-input>
+                                </form-item>
+                                <form-item label="公积金账号：">
+                                    <i-input v-model="body.accumulationFundAccount" style="width: 200px"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="地方方言：">
+                                    <i-input v-model="body.localism" style="width: 200px"></i-input>
+                                </form-item>
+                                <form-item label="开户银行：">
+                                    <i-input v-model="body.depositBank" style="width: 200px"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="银行账号：">
+                                    <i-input v-model="body.bankAccount" style="width: 200px"></i-input>
+                                </form-item>
+                                <form-item label="社保号：">
+                                    <i-input v-model="body.socialSecurityNum" style="width: 200px"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </div>
+                </tab-pane>
+                <tab-pane label="奖惩记录">
+                    <!--<row class="mg-top-md">-->
+                    <!--</row>-->
+                    <div class="table-btn">
+                        <i-button type="text" @click="rowClick()">新增行</i-button>
+                        <i-button type="text" @click="deleteRow">删除行</i-button>
+                    </div>
+                    <table class="table edit-table" style="table-layout:fixed;">
+                        <tr>
+                            <th>
+                                <input type="checkbox" @click="checkAllValues" v-model="isCheckedAll">
+                            </th>
+                            <th>序号</th>
+                            <th>奖惩日期</th>
+                            <th>奖惩性质</th>
+                            <th>内容事项</th>
+                            <th>结果</th>
+                            <th>记录日期</th>
+                            <th>记录人</th>
+                        </tr>
+                        <tr v-for="(item,index) in body.sysEmployeeRprecordEntityList">
+                            <td>
+                                <input type="checkbox" ref="selectOneCheckbox" v-model="item.checked" @click="checkItem(index)">
+                            </td>
+                            <td>{{index+1}}</td>
+                            <td>{{item.rpDate}}</td>
+                            <td>{{item.nature == 0 ? "惩罚" : "奖励"}}</td>
+                            <td>{{item.content}}</td>
+                            <td>{{item.result}}</td>
+                            <td>{{item.createTime}}</td>
+                            <td>{{item.createName}}</td>
+                        </tr>
+                    </table>
+                    <modal v-model="frameTab" :mask-closable="false" title="新增奖惩记录" @on-ok="addRecordDone()"
+                           @on-cancel="addRecordCancel" class="vertical-center-modal">
+                        <i-form>
+                            <row>
+                                <i-col span>
+                                    <form-item label="奖惩日期：">
+                                        <date-picker type="date"
+                                                     placeholder="Select date"
+                                                     style="width: 200px"
+                                                     class="ht-input-width"
+                                                     format="yyyy-MM-dd"
+                                                     v-model="rewardsOrPunishmentRecord.rpDate" @on-change="rewardsOrPunishmentRecord.rpDate=$event" ></date-picker>
+                                    </form-item>
+                                    <form-item label="奖惩性质：">
+                                        <i-select v-model="rewardsOrPunishmentRecord.nature" style="width: 200px">
+                                            <i-option v-for="item in selectStatus" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="内容事项：">
+                                        <i-input type="textarea" style="width: 200px" v-model="rewardsOrPunishmentRecord.content"></i-input>
+                                    </form-item>
+                                    <form-item label="结果：" style="margin-left: 25px;">
+                                        <i-input type="textarea" style="width: 200px" v-model="rewardsOrPunishmentRecord.result"></i-input>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </modal>
+                </tab-pane>
+                <tab-pane label="变更记录">
+                    <table class="table edit-table">
+                        <tr>
+                            <th>序号</th>
+                            <th>变更内容</th>
+                            <th>变更日期</th>
+                            <th>变更人</th>
+                        </tr>
+                        <tr v-for="(item,index) in body.sysEmployeeChangeEntityList">
+                            <td>{{index+1}}</td>
+                            <td>{{item.changeInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                            <td>{{item.createName}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="其他信息">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <form-item label="创建人：">
+                                <i-input style="width: 200px" disabled v-model="body.createName"></i-input>
+                            </form-item>
+                            <form-item label="创建时间：">
+                                <i-input style="width: 200px" disabled v-model="body.createTime"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        'ht-select',
+        'access',
+        'area-select',
+        '${rc.contextPath}/js/quality/components/ht-tree.js',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/components/ht-customer-list.js',
+        '${rc.contextPath}/js/sysmanager/employee/employee_add.js',
+    ]);
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

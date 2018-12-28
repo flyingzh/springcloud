@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>出纳模块</title>
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/cashier/index/index.css">
+    <script type="text/javascript" src="${rc.contextPath}/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/vue.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <style>
+        .ht-paddingTop40 {
+            padding-top: 40px !important;
+        }
+
+        .ht-marginTop35 {
+            margin-top: 35px !important;
+        }
+
+        .ht-backgroundF2 {
+            background: #F2F2F2;
+        }
+
+        .ht-finance-menu-cl {
+            width: 100%;
+            position: fixed;
+            top: 0px;
+            z-index: 102;
+        }
+
+        .ht-thtablecaption {
+            display: table-caption;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="ht-finance-menu-cl ht-backgroundF2">
+            <i-button type="text" @click="actionBtnMth('enable')" :disabled="enableStatus">启用</i-button>
+            <i-button type="text" @click="actionBtnMth('disable')" :disabled="disableStatus">禁用</i-button>
+            <i-button type="text" @click="actionBtnMth('save')">保存</i-button>
+            <i-button type="text" @click="actionBtnMth('delete')">删除</i-button>
+            <i-button type="text" @click="importshow(true,false)">引入</i-button>
+            <i-button type="text" @click="importshow(true,true)">余额</i-button>
+            <i-button type="text" @click="goPath('企业未达账','${rc.contextPath}/finance/cashier/NotReaching/index.html')">企业未达</i-button>
+            <i-button type="text" @click="goPath('银行未达账','${rc.contextPath}/finance/cashier/BankNotReaching/index.html')">银行未达</i-button>
+            <i-button type="text" @click="showBalanceTotal">平衡检查</i-button>
+            <i-button type="text" @click="refresh">刷新</i-button>
+            <i-button type="text" @click="goPath('余额调节表','${rc.contextPath}/finance/cashier/BalanceTable/index.html')">余额表</i-button>
+            <i-button type="text" @click="actionBtnMth('end')" :disabled="cashierInitState==1">启用出纳系统</i-button>
+            <i-button type="text" @click="backCashierInit" :disabled="backCashierInitState==0">反启用出纳系统</i-button>
+        </div>
+        <blockquote class="layui-elem-quote layui-text ht-paddingTop40" style="border-left:none;">
+            <strong class="ht-cashier-title1">出纳初始数据</strong>
+            <label class="ht-commFloatLeft ht-cashier-title2">科目类别：</label>
+            <select @change="subjectCategoryChangeType(subjectCategorySelectValue)" v-model="subjectCategorySelectValue"
+                class="form-control input-sm" style="width:200px">
+                <option v-for="item in subjectCategory" :value="item.value" :key="item.value">{{ item.label }}</option>
+            </select>
+        </blockquote>
+
+        <!--<i-table :columns="columns1" :data="dataList"></i-table> :class="item.key === 'currencyName'? 'ht-thtablecaption': ''"   -->
+        <div class="layui-form ht-talList1">
+            <table class="layui-table table table-hover table-bordered" lay-size="sm">
+                <thead>
+                    <tr v-if="subjectCategorySelectValue === 0">
+                        <th v-for="item in columns1" :style="{ width: item.width + 'px' }">{{item.title}}</th>
+                    </tr>
+                    <tr v-else>
+                        <th v-for="item in columns2" :style="{ width: item.width + 'px' }">{{item.title}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr lay-size="sm" v-for="(item,idx) in resultList" @click="tableChickTr(item)" :class="{success: currentSelectRow === item.id}">
+                        <td>{{idx + 1}}</td>
+                        <td class="ht-bgColorY">{{item.accountCode}}</td>
+                        <td class="ht-bgColorY">{{item.accountName}}</td>
+                        <td class="ht-bgColorY">{{item.currencyName}}</td>
+                        <template v-if="item.isEnable === 0">
+                            <td class="ht-tabNoPadding ht-bgColorX" v-if="subjectCategorySelectValue === 1">
+                                <i-input v-model="item.bankName" size="small" style="width: 120px;" readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX" v-if="subjectCategorySelectValue === 1">
+                                <i-input v-model="item.bankAccount" size="small" style="width: 230px;" readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX" v-if="subjectCategorySelectValue === 1">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.statementsFor"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalDebitFor"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalCreditFor"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalBalanceFor"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalDebit"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalCredit"
+                                    readonly />
+                            </td>
+                            <td class="ht-tabNoPadding ht-bgColorX">
+                                <input type="number" size="small" class="form-control input-sm ht-input" v-model="item.journalBalance"
+                                    readonly />
+                            </td>
+                        </template>
+                        <template v-else>
+                            <td class="ht-tabNoPadding" v-if="subjectCategorySelectValue === 1">
+                                <i-input v-model="item.bankName" size="small" style="width: 120px;"></i-input>
+                            </td>
+                            <td class="ht-tabNoPadding" v-if="subjectCategorySelectValue === 1">
+                                <i-input class="required" v-model="item.bankAccount" readonly="true" @on-click="showBankListVisable(item)"
+                                    icon="ios-list-outline" type="text" style="width: 230px;"></i-input>
+                            </td>
+                            <td class="ht-tabNoPadding" v-if="subjectCategorySelectValue === 1">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'statementsFor')"
+                                    v-model="item.statementsFor" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalDebitFor')"
+                                    v-model="item.journalDebitFor" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalCreditFor')"
+                                    v-model="item.journalCreditFor" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalBalanceFor')"
+                                    v-model="item.journalBalanceFor" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalDebit')"
+                                    v-model="item.journalDebit" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalCredit')"
+                                    v-model="item.journalCredit" />
+                            </td>
+                            <td class="ht-tabNoPadding">
+                                <input type="number" size="small" class="form-control input-sm ht-input" @blur.stop="blur_money(item,'journalBalance')"
+                                    v-model="item.journalBalance" />
+                            </td>
+                        </template>
+                        <td class="ht-bgColorY" v-if="subjectCategorySelectValue === 1">{{item.adjustedJournalFor}}</td>
+                        <td class="ht-bgColorY" v-if="subjectCategorySelectValue === 1">{{item.adjustedStatementsFor}}</td>
+                        <td class="ht-tabCheck ht-bgColorY" v-if="subjectCategorySelectValue === 1">
+                            <template v-if="item.adjustedJournalFor === item.adjustedStatementsFor">
+                                <Checkbox v-model="boolTrue" :disabled="true"></Checkbox>
+                            </template>
+                            <template v-else>
+                                <Checkbox v-model="boolFalse" :disabled="true"></Checkbox>
+                            </template>
+                        </td>
+                        <td class="ht-tabCheck ht-bgColorY">
+                            <Checkbox v-model="item.status" :disabled="true" :true-value="0" :false-value="1"></Checkbox>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+        </div>
+        <!--总账引入-->
+        <Modal v-model="importVisible" width="360" :mask-closable="false">
+            <p slot="header" style="text-align:center">
+                <span>从总账引入科目</span>
+            </p>
+            <div class="ht-importContent" style="text-align:center">
+                <div class="form-group">
+                    <label class="ht-commFloatLeft labLineH" for="exampleInputName2">期间：</label>
+                    <input type="number" min="1" class="form-control numberInput input-sm" id="exampleInputName2"
+                        v-model.number="importForm.year">
+                </div>
+                <div class="form-group">
+                    <label class="ht-commFloatLeft labLineH ht-marginLeft10" for="exampleInputEmail2">年第：</label>
+                    <input type="number" min="1" max="12" class="form-control numberInput input-sm" id="exampleInputEmail2"
+                        v-model.number="importForm.period">
+                    <label class="ht-commFloatLeft labLineH ht-marginLeft10" for="exampleInputEmail2">期</label>
+                </div>
+                <div class="form-group ht-commTxtLeft ">
+                    <Checkbox style="margin-top: 10px;" v-model='importForm.importBalanceAndAmount' :disabled="importForm.balance">从总账引入科目及其期初余额和发生额
+                    </Checkbox>
+                    <Checkbox v-model='importForm.importNotZero' :disabled="importForm.balance">只引入余额和发生额不为零的科目
+                    </Checkbox>
+                </div>
+            </div>
+
+            <div slot="footer">
+                <i-button type="primary" @click="importOK">确定</i-button>
+                <i-button @click="importshow(false)">取消</i-button>
+            </div>
+        </Modal>
+
+        <Modal v-model="deleteVisible" title="信息提示" :loading="deleteLoading" @on-ok="deleteOK">
+            <p>确认要删除记录？</p>
+        </Modal>
+        <!--  <ht-banktable :recmodal="remarkVisable" :remark-list="remarklist" @on-modal-change="onRemarkModalChange"
+            @on-list-change="onRemarkListChange" @on-row-dblclick="onDblclickRemarkRow"></ht-banktable>-->
+        <!--银行账号列表-->
+        <Modal v-model="remarkVisable" width="80%" :mask-closable="false">
+            <p slot="header" style="text-align:center">
+                <span>银行账号列表信息</span>
+            </p>
+            <div class="ht-importContent" style="text-align:center;width: 100%">
+                <div class="row">
+                    <div class="col-xs-3 bg-tree">
+                        <!--  <span >开户总行</span>-->
+                        <ht-structure-tree :node-data="banks" :setting="setting" tid="treeClassId"></ht-structure-tree>
+                    </div>
+                    <div class="col-xs-9" style="float: right">
+                        <div class="jqGrid_wrapper mt10 pl20 pr20">
+                            <table id="grid"></table>
+                            <div id="pager"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button type="primary" @click="copyBankAccount('')">确定</i-button>
+                <i-button @click="remarkVisable=false">取消</i-button>
+            </div>
+        </Modal>
+
+    </div>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/utils.js"></script>
+    <script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+    <script src="${rc.contextPath}/js/finance/cashier/index/ht-banktable.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-structure-tree.js"></script>
+
+    <script type="text/javascript">
+
+        var vm = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    disabled: false,
+                    boolTrue: true,
+                    boolFalse: false,
+                    deleteVisible: false,
+                    deleteLoading: true,
+                    importVisible: false,
+                    importForm: {
+                        year: (new Date()).getFullYear(),
+                        period: 1,
+                        importBalanceAndAmount: true,
+                        importNotZero: false,
+                        balance: false,
+                    },
+                    subjectCategorySelectValue: 0,
+                    subjectCategory: [
+                        {
+                            value: 0,
+                            label: '现金'
+                        },
+                        {
+                            value: 1,
+                            label: '银行存款'
+                        }
+                    ],
+                    columns1: [
+                        { title: '', key: '', width: 20 },
+                        { title: '科目代码', key: 'accountCode', width: 120 },
+                        { title: '科目名称', key: 'accountName', width: 150 },
+                        { title: '币别', key: 'currencyName', width: 150 },
+                        { title: '期初借方累计余额', key: 'journalDebitFor', width: 100 },
+                        { title: '期初贷方累计余额', key: 'journalCreditFor', width: 100 },
+                        { title: '期初余额', key: 'journalBalanceFor', width: 100 },
+                        { title: '本位币期初借方累计余额', key: 'journalDebit', width: 100 },
+                        { title: '本位币期初贷方累计余额', key: 'journalCredit', width: 100 },
+                        { title: '本位币期初余额', key: 'journalBalance', width: 100 },
+                        { title: '启用', key: 'status', width: 100 }
+                    ],
+                    columns2: [
+                        { title: '', key: '', width: 20 },
+                        { title: '科目代码', key: 'accountCode', width: 120 },
+                        { title: '科目名称', key: 'accountName', width: 150 },
+                        { title: '币别', key: 'currencyName', width: 150 },
+                        { title: '银行名称', key: 'bankName', width: 100 },
+                        { title: '银行账号', key: 'bankAccount', width: 200 },
+                        { title: '对账单期初余额', key: 'statementsFor', width: 100 },
+                        { title: '日记账期初借方累计余额', key: 'journalDebitFor', width: 100 },
+                        { title: '日记账期初贷方累计余额', key: 'journalCreditFor', width: 100 },
+                        { title: '日记账期初余额', key: 'journalBalanceFor', width: 100 },
+                        { title: '日记账本位币期初借方累计余额', key: 'journalDebit', width: 100 },
+                        { title: '日记账本位币期初贷方累计余额', key: 'journalCredit', width: 100 },
+                        { title: '日记账本位币期初余额', key: 'journalBalance', width: 100 },
+                        { title: '调整后日记账期初余额', key: 'adjustedJournalFor', width: 100 },
+                        { title: '调整后对账单期初余额', key: 'adjustedStatementsFor', width: 100 },
+                        { title: '平衡', key: 'isBalance', width: 100 },
+                        { title: '启用', key: 'status', width: 100 }
+                    ],
+                    dataList: [],
+                    resultList: [],
+                    currentSelectRow: '',
+                    enableStatus: true,
+                    disableStatus: true,
+                    exchangeRate: 1,
+                    balanceTotal: 0,
+                    cashierInitState: 0,
+                    backCashierInitState: 0,
+                    financeEnabledAccountingYear: '',
+                    financeEnabledAccountingPeriod: '',
+                    financeCurrentAccountingYear: '',
+                    financeCurrentAccountingPeriod: '',
+                    remarkVisable: false, // 银行账号弹窗
+                    remarkType: {},
+                    bankFormData: {
+                        order: 'asc',
+                        headCode: ''
+                    },
+                    //银行账号所需
+                    setting: {
+                        // data: {
+                        //      simpleData: {
+                        //          enable: false,
+                        //          idKey: "id",
+                        //          pIdKey: "pId",
+                        //          rootPId: -1
+                        //      }
+                        //  },
+                        //callback内定义事件和回调函数，更多事件请参考官方文档。
+                        callback: {
+                            onClick: this.clickEvent
+                        }
+                    },
+                    banks: [
+                        { id: 1, name: "开户总行", pId: 0, open: true, level: 0 },
+                        { id: 2, name: "建设", pId: 1, level: 1 }
+                    ],
+
+
+                }
+            },
+            /* filters: {
+                 _filterBool: function (val) {
+                     if (val === '1') {
+                         return true;
+                     } else {
+                         return false;
+                     }
+                 },
+                 adjustedJournalTotal: function (val) {
+                     var m = Math.pow(1000, 1);
+                     var num = parseInt(val['journalBalanceFor'] * m, 10) / m;
+                     var num2 = parseInt(val['adjustedJournalFor'] * m, 10) / m;
+                     return (num + num2).toFixed(2);
+                 }
+             },*/
+            created: function () {
+                var _vm = this;
+                _vm._ajaxList();
+                var _cashierStateUrl = "${rc.contextPath}/cashierBalanceController/getCashierInitializedState";
+                //1.获取出纳初始化状态
+                $.ajax({
+                    type: 'post',
+                    async: true,
+                    url: _cashierStateUrl,
+                    success: function (result) {
+                        console.log(result, "出纳初始化数据状态，1：初始化，0未初始化");
+                        if (result.data != null) {
+                            _vm.cashierInitState = result.data.value;
+                            if (_vm.cashierInitState === '1') {
+                                _vm.backCashierInitState = 1;
+                            }
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+
+            },
+            /* watch: {
+                 dataList: {
+                     handler: function (val, oldVal) {
+                         var _total = [];
+                         if (val.length > 0) {
+                             _total = val.filter(function (item) {
+                                 if (item.isCash === 1) {
+                                     console.log(Number(item.balanceTotal), Number(item.adjustedJournalFor),"娇滴滴的");
+                                     if (Number(item.balanceTotal) != Number(item.adjustedJournalFor)) {
+                                         return item;
+                                     }
+                                 }
+                             });
+                         }
+                         this.balanceTotal = _total.length;
+                     }, deep: true//,immediate:true
+                 }
+             },*/
+            methods: {
+                handleSpinCustom() {
+                    this.$Spin.show();
+                },
+                bankList() {
+                    let that = this;
+                    jQuery("#grid").jqGrid({
+                        url: '${rc.contextPath}/cashierBalanceController/bankAccountList',
+                        contentType: 'application/json',
+                        datatype: "json",
+                        styleUI: 'Bootstrap',
+                        postData: this.bankFormData,
+                        width: "99%",
+                        autowidth: true,
+                        mtype: "POST",
+                        jsonReader: {
+                            root: "data.list",
+                            total: "data.totalPage",
+                            records: "data.totalCount",
+                            cell: "list"
+                        },
+                        colNames: ['名称', '银行账号', '开户支行', '状态'],
+                        colModel: [
+                            { name: 'name', index: '', width: 150, align: "left" },
+                            { name: 'acountNumber', index: '', width: 150, align: "left" },
+                            { name: 'subBank', index: '', width: 150, align: "left" },
+                            {
+                                name: 'status', index: '', width: 60, align: "left",
+                                formatter: function (value, grid, rows, state) {
+                                    return value == 1 ? "有效" : "无效";
+                                }
+                            }
+                        ],
+                        rowNum: 10,
+                        viewrecords: true,
+                        rowList: [10, 20, 50],
+                        // shrinkToFit: false,
+                        // width:"99%",
+                        // autowidth:true,
+                        pager: '#pager',
+                        height: $(window).height() - 180,
+                        onSelectAll(data, status) {
+
+                        },
+                        onSelectRow(data, status) {
+
+                        },
+                        ondblClickRow: function (rowId) {
+                            that.copyBankAccount(rowId);
+                        }
+                    }
+
+                    );
+                },
+                copyBankAccount(rowId) {
+                    if (rowId == '') {
+                        rowId = $("#grid").jqGrid('getGridParam', 'selrow');
+                    }
+                    var rowData = $("#grid").jqGrid("getRowData", rowId);
+                    if (rowData != null) {
+                        this.remarkType.bankAccount = rowData.acountNumber;
+                    }
+                    this.remarkVisable = false;
+                },
+                initBank() {
+                    this.banks = getCodeList('root_base_banks');
+                    this.bankList();
+                },
+                clickEvent(event, treeId, treeNode) {
+                    this.bankFormData.headCode = treeNode.value;
+                    $("#grid").jqGrid('setGridParam', { postData: this.bankFormData }).trigger("reloadGrid");
+                },
+                _ajaxList: function () {
+                    var that = this;
+                    var _url = "${rc.contextPath}/cashierBalanceController/getCashierBalanceList";
+                    var cashierBalance = {};
+                    $.ajax({
+                        type: 'post',
+                        async: true,
+                        data: JSON.stringify(cashierBalance),
+                        url: _url,
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (result) {
+                            console.log(result, "出纳初始数据列表");
+                            if (result.data != null) {
+                                that.dataList = result.data.resultList;
+                                that.financeEnabledAccountingYear = result.data.financeEnabledAccountingYear;
+                                that.financeEnabledAccountingPeriod = result.data.financeEnabledAccountingPeriod;
+                                that.financeCurrentAccountingYear = result.data.financeCurrentAccountingYear;
+                                that.financeCurrentAccountingPeriod = result.data.financeCurrentAccountingPeriod;
+                                that.importForm.year = result.data.financeCurrentAccountingYear;
+                                that.importForm.period = result.data.financeCurrentAccountingPeriod;
+                                /*  var _total = that.dataList.filter(function (item) {
+                                      if (item.isCash === 1) {
+                                          if (item.adjustedStatementsFor != item.adjustedJournalFor) {
+                                              return item;
+                                          }
+                                      }
+                                  });
+                                  that.balanceTotal = _total.length;*/
+                                that.resultList = that.dataList.filter(item => item.isCash == that.subjectCategorySelectValue);
+                            }
+                        },
+                        error: function (e) {
+                            console.log(e);
+                        }
+                    });
+                },
+                goPath: function (name, url) {
+                    window.parent.activeEvent({ name: name, url: url, params: null });
+                    //  window.open(val);
+                },
+                // 文摘弹窗
+                showBankListVisable(item) {
+                    this.remarkType = item;
+                    this.remarkVisable = true;
+                    this.initBank();
+                },
+                onDblclickRemarkRow(remark) {
+                    let that = this;
+                    that.remarkType.bankAccount = remark.bankName;
+                    that.remarkVisable = false;
+                },
+                onRemarkModalChange(val) {
+                    this.remarkVisable = val;
+                },
+                onRemarkListChange(val) {
+                    this.remarklist = val;
+                },
+                tableChickTr: function (item) {
+                    this.disableStatus = true;
+                    this.enableStatus = true;
+                    if (item.isEnable === 0 && item.status === 0) {
+                        this.disableStatus = false;
+                        this.enableStatus = true;
+                    }
+                    if (item.isEnable === 0 && item.status === 1) {
+                        this.enableStatus = false;
+                        this.disableStatus = true;
+                    }
+                    this.currentSelectRow = item.id;
+                    // console.log(this.currentSelectRow);
+                },
+                modalInfo(title, content) {
+                    this.$Modal.info({
+                        title: title,
+                        content: content
+                    });
+                },
+                backCashierInit() {  //反启用出纳初始化系统
+                    var that = this;
+                    var _url = "${rc.contextPath}/cashierBalanceController/backInit";
+                    $.ajax({
+                        type: 'post',
+                        async: true,
+                        data: JSON.stringify(that.dataList),
+                        url: _url,
+                        contentType: 'application/json;charset=utf-8',
+                        success: function (result) {
+                            var code = result.code;
+                            var title = '信息提示';
+                            var content = "反结束初始化成功！";
+                            if (code === '-100100') {
+                                content = result.msg;
+                            } else if (code === '100100') {
+                                that._ajaxList();
+                                that.cashierInitState = 0;  //启用出纳系统按钮 可用
+                                that.backCashierInitState = 0;  //反启用出纳系统按钮 置灰
+                            } else {
+                                content = "反结束初始化失败！";
+                            }
+                            that.modalInfo(title, content);
+                        },
+                        error: function (e) {
+                            console.log(e);
+                        }
+                    });
+                },
+                actionBtnMth: function (type) {
+                    var that = this;
+                    if (type === 'save' || type === 'end') {  //编辑出纳初始化数据
+                        console.log('================');
+                        that.handleSpinCustom();
+                        if (type === 'save') {
+                            var _url = "${rc.contextPath}/cashierBalanceController/updateBatch";
+                            $.ajax({
+                                type: 'post',
+                                async: true,
+                                data: JSON.stringify(that.dataList),
+                                url: _url,
+                                contentType: 'application/json;charset=utf-8',
+                                success: function (result) {
+                                    that._ajaxList();
+                                    that.$Spin.hide();
+                                    that.$Message.info("保存成功!");
+                                },
+                                error: function (e) {
+                                    console.log(e);
+                                    that.$Spin.hide();
+                                }
+                            });
+                        }
+                        if (type === 'end') {  //启用出纳初始化系统
+                            var hasBankAccount = true;
+                            this.dataList.forEach(function (item) {   //检验是否有银行账号为空
+                                if (item.isCash == 1) {  //银行科目
+                                    if ($.isEmptyObject(item.bankAccount)) {
+                                        hasBankAccount = false;
+                                        return false;
+                                    }
+                                }
+                            });
+                            if (hasBankAccount) {//判断银行账号是否为空
+                                this.balanceTotalFilter();
+                                var that = this;
+                                if (that.balanceTotal > 0) { //校验平衡
+                                    that.$Spin.hide();
+                                    var title = '信息提示';
+                                    var content = '银行存款科目的余额调节表不平衡的项目数为：' + that.balanceTotal;
+                                    that.modalInfo(title, content);
+                                } else {
+                                    var _url = "${rc.contextPath}/cashierBalanceController/endInit";
+                                    $.ajax({
+                                        type: 'post',
+                                        async: true,
+                                        data: JSON.stringify(that.dataList),
+                                        url: _url,
+                                        contentType: 'application/json;charset=utf-8',
+                                        success: function (result) {
+                                            that.$Spin.hide();
+                                            var size = result.data;
+                                            var code = result.code;
+                                            if (code === '-10000') {
+                                                var title = '信息提示';
+                                                var content = '银行存款科目的余额调节表不平衡的项目数为：' + size;
+                                                that.modalInfo(title, content);
+                                            } else {
+                                                var content = "结束初始化成功！";
+                                                if (code === '100100') {
+                                                    that._ajaxList();
+                                                    that.cashierInitState = 1;
+                                                    that.backCashierInitState = 1;  //反启用出纳系统按钮 置灰
+                                                } else {
+                                                    content = "结束初始化失败！";
+                                                }
+                                                that.modalInfo("信息提示", content);
+                                            }
+                                        },
+                                        error: function (e) {
+                                            console.log(e);
+                                            that.$Spin.hide();
+                                        }
+                                    });
+                                }
+                            } else {
+                                that.$Spin.hide();
+                                this.modalInfo("信息提示", "银行账号不能为空");
+                            }
+                        }
+                    } else {
+                        if (this.currentSelectRow === '') {
+                            this.$Message.info({
+                                content: '请选择一条数据！',
+                                duration: 5
+                            });
+                            return;
+                        }
+                        if (type === 'enable') {    //启用
+                            this.resultList.forEach(function (item) {
+                                if (item.id === that.currentSelectRow) {
+                                    if (item.isEnable === 0) {   //初始化过后的数据才进行操作
+                                        if (item.status === 1) {  //禁用数据才需启用
+                                            //设置该列数据启用
+                                            var setEnableUrl = "${rc.contextPath}/cashierBalanceController/updateCashierBalanceStatus";
+                                            item.status = 0;  //启用状态
+                                            $.ajax({
+                                                type: 'post',
+                                                async: true,
+                                                data: JSON.stringify(item),
+                                                url: setEnableUrl,
+                                                contentType: 'application/json;charset=utf-8',
+                                                success: function (result) {
+                                                    that.$Message.info({
+                                                        content: '启用成功',
+                                                        duration: 3
+                                                    });
+                                                    that.enableStatus = true;
+                                                    that.disableStatus = false;
+                                                },
+                                                error: function (e) {
+                                                    console.log(e);
+                                                    that.$Message.info({
+                                                        content: '启用失败',
+                                                        duration: 5
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        } else if (type === 'disable') { //禁用
+                            this.resultList.forEach(function (item) {
+                                if (item.id === that.currentSelectRow) {
+                                    if (item.isEnable === 0) {
+                                        if (item.status === 0) {  //启用数据才需禁用
+                                            //设置该列数据启用
+                                            var setEnableUrl = "${rc.contextPath}/cashierBalanceController/updateCashierBalanceStatus";
+                                            item.status = 1;
+                                            $.ajax({
+                                                type: 'post',
+                                                async: true,
+                                                data: JSON.stringify(item),
+                                                url: setEnableUrl,
+                                                contentType: 'application/json;charset=utf-8',
+                                                success: function (result) {
+                                                    that._ajaxList();
+                                                    that.$Message.info({
+                                                        content: '禁用成功',
+                                                        duration: 3
+                                                    });
+                                                    that.disableStatus = true;
+                                                    that.enableStatus = false;   //启用
+                                                },
+                                                error: function (e) {
+                                                    that.$Message.info({
+                                                        content: '禁用失败',
+                                                        duration: 5
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+
+                        } else if (type === 'delete') {
+                            that.deleteVisible = true;
+                        }
+                    }
+                },
+                deleteOK: function () {  //删除未启用数据
+                    var that = this;
+                    that.deleteVisible = false;  //关闭提示框
+                    //执行删除接口
+                    that.resultList.forEach(function (item) {
+                        if (item.id === that.currentSelectRow) {
+                            var setEnableUrl = "${rc.contextPath}/cashierBalanceController/deleteCashierBalance";
+                            var title = "信息提示";
+                            if (item.isEnable === 0 && item.status === 0) {  //已启用科目
+                                that.modalInfo(title, "该科目已启用，删除无效!");
+                                return;
+                            }
+                            if (item.isEnable === 0 && item.status === 1) {
+                                that.modalInfo(title, "该科目启用后并禁用，删除无效!");
+                                return;
+                            }
+                            $.ajax({
+                                type: 'post',
+                                async: true,
+                                data: JSON.stringify(item),
+                                url: setEnableUrl,
+                                contentType: 'application/json;charset=utf-8',
+                                success: function (result) {
+                                    that._ajaxList();
+                                    that.$Message.info({
+                                        content: '删除成功',
+                                        duration: 3
+                                    });
+                                },
+                                error: function (e) {
+                                    that.$Message.info({
+                                        content: '删除失败',
+                                        duration: 5
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    that.currentSelectRow = '';
+                },
+                balanceTotalFilter() {
+                    var _total = this.dataList.filter(function (item) {
+                        if (item.isCash === 1) {
+                            if (item.adjustedStatementsFor != item.adjustedJournalFor) {
+                                return item;
+                            }
+                        }
+                    });
+                    this.balanceTotal = _total.length;
+                },
+                showBalanceTotal: function () {  //平衡检查
+                    this.balanceTotalFilter();
+                    var total = this.balanceTotal;
+                    var title = '信息提示';
+                    var content = total > 0 ? '银行存款科目的余额调节表不平衡的项目数为：' + total : '所有银行存款科目的余额调节表项目都平衡！';
+                    this.modalInfo(title, content);
+                },
+                subjectCategoryChangeType: function (val) {
+                    this.handleSpinCustom();
+                    this.disableStatus = true;
+                    this.enableStatus = true;
+                    this.resultList = [];
+                    this.resultList = this.dataList.filter(item => item.isCash == val);
+                    if (this.resultList.length > 300) {
+                        setTimeout(() => {
+                            this.$Spin.hide();
+                        }, 2000);
+                    } else {
+                        this.$Spin.hide();
+                    }
+                    this.currentSelectRow = '';
+                },
+                importshow: function (bool, balance) {
+                    this.importVisible = bool;
+                    this.importForm.balance = balance;
+                    if (balance) {
+                        this.importForm.importBalanceAndAmount = true;
+                        this.importForm.importNotZero = true;
+                    }
+
+                },
+                importOK: function () {
+                    var that = this;
+                    //判断启用会计年度和当前会计年度
+                    if (that.importForm.year == that.financeCurrentAccountingYear) {
+                        if (that.importForm.period > that.financeCurrentAccountingPeriod) {
+                            that.modalInfo("信息提示", "当前年份有效期间值的范围是 1-" + that.financeCurrentAccountingPeriod);
+                            return;
+                        }
+                    }
+                    if (that.importForm.year < that.financeEnabledAccountingYear || that.importForm.year > that.financeCurrentAccountingYear) {
+                        that.modalInfo("信息提示", "有效年份值的范围是  " + that.financeEnabledAccountingYear + "-" + that.financeCurrentAccountingYear);
+                        return;
+                    }
+                    that.importVisible = false;
+                    //引入总帐数据
+                    var importBalanceUrl = "${rc.contextPath}/cashierBalanceController/importBalance";
+                    $.ajax({
+                        type: 'post',
+                        async: true,
+                        data: {
+                            year: that.importForm.year,
+                            period: that.importForm.period,
+                            importBalanceAndAmount: that.importForm.importBalanceAndAmount,
+                            importNotZero: that.importForm.importNotZero
+                        },
+                        url: importBalanceUrl,
+                        success: function (result) {
+                            that._ajaxList();
+                            that.$Message.info("数据已更新！");
+                        },
+                        error: function (e) {
+                            console.log(e);
+                        }
+                    });
+
+                },
+                print: function () {
+                    window.print();
+                },
+                formatNum: function (f, digit) {
+                    var m = Math.pow(1000, digit);
+                    return parseInt(f * m, 10) / m;
+                },
+                blur_money: function (row, attr) { //点击金额
+                    var exchangeRate = row['exchangeRate'];
+                    var num = this.formatNum(row[attr], 1);
+                    var adjustedStatementsForCopy = this.formatNum(row['adjustedStatementsForCopy'], 1);
+                    var adjustedJournalForCopy = this.formatNum(row['adjustedJournalForCopy'], 1);
+                    row[attr] = num == 0 ? "" : num.toFixed(2);
+                    attr === 'journalDebitFor' && (row['journalDebit'] = num == 0 ? "" : (num * exchangeRate).toFixed(2));
+                    attr === 'journalCreditFor' && (row['journalCredit'] = num == 0 ? "" : (num * exchangeRate).toFixed(2));
+                    attr === 'journalBalanceFor' && (row['journalBalance'] = num == 0 ? "" : (num * exchangeRate).toFixed(2));
+                    attr === 'journalBalanceFor' && (row['adjustedJournalFor'] = num == 0 ? "" : (num + adjustedJournalForCopy).toFixed(2));
+                    attr === 'statementsFor' && (row['adjustedStatementsFor'] = num == 0 ? "" : (adjustedStatementsForCopy + num).toFixed(2));
+                },
+                refresh() { //刷新
+                    this.currentSelectRow = '';
+                    this._ajaxList();
+                    this.$Message.info('刷新数据成功！');
+                }
+            }
+        })
+    </script>
+    #parse("modules/public/footer.html")
+</body>

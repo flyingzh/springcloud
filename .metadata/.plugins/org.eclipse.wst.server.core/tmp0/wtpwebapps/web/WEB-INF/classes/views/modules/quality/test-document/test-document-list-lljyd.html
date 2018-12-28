@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/css/quality/test-document.css">
+    <title>来料检验单</title>
+</head>
+
+<body>
+<div id="imcomingReportList" v-cloak>
+
+    <!-- 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 -->
+    <modal
+            title="审核"
+            v-model="approveComment"
+            :closable="false"
+            @on-ok="getApproveInfo">
+        <div>
+            <p class="mg-bm-md">
+                <span>当前节点：{{currentStep}}</span>
+                <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+            </p>
+            <span>审核意见</span>
+            <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+        </div>
+    </modal>
+    <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+    <modal
+            title="驳回"
+            v-model="rejectComment"
+            :closable="false"
+            @on-ok="getRejectInfo">
+        <div>
+            <radio-group v-model="rejectement.approvalResult" class="mg-bm-md">
+                <radio label="0">驳回上一级</radio>
+                <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+            </radio-group>
+            <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+            <i-input type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+        </div>
+    </modal>
+
+    <section>
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-sm pd-lf-sm" @click="clear()">刷新</span>
+            #if($shiro.hasPermission("quality:testDocumentlljyd:add"))
+            <span class="pd-rg-sm pd-lf-sm" @click="addNew()">新增</span>
+            #end
+            <span class="pd-rg-sm pd-lf-sm" @click="submit()">提交</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="approval()">审核</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="reject()">驳回</span>
+            #if($shiro.hasPermission("quality:testDocumentlljyd:update"))
+            <span class="pd-rg-sm pd-lf-sm" @click="update()">修改</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentlljyd:delete"))
+            <span class="pd-rg-sm pd-lf-sm" @click="DeleteOneRow()">删除</span>
+            #end
+            <span class="pd-rg-sm pd-lf-sm" @click="genSpecialRelease()">生成特别放行单</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="confirmResult">确认检验结果</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="genReportPaper()">生成报告单</span>
+            <!--<span class="pd-rg-md" @click="upperSearch()">上查</span>-->
+            <!--<span class="pd-rg-md" @click="downSearch()">下查</span>-->
+            <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+        </div>
+        <div style="height: 45px"></div>
+        <i-form :model="body" label-width="120" class="search" v-show="isSearchHide">
+            <row>
+                <i-col span="8">
+                    <form-item label="单据编号：">
+                        <i-input class="ht-width-input" v-model="body.documentCode"></i-input>
+                    </form-item>
+                    <form-item label="单据日期：">
+                        <!--<date-picker type="date" multiple placeholder="选择时间" style="width: 240px"></date-picker>-->
+                        <date-picker class="ht-width-input" v-model="selectDateArr" format="yyyy-MM-dd" type="daterange"
+                                     placement="bottom-end" placeholder="请选择日期" @on-change="changeDate" clearable></date-picker>
+                    </form-item>
+                    <form-item label="送检编号：">
+                        <i-input class="ht-width-input" v-model="body.sourceDocumentCode"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="业务类型：">
+                        <!--<i-input v-model="body.documentType"></i-input>-->
+                        <i-select class="ht-width-input" v-model="body.businessType" clearable ref="businessType" @on-clear="handleClearSelect('businessType')">
+                            <i-option v-for="(item,index) in businessTypeArr" :value="item.value">{{item.name}}
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="单据状态：">
+                        <i-select class="ht-width-input" v-model="body.documentStatus" clearable ref="documentStatus" @on-clear="handleClearSelect('documentStatus')">
+                            <i-option v-for="(item,index) in documentStatusArr" :value="item.value">{{item.name}}
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="源单编号：">
+                        <i-input class="ht-width-input" v-model="body.upstreamSourceCode" ></i-input>
+                    </form-item>
+
+
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader :data="categoryType" trigger="hover"
+                                  v-model="commodityCategoty" class="ht-width-input">
+                        </cascader>
+                    </form-item>
+                    <form-item label="质检员：">
+                        <i-select class="ht-width-input" v-model="body.inspectorId" filterable ref="inspectorId" clearable
+                                  @on-clear="handleClearSelect('inspectorId')">
+                            <i-option v-for="item in inspectors" :value="item.value" :label="item.label"
+                                      :key="'inspSel'+item.value">{{item.code}}|{{item.label}}
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item>
+                        <ht-btns :is-search="true" @search="search" @clear="clear" ></ht-btns>
+                    </form-item>
+                    <!--<span @click="highSearch">高级</span>-->
+
+                </i-col>
+            </row>
+            <div v-if="showHighSearch" class="showHighSearch">
+                <form-item label="添加条件">
+                    <i-select @on-change="addSearch">
+                        <i-option value="1">单据编号</i-option>
+                        <i-option value="2">单据类型</i-option>
+                        <i-option value="3">单据日期</i-option>
+                        <i-option value="4">单据状态</i-option>
+                    </i-select>
+                </form-item>
+                <div>
+                    <div v-for="(item, index) in otherSearch">
+                        <form-item label="表单名称">
+                            <i-input></i-input>
+                        </form-item>
+                        <form-item label="表单名称">
+                            <i-select>
+                                <i-option>包含</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item>
+                            <i-input placeholder="请输入关键字"></i-input>
+                        </form-item>
+                        <span @click="deleteSearch(index)">删除</span>
+                    </div>
+                </div>
+            </div>
+        </i-form>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div style="height: 25px;">
+             <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+             </span>
+        </div>
+        <base-data-list :data_config="data_config"  :need-reload="reload" v-model="selected"
+                        table_id="jydList"></base-data-list>
+    </section>
+</div>
+
+
+<script src='${rc.contextPath}/js/quality/test-document/test-document-list.js'></script>
+<script src='${rc.contextPath}/js/quality/test-document/quality-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

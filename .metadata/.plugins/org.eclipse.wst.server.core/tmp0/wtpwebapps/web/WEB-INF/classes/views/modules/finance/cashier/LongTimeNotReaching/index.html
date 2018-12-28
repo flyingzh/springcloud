@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>长期未达账</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w200{
+            width:200px;
+        }
+    </style>
+</head>
+<body>
+<div id="long-time-not-reaching" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="open" class="ht-btn">打开</button>
+        <button @click="exportExcel" class="ht-btn">引出</button>
+        <button @click="print" class="ht-btn">打印</button>
+        <button @click="outHtml" class="ht-btn">退出</button>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <span class="mr20 w200 inline-block">银行：{{formData.bankName}}</span>
+        <span class="mr20 w200 inline-block">账号：{{formData.bankAccount}}</span>
+        <span class="mr20 w200 inline-block">报表：{{formData.reportName}}</span>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <span class="mr20 w200 inline-block">科目：{{formData.fullSubjectName}}</span>
+        <span class="mr20 w200 inline-block">币别：{{formData.currencyName}}</span>
+        <span class="mr20 w200 inline-block">期间：{{formData.dateStr}}</span>
+    </div>
+    <div class="jqGrid_wrapper pl20 pr20 mt10">
+        <table id="grid"></table>
+    </div>
+    <!-- 打开 -->
+    <Modal
+            v-model="filterVisible"
+            width="500px"
+            title="长期未达账"
+            class="filter"
+            :mask-closable="false">
+        <div class="ht-subtitle ml0">
+            <div>科目及币别</div>
+        </div>
+        <Row class="mt5">
+            <label class="w60">科目：</label>
+            <i-select v-model="formData.subjectId" class="inline-block calc-right-w65" filterable>
+                <i-option v-for="item in subjectList" :value="item.accountId" :key="item.accountId">
+                    <slot>{{ item.accountName }}</slot>
+                </i-option>
+            </i-select>
+        </Row>
+        <Row class="mt5">
+            <label class="w60">币别：</label>
+            <i-select v-model="formData.currencyId" class=" inline-block calc-right-w65" filterable>
+                <i-option v-for="item in currencyList" :value="item.currencyId" :key="item.currencyId">
+                    <slot>{{ item.currencyName }}</slot>
+                </i-option>
+            </i-select>
+        </Row>
+        <div class="ht-subtitle mt10 ml0">
+            <div>会计期间</div>
+        </div>
+        <div>
+            <label class="w60">会计期间：</label>
+            <i-select v-model="formData.currentYear" class="inline-block w120" filterable>
+                <i-option v-for="item in periodYear" :value="item.value" :key="item.value">
+                    <slot>{{ item.name }}</slot>
+                </i-option>
+            </i-select> 年
+            <i-select v-model="formData.currentMonth" class="inline-block w120" filterable>
+                <i-option v-for="item in periodList" :value="item.value" :key="item.value">
+                    <slot>{{ item.name }}</slot>
+                </i-option>
+            </i-select> 期
+        </div>
+        <div class="ht-subtitle mt10 ml0">
+            <div>报表类型</div>
+        </div>
+        <div class="ml20">
+            <label class="ml20">
+                <input type="radio" value="1" v-model="formData.radioId"> 银行未达账
+            </label>
+            <label>
+                <input type="radio" value="2" v-model="formData.radioId"> 企业未达账
+            </label>
+        </div>
+        <!--<div class="ht-subtitle mt10 ml0">
+            <div>其他条件</div>
+        </div>
+        <div class="ml20">
+            <label>
+                <input type="checkbox" v-model="formData.for6"> 显示币别小计
+            </label>
+            <label class="ml20">
+                <input type="checkbox" v-model="formData.for7"> 显示币别小计
+            </label>
+        </div>-->
+        <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="cancel" >取消</i-button>
+        </div>
+    </Modal>
+    <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+</div>
+<script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+<script src="${rc.contextPath}/js/finance/cashier/LongTimeNotReaching/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

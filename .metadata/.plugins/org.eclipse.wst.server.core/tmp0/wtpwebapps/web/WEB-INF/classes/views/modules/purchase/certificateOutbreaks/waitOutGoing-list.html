@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>待外发证书单-列表</title>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="unSourceDocument" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" @click="reloadAgain" v-if="!isEdit">刷新</span>
+            <span class="pd-rg-md" @click="insertCertificate" v-if="!isEdit">生成证书商品外发单</span>
+            <span class="pd-rg-md" @click="cancelCertificate" v-if="!isEdit">不做证书</span>
+            <span class="pd-rg-md" @click="outGoing">退出</span>
+        </div>
+        <div class="search-menu "  v-show="isSearchHide">
+            <i-form label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="源单类型：">
+                            <i-select v-model="body.businessType" class="ht-input-width" clearable ref="dType" style="width: 200px;display: inline-block;">
+                                <i-option value="P_RECEIPT_02">收货单－标准采购</i-option>
+                                <i-option value="P_RECEIPT_03">收货单－受托加工</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="单据编号：">
+                            <i-input type="text" v-model='body.orderNo' class="ht-input-width" placeholder="可模糊搜索" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品类型：">
+                            <cascader :data="categoryType" @on-change="changeGoodsTypePath($event)"  trigger="hover"
+                                      style="width: 200px;display: inline-block;" v-model="commodityCategoty">
+                            </cascader>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据日期：">
+                            <date-picker :value="dataValue" @on-change="changeDate" @on-clear="handleClear" format="yyyy-MM-dd" type="daterange" placement="bottom-end"
+                                         placeholder="Select date" style="width: 200px"></date-picker>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+
+            <!--<div class="control-label" style="height: 55px;">-->
+                <!--<div class="col-xs-4 control-label">-->
+                    <!--<label>原单类型：</label>-->
+                    <!--<i-select v-model="body.businessType" class="ht-input-width" clearable ref="dType" style="width: 200px;display: inline-block;">-->
+                        <!--<i-option value="P_RECEIPT_02">收货单－标准采购</i-option>-->
+                        <!--<i-option value="P_RECEIPT_03">收货单－受托加工</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+                <!--<div class="col-xs-4 control-label">-->
+                    <!--<label>商品类型：</label>-->
+                    <!--<cascader :data="categoryType" @on-change="changeGoodsTypePath($event)"  trigger="hover"-->
+                              <!--style="width: 200px;display: inline-block;" v-model="commodityCategoty">-->
+                    <!--</cascader>-->
+                <!--</div>-->
+
+            <!--</div>-->
+            <!--<div class="control-label" style="height: 55px;">-->
+                <!--<div class="col-xs-4 control-label">-->
+                    <!--<label>单据日期：</label>-->
+                    <!--<date-picker :value="dataValue" @on-change="changeDate" @on-clear="handleClear" format="yyyy-MM-dd" type="daterange" placement="bottom-end"-->
+                                 <!--placeholder="Select date" style="width: 200px"></date-picker>-->
+                <!--</div>-->
+                <!--<div class="col-xs-4 control-label">-->
+                        <!--<label>单据编号：</label>-->
+                        <!--<i-input type="text" v-model='body.orderNo' class="ht-input-width" placeholder="可模糊搜索" style="width: 200px"></i-input>-->
+                <!--</div>-->
+                <!--<div class="col-xs-4 control-label">-->
+                    <!--<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"-->
+                             <!--class="inline-block"></ht-btns>-->
+                <!--</div>-->
+            <!--</div>-->
+          
+        </div>
+        <div style="height:35px"></div>
+        <div style="height: 25px;">
+            <sapn class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            </sapn>
+        </div>
+        <!--<div id="app">  -->
+            <!--{{ selected }}-->
+        <!--</div>-->
+        <div>
+            <base-data-list  :return-row-data="true" v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+        </div>
+    </div>
+</div>
+
+<script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+<script src='${rc.contextPath}/js/purchase/certificateOutbreaks/waitOutGoing-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+</html>

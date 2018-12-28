@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+	<title>普通销售石价表 - 列表</title>
+	<style>
+		.edit-table > thead > tr > th,
+		.edit-table > tbody > tr > td {
+			width: 60px;
+		}
+
+		.edit-table caption {
+			border: 1px solid #C9C9C9;
+			border-bottom: none;
+			text-align: center;
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body>
+<div id="sale-price-list" v-cloak>
+	<div class="btn-menu">
+		<span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="add">新增</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="modify">修改</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="deleteData">删除</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+	</div>
+	<!--搜索部分-->
+	<div>
+		<i-form class="search-menu ht-menu-top" label-width="120" v-show="isHideSearch">
+			<!-- row代表行 -->
+			<row :gutter="16">
+				<i-col span="8">
+					<form-item label="石价表名称：">
+						<i-input type="text" v-model='body.name' class="ht-width-md" placeholder="可模糊搜索"
+								 style="width: 200px"></i-input>
+					</form-item>
+				</i-col>
+				<i-col span="8">
+					<form-item label="创建日期：">
+						<date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+									 placement="bottom-end" placeholder="Select date" class="ht-width-md"></date-picker>
+					</form-item>
+				</i-col>
+				<i-col span="8">
+					<form-item label="创建人：">
+						<i-input type="text" v-model='body.createName' class="ht-width-md" placeholder="可模糊搜索"
+								 style="width: 200px"></i-input>
+					</form-item>
+							<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+							class="inline-block" style="margin-left:200px"></ht-btns>
+				</i-col>
+			</row>
+		</i-form>
+	</div>
+	<!-- 隐藏按钮 -->
+	<div>
+		<ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+	</div>
+	<!--列表部分-->
+	<div>
+		<base-data-list table_id="salePriceList" v-show="isHideList" :data_config="data_config" :need-reload="reload"
+						v-model="selected"></base-data-list>
+	</div>
+</div>
+<script src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script src="${rc.contextPath}/js/sale/sale-price/sale-price-list.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

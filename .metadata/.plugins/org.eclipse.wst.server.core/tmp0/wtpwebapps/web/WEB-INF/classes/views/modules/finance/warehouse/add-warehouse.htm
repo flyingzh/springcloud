@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="../header.html" />
+    <link rel="stylesheet" href="../../css/basedata/add-warehouse.css">
+
+    <title>新增/修改库位</title>
+</head>
+<body>
+    <div id="warehouse">
+        <!-- 按钮栏 -->
+        <div class="ht-tabnav">
+            <span @click="save">保存</span>
+            <span>退出</span>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>新建仓库</legend>
+        </fieldset>
+        <form class="form-horizontal ht-form">
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">仓库编码：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <input  class="form-control ht-width required" type="text" />
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">仓库名称：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <input  class="form-control ht-width required" type="text" />
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">类型：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <select name="" id=""  class="form-control ht-width">
+                        <option value="0">请选择</option>
+                        <option value="1">普通仓</option>
+                        <option value="2">待检仓</option>
+                        <option value="3">赠品仓</option>
+                        <option value="4">代管仓</option>
+                    </select>
+                </div>            
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">库位组：</label>
+                <div class="col-xs-9">
+                    <select name="" id=""  class="form-control ht-width">
+                        <option value="1">A区</option>
+                        <option value="2">B区</option>
+                        <option value="3">C区</option>
+                        <option value="4">D区</option>
+                        <option value="5">E区</option>
+                    </select>
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">地址：</label>
+                <div class="col-xs-9">
+                    <select name="" id=""  class="form-control ht-width ht-area">
+                        <option value="">华东区</option>
+                        <option value="">华南区</option>
+                        <option value="">华中区</option>
+                        <option value="">西北区</option>
+                        <option value="">西南区</option>
+                    </select>
+                    <select name="" id=""  class="form-control ht-width ht-province">
+                        <option value="">请选择</option>
+                        <option value="">湖南省</option>
+                        <option value="">湖北省</option>
+                    </select>
+                    <select name="" id="" class="form-control ht-width ht-city">
+                        <option value="">请选择</option>
+                        <option value="">长沙市</option>
+                        <option value="">株洲市</option>
+                    </select>
+                    <input id=""  class="required form-control ht-width ht-add" type="text" />
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">仓库管理员：</label>
+                <div class="col-xs-9">
+                    <select name="" id=""  class="form-control ht-width">
+                        <option value="1">张三</option>
+                        <option value="2">李四</option>
+                        <option value="3">王五</option>
+                        <option value="4">赵六</option>                        
+                    </select>
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">联系电话：</label>
+                <div class="col-xs-9">
+                    <input  class="form-control ht-width required" type="text" />
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">有效状态：<span class="star"></span></label>
+                <div class="col-xs-9">
+                    <label class="radio-inline">
+                        <input type="radio" name="status" value="status1"> 有效
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="status" value="status2" > 无效
+                    </label>
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">备注：</label>
+                <div class="col-xs-9">
+                    <textarea name="" id="" cols="30" rows="5"  class="form-control ht-width" ></textarea>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建人：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">赖燕</p>
+                </div>
+            </div> 
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建时间：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">2018-05-30</p>
+                </div>
+            </div>   
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">修改人：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">赖燕</p>
+                </div>
+            </div>   
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">修改时间：</label>
+                <div class="col-xs-9">
+                    <p class="form-control-static">2018-05-30</p>
+                </div>
+            </div>                                                                                                                      
+        </form>
+    </div>    
+        <script src='../../js/basedata/add-warehouse.js'></script>
+</body>
+</html>

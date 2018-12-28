@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>今日金价资料</title>
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+</head>
+
+<body>
+<div id="gold_price_container" style="width:100%" v-cloak>
+
+    <div id="gold_price">
+        <!-- 按钮栏 -->
+        <div class="btn-menu">
+            #if($shiro.hasPermission("basedata:tbasetodygoldprice:update"))
+            <span @click="save" v-show="isSave">保存</span>
+            #end
+            <span @click="exit">退出</span>
+        </div>
+
+        <form id="gold_price_form" class="form-horizontal" style="width:1000px">
+            <div style="margin: 20px 25% ;font-size: 18px;font-weight: bold;">
+                <span>今日金价</span>
+                <span style="font-weight: normal;">({{nowTime}})</span>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="ht-subtitle">成本价</div>
+                    <div v-for ="(val, key, index) in body.buyPrice" class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            {{key}}：
+                        </label>
+                        <div class="col-xs-9">
+                            <input name="PT950" class="form-control ht-width-md inline-block"
+                                   @input="clearNoNum(body.buyPrice,key)"  type="text" v-model="body.buyPrice[key]"/>
+                            <label>元/克</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-6">
+                    <div class="ht-subtitle">销售价</div>
+                    <div v-for ="(val, key, index) in body.salePrice" class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">
+                            <span class="star"></span>
+                            {{key}}：
+                        </label>
+                        <div class="col-xs-9">
+                            <input name="PT950" class="form-control ht-width-md inline-block"
+                                   @input="clearNoNum(body.salePrice,key)"  type="text" v-model="body.salePrice[key]"/>
+                            <label>元/克</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">更新时间：</label>
+                        <div class="col-xs-9">
+                            <p class="form-control-static">{{body.updateTime}}</p>
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label class="col-xs-3 control-label">最后更新人：</label>
+                        <div class="col-xs-9">
+                            <p class="form-control-static">{{body.updateName}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!--<div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">PT950：
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-9">
+                    <input name="PT950" class="form-control ht-width-md inline-block"
+                           type="text" v-model="body.pT950"/>
+                    <label>元/克</label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">PT990：
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-9">
+                    <input name="PT990" class="form-control ht-width-md inline-block required" maxlength="30" type="text"
+                            v-model="body.pT990"/>
+                    <label>元/克</label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">AU999：
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-9">
+                    <input name="AU999" class="form-control ht-width-md inline-block" maxlength="30"
+                           type="text" v-model="body.aU999"/>
+                    <label>元/克</label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">AU750：
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-9">
+                    <input name="AU750" class="form-control ht-width-md inline-block" maxlength="30"
+                           type="text" v-model="body.aU750"/>
+                    <label>元/克</label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">S925：
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-9">
+                    <input name="S925" class="form-control ht-width-md inline-block" maxlength="30"
+                           type="text" v-model="body.s925"/>
+                    <label>元/克</label>
+                </div>
+            </div>-->
+
+
+        </form>
+    </div>
+</div>
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<script src="${rc.contextPath}/js/basedata/tody-gold-price.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

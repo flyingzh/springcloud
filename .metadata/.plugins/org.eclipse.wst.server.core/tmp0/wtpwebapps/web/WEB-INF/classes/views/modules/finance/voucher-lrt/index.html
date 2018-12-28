@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>记账凭证</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <script>var contextPath = '${rc.contextPath}'; var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/print.css" media="print">
+    <link rel="stylesheet" href="${rc.contextPath}/css/finance/voucher-lrt/index.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/finance/voucher-lrt/ht-input-voucher.css">
+
+    <style>
+        .copyright_content{
+            min-height: calc(100% - 78px) !important;
+        }
+        .foot_copyright{
+            width: 100%;
+            height: 38px;
+            line-height: 38px;
+            font-size: 13px;
+            background-color: #ccc;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .ht-voucher {
+            position: relative;
+        }
+
+        .ht-voucher-col-dynamic {
+            padding: 5px 5px 0 !important;
+            width: 140px;
+        }
+
+        .ht-voucher-col-dynamic input {
+            border-width: 0 0 1px 0 !important;
+        }
+
+        .ht-voucher-col-dynamic .form-horizontal .form-group {
+            margin-bottom: 3px
+        }
+
+        .ht-voucher-col-dynamic .form-horizontal .form-group>div {
+            padding-right: 1px;
+            padding-left: 0;
+        }
+
+        .ht-voucher-col-dynamic .form-horizontal .form-group .unit {
+            padding-top: 2px;
+            padding-left: 5px;
+        }
+
+        .ht-voucher-col-dynamic .form-horizontal .form-group-sm .left {
+            padding-left: 0;
+            padding-top: 2px;
+            padding-right: 0;
+            width: 40px;
+            padding: 2px 0 0 0;
+        }
+
+        .td-money {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .td-money .fake-input {
+            font-weight: bold;
+            padding: 10px;
+            font-size: 14px;
+            padding: 0 12px;
+            line-height: 60px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            text-align: right;
+            background-color: #fff;
+        }
+
+        .td-money:hover .fake-input,
+        .td-money input.ht-money:focus+.fack-input,
+        .focus .fake-input {
+            display: none;
+        }
+
+        .align-digits {
+            padding: 0 !important;
+            letter-spacing: 0.88em;
+            margin-right: -8px;
+        }
+
+        .red-digits {
+            color: #dd4e4e;
+        }
+        /* @page {
+            size: landscape;
+        } */
+    </style>
+    <script>
+        var contextPath = '${rc.contextPath}';
+    </script>
+    <style media="print">
+        @page{
+            size: auto;margin-top:0mm;margin-bottom:0mm;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="ht-voucher" class="ht-voucher mg0 copyright_content" v-cloak>
+        <iframe v-show="status == 'audited' || status == 'editVoucher'" class="ht-mask-iframe" style="top:44px;"></iframe>
+        <div class="mg10">
+            <div class=" ht-voucher-title">
+                <i-button v-show="addV=='add'" @click="saveOrUpdateVoucher(1)">保存并新增</i-button>
+                <i-button v-show="saveV=='save'" @click="saveOrUpdateVoucher(2)">保存</i-button>
+                <!-- <i-button v-show="printV=='print'" @click="htPrint()">打印</i-button> -->
+                <i-button v-show="approvalV=='approval'" @click="approvalVoucher(1)">审核</i-button>
+                <i-button v-show="approvalVR=='approval'" @click="approvalVoucher(2)">反审核</i-button>
+                <i-button v-show="copyV=='copy'" @click="copyVoucher()">复制</i-button>
+                <i-button v-show="deleteV=='delete'" @click="deleteVoucher()">删除</i-button>
+                <i-button @click="htPrint()">打印</i-button>
+                <Dropdown trigger="click" @on-click="more" placement="bottom-start">
+                    <i-button>
+                        更多
+                        <Icon type="arrow-down-b"></Icon>
+                    </i-button>
+                    <Dropdown-menu slot="list">
+                        <!--                    <Dropdown-item name="saveVoucher" >保存为凭证模板</Dropdown-item>
+                    <Dropdown-item name="addVoucher" >从模板生成凭证</Dropdown-item>
+                    <Dropdown-item name="changeVoucher" >选项</Dropdown-item>-->
+                        <Dropdown-item name="redVoucher" @click.native="redVoucher()">红字冲销</Dropdown-item>
+                    </Dropdown-menu>
+                </Dropdown>
+                <i-button @click="exitVoucher()">退出</i-button>
+                <div class="ht-float-right">
+                    <poptip content="content" placement="bottom">
+                        <i-button>跳转</i-button>
+                        <div class="ht-filterPoptipContent" slot="content">
+                            <i-input v-model="formData.jump.year" name="a3" style="width:70px;" size="small" class="required"
+                                type="number"></i-input>
+                            年
+                            <i-input v-model="formData.jump.period" name="a4" style="width:70px;" size="small" class="required"
+                                type="number"></i-input>
+                            期
+                            <i-select v-model="formData.jump.voucherGroupId" style="width:70px;" size="small">
+                                <i-option v-for="item in typeList" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+                            </i-select>
+                            <i-input v-model="formData.jump.num" name="a5" style="width:70px;" size="small" class="required"
+                                type="number"></i-input>
+                            号
+                            <div class="mt10 text-right">
+                                <i-button type="primary" size="small" @click="jumpOk">确定</i-button>
+                            </div>
+                        </div>
+                    </poptip>
+                    <i-button @click="switchVoucher(1)" icon="arrow-left-b"></i-button>
+                    <i-button @click="switchVoucher(2)" icon="arrow-right-b"></i-button>
+                </div>
+
+            </div>
+            <div class="mt10 ht-voucher-title clearfix chevron">
+                <div class="col-sm-5">
+                    <label>凭证字：</label>
+                    <i-select v-model="formData.voucherGroupId" :label-in-value="true" @on-change="voucherWordOpt"
+                        style="width:70px;" size="small">
+                        <i-option v-for="item in typeList" :value="item.id" :key="item.id">{{ item.name }}</i-option>
+                    </i-select>
+                    <input-number :min="1" v-model="formData.voucherNumber" name="a1" style="width:70px;" class="required"
+                        size="small"></input-number>
+                    <!--<i-input v-model="formData.voucherNumber" name="a1" style="width:70px;" class="required" size="small" type="number"></i-input>-->
+                    <label>号</label>
+                    <label class="pl10">日期：</label>
+                    <Date-picker size="small" transfer type="date" style="width: 130px" v-model="formData.voucherDate"
+                        placeholder="选择日期" @on-change="voucherDateSelect">
+                    </Date-picker>
+                </div>
+                <h1 class="text-center col-sm-2">记账凭证</h1>
+                <h6 class="col-sm-2">{{year_period}}</h6>
+                <div class="col-sm-3 text-right">
+                    附单据：
+                    <i-input v-model="formData.attachmentsCount" size="small" name="a2" style="width:70px;" type="number"></i-input>
+                    张
+                </div>
+            </div>
+
+            <div style="display:none;" class="ht-finance-show">
+                <div style="float:left;text-align: left;width: 33%;">
+                    <p>参考信息：</p>
+                    <p>序号：1</p>
+                    <p>{{year_period}}</p>
+                </div>
+                <div style="float:left;text-align: center;width: 33%;">
+                    <p style="margin-bottom: 0px;">{{printOrgName}}</p>
+                    <h2 style="margin-top: 5px;margin-bottom: 5px;">记账凭证</h2>
+                    <p>日期：{{ _getDateformat }}</p>
+                </div>
+                <div style="float:left;text-align: right;width: 33%;">
+                    <p>业务日期：{{ _getcreateTimeDateformat }}</p>
+                    <p>附单据：{{formData.attachmentsCount}}</p>
+                    <p>凭证字：{{_getvoucherNumber}}</p>
+                </div>
+            </div>
+
+            <slot name="col-md-3"></slot>
+        </div>
+
+        <div id="table" class="mt30 wrap-table">
+            <img v-show="status == 'audited'" src="${rc.contextPath}/images/audit.png" class="ht-audit">
+            <table class="ht-voucher-table" lay-size="sm">
+                <thead>
+                    <tr class="ht-th-1 ht-height-48">
+                        <th>摘要</th>
+                        <th>会计科目</th>
+                        <th v-if="quantityShow">数量</th>
+                        <th v-if="currencyShow">币别</th>
+                        <!--
+                <th width="219" class="ht-digit-bg vert-align-top">借方金额</th>
+                <th width="219" class="ht-digit-bg vert-align-top">贷方金额</th>
+				-->
+                        <th width="219" class="ht-digit-bg">借方金额</th>
+                        <th width="219" class="ht-digit-bg">贷方金额</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, i) in tableDatas" :key="i">
+                        <td class="itemAbstracts">
+                            <div>
+                                <ht-input-voucher :options="JSON.stringify(abstracts)" v-model="item" :type="'explains'"
+                                    :title="selectTitle" :show-value="false" :is-enter=false @on-focus="inputVouvherFocus(item,i)"
+                                    @change="(value)=>{change_option(value,item,'explains',i)}" @add="add_option"></ht-input-voucher>
+                                <a @click.stop="clickDigest(item)" class="ht-right a-abstract">
+                                    摘要
+                                </a>
+                            </div>
+                            <div class="ht-operate-wrap">
+                                <span @click.stop="add(i)" class="ht-operate add-btn">
+                                    <i class="glyphicon glyphicon-plus ht-icon"></i>
+                                </span>
+                                <span @click.stop="del(i)" v-show="tableDatas.length >= 3" class="ht-operate">
+                                    <i class="glyphicon glyphicon-minus"></i>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="itemSubjects">
+                            <ht-input-voucher :options="JSON.stringify(subjects)" v-model="item" :ref="'subject' + i"
+                                :type="'subject'" :title="selectTitle" :subject-opts="subjectOpts" :subjects="subjects"
+                                :row="item" @on-focus="inputVouvherFocus(item,i)" @change="(value)=>{change_option(value, item, 'subject',i)}"
+                                @add="add_option" @currency="setForeignCurrencyShow"></ht-input-voucher>
+                            <a @click.stop="clickSubject(item, i)" class="ht-right a-subject">
+                                科目
+                            </a>
+                        </td>
+                        <td v-if="quantityShow" class="ht-voucher-col-dynamic">
+                            <div v-show="item.hasQuantity" class="form-horizontal">
+                                <div class="form-group form-group-sm">
+                                    <label class="col-sm-4 control-label left">数量：</label>
+                                    <div class="col-sm-5">
+                                        <input type="text" v-model.number="item.quantity" @keyup="calTotal(item, 'quantity')"
+                                            class="width-full" />
+                                    </div>
+                                    <div class="col-sm-3 unit">{{unitList[item.unitId]}}</div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-sm-4 control-label left">单价：</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" v-model.number="item.unitPrice" @keyup="calTotal(item, 'unitPrice')"
+                                            class="width-full" />
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td v-if="currencyShow" class="ht-voucher-col-dynamic">
+                            <div v-show="item.hasCurrency" class="form-horizontal">
+                                <div class="form-group form-group-sm chevron">
+                                    <label class="col-sm-7 control-label text-left pt0">
+                                        <select @change="calTotal(item, 'currencySelect')" v-model="item.currencyId"
+                                            class="width-full">
+                                            <option v-for="(opt, key) in item.currencyList" :value="key">{{ opt.label
+                                                }}</option>
+                                        </select>
+                                    </label>
+                                    <div class="col-sm-5">
+                                        <input type="text" v-model.number="item.exchangeRate" @keyup="calTotal(item, 'exchangeRate')"
+                                            class="width-full" />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm chevron">
+                                    <label class="col-sm-4 control-label left">原币：</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" v-model.number="item.ammountFor" @keyup="calTotal(item, 'ammountFor')"
+                                            class="width-full" />
+                                    </div>
+                                </div>
+                                <div style="display:none;" class="ht-finance-show">{{
+                                    getCurrencyLable(item.currencyId,item.currencyList) }}:{{item.exchangeRate}}</div>
+                                <div style="display:none;" class="ht-finance-show">原币：{{item.ammountFor}}</div>
+                            </div>
+                        </td>
+                        <td class="text-right td-money">
+                            <input v-model="item.debitMoney" @focus="moneyFocus($event,item)" @blur="moneyBlur(item, $event, 'debit')"
+                                @keydown="swopDebitCredit(item, $event, 'debit')" @keydown.ctrl.83="keyboardSave(item, $event, 'debit')"
+                                class="debit ht-money text-right ht-voucher-input form-control chevron" type="text" />
+                            <div class="fake-input ht-record-bg align-digits chevron" :class="{'red-digits': item.debitMoney < 0}">{{item.debitMoney
+                                | redDigits}}</div>
+                            <div style="display:none;" class="ht-finance-show" :class="{'red-digits': item.debitMoney < 0}">{{item.debitMoney
+                                | redDigits2}}</div>
+                        </td>
+
+                        <td class="text-right td-money">
+                            <input v-model="item.creditMoney" @focus="moneyFocus($event,item)" @blur="moneyBlur(item, $event, 'credit')"
+                                @keydown="swopDebitCredit(item, $event, 'credit')" @keydown.ctrl.83="keyboardSave(item, $event, 'credit')"
+                                class="credit ht-money text-right ht-voucher-input form-control chevron" type="text" />
+                            <div class="fake-input ht-record-bg align-digits chevron" :class="{'red-digits': item.creditMoney < 0}">{{item.creditMoney
+                                | redDigits}}</div>
+                            <div style="display:none;" class="ht-finance-show" :class="{'red-digits': item.creditMoney < 0}">{{item.creditMoney
+                                | redDigits2}}</div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td :colspan="totalCol" class="text-left ht-total">
+                            合计：
+                            <span v-if="totalMoney" :class="[numberStyle(totalDebit) ? 'ht-red-color' : '']">{{totalMoney}}</span>
+                        </td>
+                        <td class="text-right ht-money ht-record-bg">
+                            <span class="align-digits chevron" :class="{'red-digits': totalDebit < 0}">{{totalDebit |
+                                redDigits}}</span>
+                            <span style="display:none;" class="ht-finance-show" :class="{'red-digits': totalDebit < 0}">{{totalDebit
+                                |
+                                redDigits2}}</span>
+                        </td>
+                        <td class="text-right ht-money ht-record-bg">
+                            <span class="align-digits chevron" :class="{'red-digits': totalCredit < 0}">{{totalCredit |
+                                redDigits}}</span>
+                            <span style="display:none;" class="ht-finance-show" :class="{'red-digits': totalCredit < 0}">{{totalCredit
+                                |
+                                redDigits2}}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class=" ht-voucher-title">
+                <span>
+                    制单人：{{formData.preparerName}}
+                </span>
+                <span class="ht-float-right hide">
+                    审核人：{{formData.auditorName}}
+                </span>
+            </div>
+            <ht-remark :recmodal="remarkVisable" :remark-list="remarklist" v-model="row" @on-modal-change="onRemarkModalChange"
+                @on-list-change="onRemarkListChange" @on-row-dblclick="onDblclickRemarkRow"></ht-remark>
+            <ht-modal-subject v-model="subjectVisable" :row="row" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+        </div>
+        <slot name="ht-right-bottom"></slot>
+        <slot name="ht-left-bottom"></slot>
+    </div>
+    <div class="foot_copyright chevron">版权所有 深圳金大祥珠宝有限公司 Copyright 2017 - 2020 dtsoft.net Inc. All Rights Reserved.</div>
+
+    <script src="${rc.contextPath}/js/jquery-1.10.2.min.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src="${rc.contextPath}/js/basedata/accounting.min.js"></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/finance/voucher-lrt/money.js"></script>
+    <script src="${rc.contextPath}/js/finance/voucher-lrt/ht-input-select.js"></script>
+    <script src="${rc.contextPath}/js/finance/voucher-lrt/ht-input-voucher.js"></script>
+    <script src="${rc.contextPath}/js/finance/voucher-lrt/search-select-more.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-remark.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/utils.js"></script>
+    <script src="${rc.contextPath}/plugins/hotkeys/hotkeys.min.js"></script>
+    <script src="${rc.contextPath}/js/finance/voucher-lrt/index.js"></script>
+    <!--#parse("modules/public/footer.html")-->
+
+    <!--<script>
+        htLoadJs([
+            '${rc.contextPath}/js/jquery-1.10.2.min.js',
+            '${rc.contextPath}/plugins/layui/layui.all.js',
+            '${rc.contextPath}/js/bootstrap.min.js',
+            '${rc.contextPath}/js/vue.min.js',
+            '${rc.contextPath}/plugins/iview/iview.min.js',
+            '${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js',
+            '${rc.contextPath}/js/finance/voucher-lrt/money.js',
+            '${rc.contextPath}/js/finance/voucher-lrt/ht-input-select.js',
+            '${rc.contextPath}/js/finance/voucher-lrt/ht-input-voucher.js',
+            '${rc.contextPath}/js/finance/voucher-lrt/search-select-more.js',
+            '${rc.contextPath}/js/finance/components/ht-remark.js',
+            '${rc.contextPath}/js/finance/components/ht-modal-subject.js',
+            '${rc.contextPath}/js/finance/components/ht-tree.js',
+            '${rc.contextPath}/js/utils.js',
+            '${rc.contextPath}/plugins/hotkeys/hotkeys.min.js',
+            '${rc.contextPath}/js/finance/voucher-lrt/index.js'
+        ])
+    </script>-->
+
+</body>
+
+</html>

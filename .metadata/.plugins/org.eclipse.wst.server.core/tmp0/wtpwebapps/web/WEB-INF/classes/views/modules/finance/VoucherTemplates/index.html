@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>凭证模板</title>
+
+	#parse("modules/public/header.html")
+	<link rel="stylesheet" href="${rc.contextPath}/ktc/css/ht-fixed-table.css" />
+	<link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/VoucherTemplates/index.css">
+
+</head>
+
+<body>
+	<div id="voucherTemplates" v-cloak>
+		<div class="btn-menu">
+			<button class="ht-btn" @click="actionBtnMth('addNew')">新增</button>
+			<button class="ht-btn" @click="renovate">刷新</button>
+			<button class="ht-btn" @click="actionBtnMth('edit')" :disabled="deleteRow">修改</button>
+			<button class="ht-btn" @click="actionBtnMth('delete')" :disabled="deleteRow">删除</button>
+			<button class="ht-btn" @click="actionBtnMth('default')" :disabled="deleteRow">设置为默认模板</button>
+			<button class="ht-btn" @click="quit">退出</button>
+
+		</div>
+		<div class="ht-voucherTemplates-content pl20 pr20 mt10">
+			<div class="ht-voucherTemplates-content-menu">
+				<i-menu ref="leftMenu" :active-name="objectTypeId" @on-select="menuChange" width="200px">
+					<Menu-group title="事务类型">
+						<Menu-item v-for="(item,idx) in leftMenuList" :name="item.id">
+							<Icon type="folder"></Icon>
+							{{item.objectType}}
+						</Menu-item>
+
+					</Menu-group>
+				</i-menu>
+			</div>
+			<div class="ht-tableList">
+				<p class="ht-tableList-title">凭证模板</p>
+				<i-table size="small" border :columns="columnsDataList" style="padding-top: 1px;" :data="dataList" highlight-row @on-row-dblclick="tableDblclick"
+				 @on-current-change="tableCurChange">
+				</i-table>
+
+			</div>
+
+			<!-- <edit-detail v-model="editVisable" :title="editTitle" @close="editClose"></edit-detail> -->
+			<Modal v-model="editVisable" width="800" :title="editTitle" :mask-closable="false">
+				<div class="ht-detailModalContent">
+					<div class="ht-voucherTemplates-menu">
+						<i-button type="text" @click="actionBtnMth('addNew')">新增</i-button>
+						<i-button type="text" @click="detailActionBtnMth('save')" :disabled="isDefaultComputed">保存</i-button>
+						<i-button type="text" @click="detailActionBtnMth('delete')" :disabled="deatilListDeleteRow">删除</i-button>
+						<i-button type="text" @click="detailActionBtnMth('addRow')" :disabled="isDefaultComputed">添加</i-button>
+						<i-button type="text" @click="detailActionBtnMth('changeNo',1)" v-if="formData.id">首张</i-button>
+						<i-button type="text" @click="detailActionBtnMth('changeNo',2)" v-if="formData.id">前张</i-button>
+						<i-button type="text" @click="detailActionBtnMth('changeNo',3)" v-if="formData.id">后张</i-button>
+						<i-button type="text" @click="detailActionBtnMth('changeNo',4)" v-if="formData.id">末张</i-button>
+						<i-button type="text" @click="detailActionBtnMth('subjectVisable')" :disabled="deatilListDeleteRow">查看</i-button>
+						<i-button type="text" @click="editClose">退出</i-button>
+					</div>
+					<div class="ht-detailModalContent-formData">
+						<h4 class="ht-commTxtContent">记账凭证模板
+							<strong v-if="isDefaultComputed">系统标准模板！</strong>
+						</h4>
+						<label class="ht-dc-label">模板编号：</label>
+						<i-input v-model="formData.templateNumber" style="width: 100px" type="text" :disabled="isDefaultComputed"></i-input>
+						<label class="ht-dc-label">模板名称：</label>
+						<i-input v-model="formData.templateName" style="width: 100px" type="text" :disabled="isDefaultComputed"></i-input>
+						<label class="ht-dc-label">凭证字：</label>
+						<i-select v-model="formData.voucherWordId" style="width: 100px" :disabled="isDefaultComputed">
+							<i-option v-for="item in operates" :value="item.voucherWordId" :key="item.voucherWordId">{{item.voucherWord}}</i-option>
+						</i-select>
+						<div class="ht-wrapper-tbl ht-dc-table">
+							<table class="table tablediv">
+								<thead>
+									<tr>
+										<td class="wt200 ht-commTxtContent ht-lineHeight30">科目来源</td>
+										<td class="wt150 ht-commTxtContent ht-lineHeight30">科目</td>
+										<td class="wt80 ht-commTxtContent ht-lineHeight30">贷款方向</td>
+										<td class="wt200 ht-commTxtContent ht-lineHeight30">金额来源</td>
+										<td class="wt100 ht-commTxtContent ht-lineHeight30">摘要</td>
+									</tr>
+								</thead>
+								<tbody>
+									<tr lay-size="sm" v-for="(item,idx) in detailDataList" @click="detailClickTr(item,idx)" :class="{success: detailCurrentSelectRow === idx}">
+										<td class="wt200 ht-commTxtContent">
+											<i-select v-model="item.subjectSource" :disabled="isDefaultComputed">
+												<i-option v-for="item2 in subjectSourceList" :value="item2.subjectSourceId">{{item2.subjectSource}}</i-option>
+											</i-select>
+										</td>
+										<td class="wt150 ht-commTxtContent">
+											<i-input v-if="item.subjectSource === 1" v-model="item.subject" type="text" :disabled="isDefaultComputed"></i-input>
+										</td>
+										<td class="wt80 ht-commTxtContent">
+											<i-select v-model="item.lendingDirection" :disabled="isDefaultComputed">
+												<i-option v-for="item2 in lendingDirectionList" :value="item2.lendingDirectionId">{{item2.lendingDirection}}</i-option>
+											</i-select>
+										</td>
+										<td class="wt200 ht-commTxtContent">
+											<i-select v-model="item.sourceOfAmount" :disabled="isDefaultComputed">
+												<i-option v-for="item2 in moneySourceList" :value="item2.moneySourceId">{{item2.moneySource}}</i-option>
+											</i-select>
+										</td>
+										<td class="wt100 ht-commTxtContent ht-lineHeight30" @click="showRemark(item,idx)">选择</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="ht-commTxtRight">
+							<label class="ht-dc-label">事务类型：</label>
+							<i-input :value="objectTypeIdComputed" style="width: 100px" type="text" disabled></i-input>
+							<label class="ht-dc-label">制单人：</label>
+							<i-input v-model="formData.createName" style="width: 100px" type="text" disabled></i-input>
+						</div>
+
+					</div>
+				</div>
+				<div slot="footer"></div>
+			</Modal>
+
+			<Modal v-model="showRemarkVisable" width="350" title="摘要定义" :mask-closable="false">
+				<div>
+					<p>可选择摘要单元：</p>
+					<div>
+						<ul class="ht-remark-1">
+							<li v-for="item in remarkList" @click="remarkLiClick(item)">{{item}}</li>
+						</ul>
+						<div class="ht-remark-2">
+							<i-button @click="okRemarkVisable" style="margin-top: 20px;">确定</i-button>
+							<br/>
+							<i-button @click="cloaseRemarkVisable" style="margin-top: 20px;">取消</i-button>
+						</div>
+					</div>
+					<p>摘要公式：</p>
+					<div>
+						<i-input v-model="remarkTxt" type="textarea" :rows="4"></i-input>
+					</div>
+				</div>
+				<div slot="footer"></div>
+			</Modal>
+		</div>
+		<ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+
+		<Modal v-model="deleteVisible" title="信息提示" :loading="deleteLoading" @on-ok="deleteOK">
+			<p>确认要删除改模板吗？</p>
+		</Modal>
+
+	</div>
+
+	<script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+	<script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/report/VoucherTemplates/data-list.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/report/VoucherTemplates/index.js"></script>
+
+#parse("modules/public/footer.html") </body>

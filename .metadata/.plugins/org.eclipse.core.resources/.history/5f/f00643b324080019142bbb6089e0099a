@@ -1,0 +1,203 @@
+package com.htrfid.financeapp.service.impl;
+
+import com.htrfid.basedata.entity.TBaseCurrencyMaintainEntity;
+import com.htrfid.exception.MyException;
+import com.htrfid.finance.entity.CashCheckEntity;
+import com.htrfid.finance.vo.CashCheckVO;
+import com.htrfid.financeapp.common.Constant;
+import com.htrfid.financeapp.remote.CashCheckRemoteService;
+import com.htrfid.financeapp.service.CashierBalanceService;
+import com.htrfid.financeapp.service.CnCashCheckListService;
+import com.htrfid.financeapp.service.CommonService;
+import com.htrfid.financeapp.util.Tools;
+import com.htrfid.shiro.utils.UserUtils;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.Result;
+import com.htrfid.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * @author zhengfei
+ * @version V1.0.1
+ * @className CnCashCheckListServiceImpl
+ * @description 现金盘点单
+ * @email 936864724@qq.com
+ * @date 2018-08-01 16:25
+ **/
+@Service
+public class CnCashCheckListServiceImpl implements CnCashCheckListService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CnCashCheckListServiceImpl.class);
+
+    @Autowired
+    private CommonService commonService;
+    @Autowired
+    private CashierBalanceService cashierBalanceService;
+    @Autowired
+    private CashCheckRemoteService cashCheckRemoteService;
+
+    /**
+    * @description: 页面初始化
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-01 16:43
+    * @param sobId 组织id
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result init(Long sobId) throws MyException {
+        Map<String,Object> initMap = new HashMap<>();
+        //获取当前会计年度，当前会计期间
+        Integer cnCurrentAccountYear = commonService.getCnCurrentAccountYear(sobId);
+        Integer cnCurrentAccountPeriod = commonService.getCnCurrentAccountPeriod(sobId);
+        //获取库存现金科目列表
+        List<Map<String, Object>> initCnSubject = cashierBalanceService.initCnSubject(Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        initMap.put("subjectList",initCnSubject);
+        List<TBaseCurrencyMaintainEntity> currencyList = null;
+        if(initCnSubject != null && initCnSubject.size() != 0){
+        	Long subjectId = Long.parseLong(initCnSubject.get(0).get("accountId").toString());
+            currencyList = commonService.getInitCurrencyList(subjectId, Constant.CASHIER_IS_CASH, Constant.CASHIER_STATUS_YES, sobId);
+        }
+        initMap.put("currencyList",currencyList);
+
+        //获取当前会计年度当前会计期间的第一天和最后一天日期
+        Map<String, Object> periodDate = commonService.getPeriodDate(cnCurrentAccountYear, cnCurrentAccountPeriod, sobId);
+        initMap.put("periodDate",periodDate);
+        //当前组织及名称
+        List<Map<String,Object>> list = new ArrayList<>();
+        Map<String, Object> orgEntity = commonService.getOrgEntity();
+        list.add(orgEntity);
+        initMap.put("org",list);
+
+        return Result.ok(initMap);
+    }
+
+    /**
+    * @description: 现金盘点单新增、保存
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-01 17:09
+    * @param
+    * @param vo
+     * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result saveOrUpdate(CashCheckVO vo){
+        //判断当前会计期间是否允许录入盘点单
+        //获取出纳当前会计年度会计期间
+        CashCheckEntity entity = vo.getCashCheck();
+        Integer accountYear = commonService.getCnCurrentAccountYear(entity.getSobId());
+        Integer accountPeriod = commonService.getCnCurrentAccountPeriod(entity.getSobId());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Map<String, Integer> yearAndPeriod = commonService.getAccountingYearAndPeriod(format.format(entity.getDatetime()), entity.getSobId());
+        Integer year = yearAndPeriod.get("accountYear");
+        Integer period = yearAndPeriod.get("accountPeriod");
+        if(entity.getId() == null){
+            //新增
+            if(accountYear.intValue() != year.intValue() || (accountYear.intValue() == year.intValue()&&accountPeriod.intValue()!=period.intValue())){
+                return Result.error("只能录入"+accountYear+"年"+accountPeriod+"第期盘点单");
+            }
+        }else{
+            //修改
+            if(accountYear.intValue() > year.intValue() || (accountYear.intValue() == year.intValue()&&accountPeriod.intValue()>period.intValue())){
+                return Result.error("不能修改已结账盘点单");
+            }
+        }
+        entity.setAccountYear(year);
+        entity.setAccountPeriod(period);
+        SysUser user = UserUtils.getCurrentUser();
+        return cashCheckRemoteService.saveOrUpdate(vo,user.getId(),user.getLoginName());
+    }
+
+    /**
+    * @description: 出纳判断是否允许录入当前期和下一期
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-09 16:17
+    * @param sobId,
+     * writeDate 录入时间
+     * accountYear, 当前会计年度
+     * accountPeriod 当前会计期间
+    * @return boolean
+    */
+    @SuppressWarnings("unused")
+	private boolean agreeWrite(Long sobId,String writeDate,Integer accountYear,Integer accountPeriod){
+        String startDate = commonService.getAccountPeriodStartDate(sobId);
+        Calendar calendar = Tools.getCalendar(startDate);
+        calendar.set(Calendar.YEAR,accountYear);
+        calendar.set(Calendar.MONTH,accountPeriod);
+        calendar.add(Calendar.MONTH,1);
+        Date time = calendar.getTime();
+
+        Calendar calendar1 = Tools.getCalendar(writeDate);
+        calendar1.add(Calendar.MONTH,1);
+        Date time1 = calendar1.getTime();
+
+        if(time.before(time1)){
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+    * @description: 删除盘点单
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-01 17:39
+    * @param entity
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result deleteCheckList(CashCheckEntity entity) {
+        return cashCheckRemoteService.deleteCheckList(entity);
+    }
+
+    /**
+    * @description: 取上次盘点数
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-01 17:39
+    * @param time, sobId
+    * @param currencyId
+     * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result getPreCheckList(String time, Long sobId, Long currencyId) {
+        return cashCheckRemoteService.getPreCheckList(time,sobId,currencyId);
+    }
+
+    /**
+    * @description: 修改盘点单
+    * @author zhengfei  1:查看  2：修改
+    * @eamil 936864724@qq.com
+    * @date 2018-08-10 14:21
+    * @param entity
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result info(CashCheckEntity entity,Integer type) {
+        return cashCheckRemoteService.info(entity,type);
+    }
+
+    /**
+    * @description: 获取盘点单左边树
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-10 14:57
+    * @param startDate, endDate, type, sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result cashCheckList(String startDate, String endDate, Integer type, Long sobId) {
+        return cashCheckRemoteService.cashCheckList(startDate,endDate,type,sobId);
+    }
+
+
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>检验报告单</title>
+    <style>
+        div.ht-input-width{
+            width:200px;
+        }
+    </style>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="testDocumentReport" v-cloak >
+    <modal
+            title="审核"
+            v-model="approveComment"
+            :closable="false"
+            @on-ok="getApproveInfo">
+        <div>
+            <p class="mg-bm-md">
+                <span >当前节点：{{currentStep}}</span>
+                <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+            </p>
+            <span>审核意见</span>
+            <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+        </div>
+    </modal>
+    <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+    <modal
+            title="驳回"
+            v-model="rejectComment"
+            :closable="false"
+            @on-ok="getRejectInfo">
+        <div>
+            <radio-group v-model="rejectement.approvalResult" class="mg-bm-md" >
+                <radio label="0" >驳回上一级</radio>
+                <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+            </radio-group>
+            <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+            <i-input  type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+        </div>
+    </modal>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+
+        <div class="btn-menu ht-menu-fix">
+            <span class="pd-rg-sm pd-lf-sm" @click="reloadAgain" v-if="!isEdit">刷新</span>
+
+            <!--
+            #if($shiro.hasPermission("quality:testDocumentReport:admit"))
+            <span @click="commit">提交</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:approve"))
+            <span @click="approval">审核</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:reject"))
+            <span @click="reject">驳回</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:delete"))
+            <span @click="del">删除</span>
+            #end
+            -->
+            <span class="pd-rg-sm pd-lf-sm" @click="commit">提交</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="del">删除</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="pre">上查</span>
+            <!--<span @click="show">设置列</span>-->
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <div style="height:30px"></div>
+        <div class="search-menu" v-show="isSearchHide">
+            <!--<div style="height: 50px;">-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label>检验类型：</label>-->
+                    <!--<i-select v-model="body.businessType" class="ht-input-width" >-->
+                        <!--<i-option value=" ">全部</i-option>-->
+                        <!--<i-option :value="item.value" v-for="item in businessType">{{item.name}}</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label>报告单号：</label>-->
+                    <!--<i-input type="text" v-model='body.testDocumentCode' class="ht-input-width" />-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label>单据日期：</label>-->
+                    <!--<date-picker class="ht-input-width" :value="dataValue" @on-change="changeDate" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="Select date" ></date-picker>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label>报告单状态：</label>-->
+                    <!--<i-select v-model="body.documentStatus" class="ht-input-width" ref="insp" >-->
+                        <!--<i-option value=" ">全部</i-option>-->
+                        <!--<i-option :value="item.name" v-for="item in documentStatus">{{item.name}}</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div style="height: 50px;">-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label>源单单号：</label>-->
+                    <!--<i-input type="text" v-model='body.sourceDocumentCode' class="ht-input-width"/>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--&lt;!&ndash;<label>商品类型：</label>-->
+                    <!--<select v-model="body.productType" class="input-sm  form-control input-width">-->
+                        <!--<option value="">全部</option>-->
+                        <!--<option :value="item.styleName" v-for="item in shopType">{{item.styleName}}-->
+                    <!--</select>&ndash;&gt;-->
+                    <!--<label>商品类型：</label>-->
+                    <!--<cascader :data="categoryType" trigger="hover"-->
+                              <!--v-model="commodityCategoty" style="width: 200px;display: inline-block;">-->
+                    <!--</cascader>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<label style="width: 60px">质检员：</label>-->
+                    <!--<i-select v-model="body.inspectorName" filterable class="ht-input-width" ref="insp">-->
+                        <!--<i-option :value="item.empName" v-for="item in inspector">{{item.empCode}}&nbsp;|&nbsp;{{item.empName}}</i-option>-->
+                    <!--</i-select>-->
+                <!--</div>-->
+                <!--<div class="col-xs-3 control-label">-->
+                    <!--<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"-->
+                    <!--&gt;</ht-btns>-->
+                <!--</div>-->
+            <!--</div>-->
+            <i-form label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="检验类型">
+                            <i-select v-model="body.businessType" class="ht-input-width" ref="businessType" clearable  @on-clear="handleClearSelect('businessType')" >
+                                <i-option :value="item.value" v-for="item in businessType">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="送检编号">
+                            <i-input type="text" v-model='body.sourceDocumentCode' class="ht-input-width"/>
+                        </form-item>
+                        <form-item label="报告单状态">
+                            <i-select v-model="body.documentStatus" class="ht-input-width" ref="documentStatus" clearable  @on-clear="handleClearSelect('documentStatus')" >
+                                <i-option :value="item.name" v-for="item in documentStatus">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="报告单号">
+                            <i-input type="text" v-model='body.testDocumentCode' class="ht-input-width" />
+                        </form-item>
+                        <form-item label="商品类型">
+                            <cascader :data="categoryType" trigger="hover"
+                            v-model="commodityCategoty" style="width: 200px;display: inline-block;">
+                            </cascader>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据日期">
+                            <date-picker class="ht-input-width" :value="dataValue" clearable @on-change="changeDate" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="Select date" ></date-picker>
+                        </form-item>
+                        <form-item label="质检员">
+                            <i-select v-model="body.inspectorName" filterable class="ht-input-width" ref="inspectorName" clearable>
+                                <i-option :value="item.empName" v-for="item in inspector">{{item.empCode}}&nbsp;|&nbsp;{{item.empName}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item>
+                            <ht-btns  @search="search" @clear='clear' :is-search="true" :is-add="false"
+                            ></ht-btns>
+                        </form-item>
+                    </i-col>
+
+                </row>
+            </i-form>
+        </div>
+    </div>
+    <div style="height:35px"></div>
+    <div style="height: 25px;">
+        <sapn class="chevron">
+                    <span v-show="isTabulationHide">
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                    </span>
+            <!--<span v-show="isHide" style="padding-right: 5px;">|</span>-->
+            <!--<span v-show="isSearchHide">-->
+                        <!--<Icon type="chevron-up" @click="hidTabulation" v-show="!isTabulationHide"></Icon>-->
+                        <!--<Icon type="chevron-down" @click="hidTabulation" v-show="isTabulationHide" ></Icon>-->
+                    <!--</span>-->
+        </sapn>
+    </div>
+    <div>
+        <base-data-list table_id="myTable" v-show="isTabulationHide" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+    </div>
+
+</div>
+
+
+<script src="${rc.contextPath}/js/quality/testDocumentReport-index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

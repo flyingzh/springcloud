@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>资产负债表</title>
+    #parse("modules/public/header.html")
+    <!-- <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css" />
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/plugins/iview/styles/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/ht-fixed-table.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css"> -->
+    <link rel="stylesheet" href="${rc.contextPath}/css/finance/report/balance-sheet/balance-sheet.css">
+</head>
+
+<body>
+    <div id="balanceSheet" v-cloak>
+        <div class="pr20 pl20 mt10">
+            <label>资产负债表：</label>
+            <i-select v-model="currDateTime" @on-change="dateChange" style="width:120px;">
+                <i-option v-for="item in dateTime" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+            </i-select>
+
+            <i-button>
+                <Icon type="refresh" @click="dateChange"></Icon>
+            </i-button>
+
+            <div class="ht-float-right ">
+                <i-button @click="printV" type="primary">打印</i-button>
+                <i-button @click="exportExcel">导出</i-button>
+            </div>
+        </div>
+        <div class="ht-tableList mr20 ml20">
+            <i-table size="small" border :columns="columnsDataList" height="500" width="100%" style="padding-top: 1px;"
+                :data="dataList" highlight-row>
+                <div slot="footer" class="ht-tabGooter ht-commTxtRight">
+                    1 - {{dataList.length}} 共{{dataList.length}}条
+                </div>
+            </i-table>
+        </div>
+        <edit-detail v-model="editVisable" :title="editTitle" :rid="editId" :rname="editName" :ayp="editAyp"
+            :clicked-row="clickedRow" :col="clickedCol" @close="editClose" @save="saveFormula"></edit-detail>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+        <iframe style="width:0;height:0;display:none;" name="exportIframe"></iframe>
+    </div>
+
+    <!-- <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+    <script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/vue.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <script src='${rc.contextPath}/ktc/js/app.js'></script> -->
+
+    <script>
+        htLoadJs([
+            'ht-print-choose'
+        ])
+    </script>
+    <script src="${rc.contextPath}/js/finance/report/profit-statemen/base-data-list.js"></script>
+
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <!-- <script src="${rc.contextPath}/js/utils.js"></script> -->
+    <script src="${rc.contextPath}/js/math.min.js"></script>
+    <script src="${rc.contextPath}/js/finance/report/balance-sheet/edit-detail.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/report/balance-sheet/index.js"></script>
+
+    #parse("modules/public/footer.html")
+</body>

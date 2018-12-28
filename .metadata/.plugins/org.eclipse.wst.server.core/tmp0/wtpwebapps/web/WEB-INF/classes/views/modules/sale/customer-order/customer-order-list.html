@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+
+	<style>
+		.form-content {
+			padding: 30px 30px 30px 0px;
+		}
+	</style>
+	<title>2.1客户订单——列表</title>
+</head>
+
+<body>
+
+<div id="customer-order-list" v-cloak>
+	<ht-approve-reject
+			:trigger="modalTrigger"
+			:modal-type="modalType"
+			:receipt-id="saleOrderNo"
+			:receipt-status="status"
+			:step-list.sync="stepList"
+			:table-data.sync="approvalTableData"
+			url-check='${rc.contextPath}/tsalecustorder/findUserOperation'
+			url-init-approve='${rc.contextPath}/tsalecustorder/queryProcessByReceiptsId'
+			url-approve='${rc.contextPath}/tsalecustorder/submitapproval'
+			url-table-data='${rc.contextPath}/tsalecustorder/queryReceiptsById'
+			@on-auto-approve="approvalOrRejectCallBack"
+			@on-approve="approvalOrRejectCallBack"
+			@on-reject="approvalOrRejectCallBack"
+			ref="ar">
+	</ht-approve-reject>
+	<div class="btn-menu">
+		<span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="add">新增</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="del">删除</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="update">修改</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="submit">提交</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+	</div>
+	<!-- 搜索部分 -->
+	<i-form class="form-content" label-width="120" v-show="isHideSearch">
+		<!-- row代表行 -->
+		<row>
+			<i-col span="8">
+				<form-item label="业务类型：">
+					<i-select class="ht-width-md" v-model="body.businessType" ref="operationType">
+						<i-option value="S_CUST_ORDER_01">普通销售</i-option>
+						<i-option value="S_CUST_ORDER_02">受托加工销售</i-option>
+					</i-select>
+				</form-item>
+				<form-item label="客户：">
+					<ht-customer-list
+							v-model="selectCustomerObj"
+							@sure="closeCustomer"
+							is-check="off"
+							ref="customerRef">
+					</ht-customer-list>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="单据编号：">
+					<i-input class="ht-width-md" v-model="body.saleOrderNo" placeholder="可模糊搜索"></i-input>
+				</form-item>
+				<form-item label="业务状态：">
+					<i-select class="ht-width-md" v-model="body.businessStatus" ref="operationStatus">
+						<i-option
+								v-for="(item, index) in businessStatusLabel"
+								:value="item.value"
+								:key="index">
+							{{item.label}}
+						</i-option>
+					</i-select>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="下单日期：">
+					<date-picker v-model="tempDate" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+								 placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+				</form-item>
+				<form-item label="订单备注：">
+					<i-input class="ht-width-md" v-model="body.remark" placeholder="可模糊搜索"></i-input>
+				</form-item>
+				<form-item>
+					<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+							 class="inline-block"></ht-btns>
+				</form-item>
+			</i-col>
+		</row>
+	</i-form>
+	<!-- 隐藏按钮 -->
+	<ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+	<!-- 列表部分 -->
+	<base-data-list :return-row-data="true" table_id="myTable" :data_config="data_config" :need-reload="reload"
+					v-model="selected"></base-data-list>
+
+</div>
+<script type="text/javascript" src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/sale/customer-order/customer-order-list.js"></script>
+
+
+#parse("modules/public/footer.html") </body>
+
+</html>

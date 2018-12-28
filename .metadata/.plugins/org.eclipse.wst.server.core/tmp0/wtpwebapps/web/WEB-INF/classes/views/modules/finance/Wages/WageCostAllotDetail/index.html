@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>工资费用分配表</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .totalClass {
+            background-color: #FFD34F;
+        }
+
+        .xjClass {
+            background-color: #FFE6B0;
+        }
+
+        .pageTitle1 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wageCostAllotDetail" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <!-- <button @click="open" class="ht-btn">打开</button> -->
+            <button class="ht-btn" @click="exportExcel">引出</button>
+            <button class="ht-btn" @click="print">打印</button>
+            <button class="ht-btn" @click="exitPrevent">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            <row class="mt5">
+                <div>
+                    <label class="w60">工资类别：</label>
+                    <i-select class="inline-block w200" v-model="formData.wageCategoryId" @on-change="selectDefault">
+                        <i-option v-for="item in wageCategoryList" :value="item.id" :label="item.categoryName" :key="item.id" />
+                    </i-select>
+
+                    <label class="w60">分配名称：</label>
+                    <i-select class="inline-block w200" v-model="formData.costAllocationId" @on-change="selectCostAllocation">
+                        <i-option v-for="item in costAllocationList" :value="item.id" :label="item.costAllocatioName" :key="item.id" />
+                    </i-select>
+
+                    <label class="w60">会计期间：</label>
+                    <i-select v-model="formData.year" class="inline-block w120" filterable @on-change="selectionPeriod">
+                        <i-option v-for="item in yearAndPeriodList" :value="item.year" :key="item.year">
+                            <slot>{{ item.year }}</slot>
+                        </i-option>
+                    </i-select> 年
+                    <i-select v-model="formData.period" class="inline-block w120" filterable>
+                        <i-option v-for="item in periodList" :value="item" :key="item">
+                            <slot>{{ item }}</slot>
+                        </i-option>
+                    </i-select> 期
+                </div>
+            </row>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10" id="subsidiaryLedger_jqGrid_wrapper">
+            <table id="grid"></table>
+            <div id="page"></div>
+        </div>
+        <!-- <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose> -->
+    </div>
+    <!-- <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script> -->
+    <script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
+    <script src="${rc.contextPath}/js/finance/Wages/WageCostAllotDetail/index.js"></script>
+    <script src='${rc.contextPath}/js/finance/components/ht-assets-list.js'></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

@@ -1,0 +1,164 @@
+html, body {
+    background-color: #fff !important;;
+    height: 100% !important;;
+}
+#receivableWriteofflist{background-color: #fff !important;}
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-nopadding{padding: 0px !important;}
+
+.ht-receivableW-menu button{padding: 6px 5px !important;}
+.ht-receivableW-menu .ivu-dropdown a{color: #495060 !important;}
+.ht-receivableW-menu .ivu-dropdown a i{padding-left: 5px !important;}
+.ht-receivableW-menu{ /*tom*/
+    position: fixed;
+    top: 0;
+    background: #DDDDDD;
+    z-index: 100;
+    width: 100%;
+}
+.ht-receivableW-form{
+    /*height: 285px;*/
+    /*margin-top: 30px;*/
+}
+.ht-receivableW-form .ht-formTitle{
+    text-align: center;
+    text-align: -webkit-center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    height: 20px;  /*tom*/
+}
+.ht-receivableW-form .ht-lineHeight30{line-height: 30px;height:35px;}
+
+.ht-receivableW-table {height: 200px;overflow: auto;width: 100%;padding: 0px 20px;}
+.ht-receivableW-table th{
+    text-align: center; 
+    text-align: -webkit-center;
+    vertical-align: middle !important;
+    padding: 0px 10px !important;
+}
+
+.ht-receivableW-table .ht-tbMa{height: 250px;overflow: auto;}
+.ht-wrapper-tbl{width:100%;overflow-x:scroll;}
+.ht-wrapper-tbl table.tablediv {
+    margin:0 auto;
+    border-collapse:collapse;
+    width:100%;
+    border: 1px solid #ccc;
+}
+.ht-wrapper-tbl table td{
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    overflow: hidden;
+}
+.ht-wrapper-tbl table td::-webkit-scrollbar {
+    display: none;
+}
+.ht-wrapper-tbl thead,tfoot {
+    background:#f2f2f2;
+    display:block
+}
+.ht-wrapper-tbl tbody {
+    overflow-y:scroll;
+    display:block;
+    height: 105px;
+
+}
+
+
+/*.ht-explanationTable tbody {display: block; height: 144px;overflow-y: scroll; }*/
+/*.ht-explanationTable thead,.ht-explanationTable tbody tr {display: table;width: 100%;table-layout: fixed; }*/
+/*.ht-explanationTable thead{display: table;table-layout: fixed; width: 100%;height: 37px;}*/
+/*.ht-explanationTable tbody tr {display: table;width: 100.5%;table-layout: fixed;}*/
+/*.ht-explanationTable thead th,.ht-explanationTable tbody td,.ht-totalUl li { width:7%; }*/
+
+
+.ht-explanationTable .ht-totalTr{
+    position: absolute;top: 424px;width: 95.5%;
+    background-color: #f60;color: #fff;
+}
+.ht-explanationTable .ht-totalTr:hover { background-color: #f60 !important;}
+.ht-explanationTable .ht-totalTr2{top: 674px !important;}
+.ht-explanationTable .ht-totalTr td{padding: 4px 0px !important;vertical-align: bottom !important;}
+
+.ht-input::-webkit-outer-spin-button,
+.ht-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+.ht-input[type="number"]{
+    -moz-appearance: textfield;
+}
+
+.ht-input {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0px !important;
+    height: 36px;
+}
+.ht-input:focus {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.ht-input:blur {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+.ht-td-input {
+    padding: 0 !important;
+    max-width: 150px;
+}
+
+.ht-totalUl{height: 30px;overflow: auto;}
+.ht-totalUl li{
+    float: left;background-color: #f60;color: #fff;
+    font-size: 12px;padding: 5px 10px;height: 30px;
+    text-align: center;text-align: -webkit-center;
+}
+
+.ht-writeIsChangeDiv{
+    width: 100%;height: 100%;
+    position: fixed;
+    top: 35px;
+    z-index: 101;
+}
+.ht-receivableW-form .ht-audit{
+    position: absolute;
+    top: 40px;
+    right: 303px;
+    z-index: 100;
+}
+
+
+.ht-discount{
+    color: #aaa;
+    position: absolute;
+    z-index: 10;
+    right: 12px;
+    top: 5px;
+    width: 25px;
+    height: 25px;
+    overflow: hidden;
+    font-size: 20px;
+    background-position: 0 -176px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+.form-control{
+    height: 32px;
+}
+
+.ht-receivableW-form label{
+    text-align: right;
+}

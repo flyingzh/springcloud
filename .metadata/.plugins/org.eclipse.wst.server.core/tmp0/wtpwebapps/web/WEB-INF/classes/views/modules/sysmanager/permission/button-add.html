@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>按钮新增</title>
+	#parse("modules/public/header.html")
+	<style>
+		.tablist {
+			border: 1px solid #ccc
+		}
+
+		.tab-center {
+			text-align: center;
+			border: 1px solid #000;
+			width: 50% !important;
+			margin-left: 4px;
+		}
+
+		.tablist tr, .tabModal tr {
+			height: 40px;
+		}
+
+		.prohibited {
+			color: #ccc
+		}
+
+		#inp {
+			width: 732px
+		}
+
+		.tabinfo {
+			padding-left: 36px
+		}
+
+		.ivu-i-input[disabled] {
+			color: black
+		}
+
+		.tr-back {
+			background: #dff0d8 !important;
+		}
+
+		.edit-table th {
+			width: 230px;
+		}
+
+		.tabModal {
+			border: 1px solid #ccc;
+			width: 400px;
+			margin: 0 auto;
+		}
+
+		.btn-gray {
+			color: #999999;
+			pointer-events: none
+		}
+
+		.btn-menu button.ivu-btn {
+			font-size: 14px;
+			padding: 0px 20px;
+		}
+
+		.form-content {
+			padding: 30px 30px 30px 0px;
+		}
+	</style>
+</head>
+<body>
+<div id="button-add" v-cloak>
+	<div class="btn-menu">
+		<i-button type="text" class="pd-rg-md" @click="save">保存</i-button>
+	</div>
+	<i-form label-width="100" class="form-content" id="form">
+		<row>
+			<i-col span="10">
+				<form-item class="ht-star" label="按钮名称：">
+					<i-input v-model='addButton.name' type="text" class="ht-width-md"
+							 placeholder="可模糊搜索"/>
+				</form-item>
+				<form-item class="ht-star" label="按钮标识：">
+					<i-input v-model='addButton.permission' type="text" class="ht-width-md"
+							 placeholder="可模糊搜索"/>
+				</form-item>
+				<form-item label="按钮图标：">
+					<i-input v-model='addButton.iCon' type="text" class="ht-width-md"
+							 placeholder="可模糊搜索"/>
+				</form-item>
+				<form-item label="备注：">
+					<i-input v-model='addButton.remark' type="text" class="ht-width-md"
+							 placeholder="可模糊搜索"/>
+				</form-item>
+			</i-col>
+		</row>
+	</i-form>
+</div>
+<script src="${rc.contextPath}/js/permission/button-add.js"></script>
+#parse("modules/public/footer.html")
+</body>
+</html>

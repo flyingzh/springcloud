@@ -1,0 +1,39 @@
+.ivu-menu-item{
+    width:98px;
+    height:25px;
+    background: rgba(242, 242, 242, 1);
+    border-color: rgba(204, 204, 204, 1);
+    border-radius: 3px;
+}
+.ivu-menu-item ivu-menu-item-active ivu-menu-item-selected{
+    border-bottom: none;
+}
+.ivu-tabs-tab ivu-tabs-tab-active ivu-tabs-tab-focused{
+    color: #000;
+}
+.ivu-tabs-tab{
+    width: 98px;
+    height: 32px;
+    background: rgba(153, 153, 153, 1);
+    box-sizing: border-box;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(204, 204, 204, 1);
+    border-radius: 3px;
+}
+.ivu-tabs-nav .ivu-tabs-tab:hover{
+    color: #333;
+}
+.vertical-center-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ivu-modal{
+    position: absolute;
+    top:250px;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+}

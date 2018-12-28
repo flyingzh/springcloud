@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>参数权重设置</title>
+    #parse("modules/public/header.html")
+    <style>
+        .a-import {
+            color: #495060;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .a-import:hover {
+            color: #495060;
+        }
+
+        .ivu-input-wrapper {
+            width: 200px;
+        }
+
+        form.form-horizontal {
+            width: 620px;
+        }
+        .search-sm-width{
+            width:85px;
+        }
+        .ht-line{
+            display: inline-block;
+            border: 1px solid #D6D6D6;
+            width:23px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="paraLevel" v-cloak class="ht-common-list">
+        <div v-show="bodyShow" style="padding-bottom:40px ">
+            <div v-if="!isEdit">
+                <div class="btn-menu  mg-bm-md">
+                    #if($shiro.hasPermission("basedata:tbaseparamweight:add"))
+                    <span @click="add_click">新增</span>
+                    #end #if($shiro.hasPermission("basedata:tbaseparamweight:add"))
+                    <span @click="copy">复制</span>
+                    #end #if($shiro.hasPermission("basedata:tbaseparamweight:update"))
+                    <span @click="modify">修改</span>
+                    #end #if($shiro.hasPermission("basedata:tbaseparamweight:delete"))
+                    <span @click="del_click">删除</span>
+                    #end #if($shiro.hasPermission("basedata:tbaseparamweight:import"))
+                    <span @click="myImport">导入</span>
+                    #end
+                    <a class="a-import" href="${rc.contextPath}/tbaseparamweight/export?type=2">导出</a>
+                    <span @click="exit">退出</span>
+                </div>
+
+                <i-form :model="body" v-show="isSearchHide" label-width="130">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="商品名称:">
+                                <i-input class="ht-width-md" v-model="body.styleName"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="商品编码:">
+                                <i-input class="ht-width-md" v-model="body.styleCode"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="工费率占比(%)：">
+                                <i-input type="text" class="search-sm-width" v-model="body.startLaborRateRatio"></i-input>
+                                <span class="ht-line"></span>
+                                <i-input type="text" class="search-sm-width" v-model="body.endLaborRateRatio "></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="8">
+                            <form-item label="损耗率占比(%)：">
+                                <i-input type="text" class="search-sm-width" v-model="body.startKossFateRatio"></i-input>
+                                <span class="ht-line"></span>
+                                <i-input type="text" class="search-sm-width" v-model="body.endKossFateRatio"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="供货周期占比(%)：">
+                                <i-input type="text" class="search-sm-width" v-model="body.startDeliveryCycleRatio"></i-input>
+                                <span class="ht-line"></span>
+                                <i-input type="text" class="search-sm-width" v-model="body.endDeliveryCycleRatio"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="质量合格率占比(%)：">
+                                <i-input type="text" class="search-sm-width" v-model="body.startQualifiedRatio "></i-input>
+                                <span class="ht-line"></span>
+                                <i-input type="text" class="search-sm-width" v-model="body.endQualifiedRatio "></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="8">
+                            <form-item label="创建时间：">
+                                <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="最后修改人：">
+                                <i-input class="ht-width-md" type="text" v-model="body.updateName" class="ht-width-md"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item>
+                                <ht-btns @search="sure" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+
+                <div style="height: 25px;">
+                    <span class="chevron">
+                        <span>
+                            <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                            <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                        </span>
+
+                    </span>
+                </div>
+                <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+            <div v-show="isEdit">
+                <div id="weight">
+                    <div class="btn-menu  mg-bm-md">
+                        <span @click="save" v-show="buttonFlag">保存</span>
+                        <span @click="cancel">退出</span>
+                    </div>
+                    <form id="my_from" class="form-horizontal ht-form">
+                        <div>
+
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                商品编码：
+                            </label>
+                            <div class="col-xs-3">
+                                <i-select v-show="codeFlag == false" :disabled="codeFlag" @on-change="forStyle" class="ht-width-lg inline-block" v-model="paramWeight.styleCode"
+                                    filterable @on-query-change="searchItemCode">
+                                    <i-option v-for="(option, i) in itemList" :value="option.code" :key="option.code" :label="option.code">
+                                        <span>{{option.code}}</span>
+                                        <span>{{option.name}}</span>
+                                    </i-option>
+                                </i-select>
+                                <!--<icon v-show="codeFlag == false"  type="search" style="font-size: 20px;position: absolute;top:25%;left:280px;" @click.native="getOption"></icon> -->
+                                <!--<span v-show="codeFlag">{{paramWeight.styleCode}}</span>-->
+                                <input type="text" v-show="codeFlag" disabled class="form-control ht-width-lg inline-block" v-model="paramWeight.styleCode">
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">商品名称：</label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block ivu-input" :disabled="nameFlag" v-model="paramWeight.styleName" type="text" />
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                质量合格率占比：
+                            </label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block" name="qualifiedRatio" :disabled="disabledFlag" v-model="paramWeight.qualifiedRatio"
+                                    type="text" />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                工费率占比：
+                            </label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block" required :disabled="disabledFlag" name="laborRateRatio" type="text"
+                                    v-model="paramWeight.laborRateRatio" />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                损耗费率占比：
+                            </label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block" required :disabled="disabledFlag" name="kossFateRatio" type="text" v-model="paramWeight.kossFateRatio"
+                                />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                交货周期占比：
+                            </label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block" required :disabled="disabledFlag" name="deliveryCycleRatio" type="text"
+                                    v-model="paramWeight.deliveryCycleRatio " />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">
+                                <span class="star"></span>
+                                其他占比：
+                            </label>
+                            <div class="col-xs-9">
+                                <input class="form-control ht-width-lg inline-block" :disabled="disabledFlag" name="otherRatio" type="text" v-model="paramWeight.otherRatio"
+                                />
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">备注：</label>
+                            <div class="col-xs-9">
+                                <textarea :disabled="disabledFlag" cols="30" rows="5" v-model="paramWeight.remark " class="form-control ht-width-lg"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div v-show="excelShow">
+            <div class="btn-menu">
+                <span @click="signOut">退出</span>
+                <!--<button @click="signOut">退出</button>-->
+            </div>
+
+            <row>
+                <i-col span="8">
+                    <div class="layui-row" align="center" style="margin-top: 30px;">
+                        <label>批量设置参数权重：</label>
+                        <input class="ivu-input ht-width-input" type="text" id="result" />
+                        <i-button type="primary" @click="showUpload=true">浏览</i-button>
+                        <Modal v-model="showUpload" title="导入文件"  >
+                            <upload :max-size="10240" action="${rc.contextPath}/tbaseparamweight/import"
+                                    :on-success="handleSuccess"
+                                    :on-format-error="handleFormatError" :on-exceeded-size="handleMaxSize"
+                            >
+                                <i-button type="ghost" icon="ios-cloud-upload-outline">开始导入</i-button>
+                                <span>文件上传大小限制为10M以内</span>
+                            </upload>
+                        </Modal>
+                        <!--<button type="button" class="layui-btn" id="upload">-->
+                            <!--<i class="layui-icon">&#xe67c;</i>浏览</button>-->
+                    </div>
+                </i-col>
+                <i-col span="16">
+                    <div>
+                        <p>说明：
+                            <br/> 1、点击
+                            <a href="${rc.contextPath}/tbaseparamweight/export?type=1">参数权重模板下载</a>可下载模板。
+                            <br/> 2、红色* 为必填项。
+                            <br/> 3、支持导入格式为 xlsx、xls的excel文件。
+                            <br/> 4、导入的文件数据，若系统尚未对该商品进行过权重设置为新增权重，若商品名称已存在则为修改。
+                            <p>
+
+                    </div>
+                </i-col>
+            </row>
+
+
+        </div>
+    </div>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+    <script src="${rc.contextPath}/js/basedata/param-weight-settings.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        .active {
+            background-color: #FCE9BA;
+        }
+
+        div.row {
+            padding: 0;
+        }
+
+        div.row .col-xs-2,
+        div.row .col-xs-10 {
+            padding: 0;
+        }
+
+        html,
+        body,
+        div#unit-info {
+            height: 100%
+        }
+
+    </style>
+    <title>A11库位列表</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="unit-info" v-cloak>
+        <div id="popup" v-show="showModal">
+            <modal v-model="showModal" title="选择组织" @on-ok="okModel" @on-cancel="cancelModel" ok-text="确认">
+                <!-- 这里是表格部分 -->
+                <i-table border ref="test" :columns="columns" :data="colContent" @on-selection-change="changeselect"></i-table>
+            </modal>
+            <!-- 这里是表格部分 -->
+        </div>
+        <div v-if="!isEdit" style="height: 100%;">
+
+
+            <!--树和列表-->
+            <div class="row" style="height: 100%;">
+                <div class="col-xs-2 bg-tree" style="height: 100%;">
+                    <div class="btn-menu">
+                        <span @click="addWarehouseGroup">新增</span>
+                        <!--<span class="split-line"></span>-->
+                        <span @click="modifyWarehouseGroup">修改</span>
+                        <!--<span class="split-line"></span>-->
+                        <span @click="delg">删除</span>
+                    </div>
+                    <ul style="margin: 15px">
+                        <li style="line-height:22px;" v-for="(group,index) in groups" @click="selectGroup(group,index)">
+                            <a style="color:#495060" :class="{active:index === activeStyle}" href="JavaScript:void(0)">{{group.name}}</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-xs-10" style="padding-left:10px">
+                    <div class="btn-menu">
+                        #if($shiro.hasPermission("base-data:repertoryposition:add"))
+                        <span @click="add_click">新增</span>
+                        #end
+                        <!--<span class="split-line"></span>-->
+                        <span @click="copy">复制</span>
+                        #if($shiro.hasPermission("base-data:repertoryposition:update"))
+                        <span @click="modify">修改</span>
+                        #end #if($shiro.hasPermission("base-data:repertoryposition:delete"))
+                        <span @click="delo">删除</span>
+                        #end
+                        <span @click="showOrgin">分配</span>
+                        <!--<span class="split-line"></span>-->
+                        <span @click="quit">退出</span>
+                        <!--<span class="split-line"></span>-->
+                        <!--<span @click="detailClick">查看</span>-->
+                    </div>
+                    <!--搜索栏-->
+                    <div v-show="isSearchHide" class="search-menu form-group">
+                        <i-form label-width="100">
+                            <row>
+                                <i-col span="8">
+                                    <form-item label="库位名称:">
+                                        <i-input class="ht-width-md" v-model="body.name"></i-input>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="库位编码:">
+                                        <i-input class="ht-width-md" v-model="body.code"></i-input>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="状态:">
+                                        <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                                            <i-option value="1">有效</i-option>
+                                            <i-option value="0">无效</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item>
+                                        <ht-btns class="inline-block" style="margin-left:20px" v-on:search="search" @clear="clear" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                        </i-form>
+                        <!--<search-select-more :options="belongs" class="inline-block" v-model="groups"></search-select-more>-->
+                        <!--<i-select v-model="body.groupIds" filterable style="width: 200px;" multiple>-->
+                        <!--<i-option v-for="item in groups" :value="item.id" :key="item.id">{{ item.name }}</i-option>-->
+                        <!--</i-select>-->
+                        <!--<div>{{groups}}</div>-->
+
+                    </div>
+                    <!--隐藏按钮-->
+                    <div style="height: 25px;margin-top: 20px">
+                        <span class="chevron">
+                            <span>
+                                <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                                <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                            </span>
+                        </span>
+                    </div>
+                    #if($shiro.hasPermission("base-data:repertoryposition:list"))
+                    <base-data-list table_id="list" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                    #end
+                </div>
+            </div>
+
+        </div>
+        <!-- 新增 -->
+        <modifyRepertoryGroupdiv v-if="isEdit">
+            <!--<div>{{selected}}</div>-->
+            <!-- 按钮栏 -->
+            <div class="btn-menu">
+                <span v-if="action==1 || action==2 || action==4" @click="save">保存</span>
+                <!--<span class="split-line"></span>-->
+                <span @click="exit">退出</span>
+            </div>
+            <form class="form-horizontal ht-form">
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">
+                        <span class="star"></span>
+                        库位编码：
+                    </label>
+                    <div class="col-xs-9">
+                        <input v-if="action==2 || action==3" class="form-control ht-width-lg" required name="code" v-model="repertoryPosition.code"
+                            type="text" readonly="readonly" />
+                        <input v-else class="form-control ht-width-lg" required name="code" v-model="repertoryPosition.code" type="text" />
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">
+                        <span class="star"></span>
+                        库位名称：
+                    </label>
+                    <div class="col-xs-9">
+                        <input v-if="action==3" class="form-control ht-width-lg" required name="name" v-model="repertoryPosition.name" type="text"
+                            readonly="readonly" />
+                        <input v-else class="form-control ht-width-lg" required name="name" v-model="repertoryPosition.name" type="text" />
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">
+                        <span class="star"></span>
+                        库位组：
+                    </label>
+                    <div class="col-xs-9">
+                        <select v-if="action==3" required name="groupId" v-model="repertoryPosition.groupId" class="form-control ht-width-lg" readonly="readonly">
+                            <option value="0">请选择</option>
+                            <option v-for="group in groups" v-bind:value="group.id">{{group.name}}</option>
+                        </select>
+                        <select v-else required name="groupId" v-model="repertoryPosition.groupId" class="form-control ht-width-lg">
+                            <option value="0">请选择</option>
+                            <option v-for="group in groups" v-bind:value="group.id">{{group.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">备注：</label>
+                    <div class="col-xs-9">
+                        <textarea v-if="action==3" name="remark" v-model="repertoryPosition.remark" cols="30" rows="5" class="form-control ht-width-lg"
+                            readonly="readonly"></textarea>
+                        <textarea v-else name="remark" v-model="repertoryPosition.remark" cols="30" rows="5" class="form-control ht-width-lg"></textarea>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">创建人：</label>
+                    <div class="col-xs-9">
+                        <p v-if="action==1 || action==4" class="form-control-static">{{username}}</p>
+                        <p v-else class="form-control-static">{{repertoryPosition.createName}}</p>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm">
+                    <label class="col-xs-3 control-label">创建时间：</label>
+                    <div class="col-xs-9">
+                        <p class="form-control-static">{{repertoryPosition.createTime}}</p>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm" v-if="action!=1 && repertoryPosition.updateName!=null">
+                    <label class="col-xs-3 control-label">最新修改人：</label>
+                    <div class="col-xs-9">
+                        <p class="form-control-static">{{repertoryPosition.updateName}}</p>
+                    </div>
+                </div>
+                <div class="form-group form-group-sm" v-if="action!=1 && repertoryPosition.updateName!=null">
+                    <label class="col-xs-3 control-label">最新修改时间：</label>
+                    <div class="col-xs-9">
+                        <p class="form-control-static">{{repertoryPosition.updateTime}}</p>
+                    </div>
+                </div>
+            </form>
+        </modifyRepertoryGroupdiv>
+        <modal title="新增库位组" v-model="isShowAddUnitGroup" width="400" @on-cancel="addCancel">
+            <i-form label-width="100">
+                <form-item label="库位组：" class="ht-star">
+                    <i-input v-model="addRepertoryGroup"></i-input>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" @click="addCancel">取消</i-button>
+                <i-button type="primary" @click="addSure('addUnitGroup')">确定</i-button>
+            </div>
+        </modal>
+        <modal title="修改库位组" v-model="isShowModifyUnitGroup" width="400" @on-cancel="addCancel">
+            <i-form label-width="100">
+                <form-item label="库位组：" class="ht-star">
+                    <i-input v-model="modifyRepertoryGroup"></i-input>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" @click="modifyCancel">取消</i-button>
+                <i-button type="primary" @click="modifySure('addUnitGroup')">确定</i-button>
+            </div>
+        </modal>
+        <!-- <div class="hide-render" style="position: absolute;left: 10000px;top:0;">
+            <div id="addUnitGroup" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">库位组
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-8">
+                    <input type="text" v-model="addRepertoryGroup" class="form-control input-sm">
+                </div>
+            </div>
+            <div id="modifyUnitGroup" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">库位组
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-8">
+                    <input v-model="modifyRepertoryGroup" type="text" class="form-control input-sm">
+                </div>
+            </div>
+        </div> -->
+    </div>
+
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+    <script src="${rc.contextPath}/js/basedata/warehouse-group-info.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

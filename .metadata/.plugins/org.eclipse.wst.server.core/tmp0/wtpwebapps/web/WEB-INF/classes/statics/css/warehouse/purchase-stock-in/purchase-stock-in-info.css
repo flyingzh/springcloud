@@ -1,0 +1,23 @@
+.control-label{
+    margin-bottom: 15px;
+}
+span.star:after {
+    content: '*';
+    color: red;
+    font-size: 13px;
+    width: 10px;
+    display: inline-block;
+}
+
+.ui-jqgrid .ui-jqgrid-pager .ui-pager-table{
+    display: block;
+}
+.table{
+    table-layout:fixed;
+}
+.pstock-disabled{
+    background-color: #f3f3f3 !important;
+    opacity: 1;
+    cursor: not-allowed !important;
+    color: #ccc;
+}

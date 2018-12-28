@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>费用明细表</title>
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/finance/feeSchedule/index.css">
+    <script>
+        var contextPath = '${rc.contextPath}';
+    </script>
+</head>
+
+<body>
+    <div id="fee-schedule" :class="[isFilterVisible == true ?'js-keep-poptip':'','ht-common-list']" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <button @click="printV" class="ht-btn">打印</button>
+            <button @click="exportExcel" class="ht-btn">引出</button>
+            <button @click="closeWindow" class="ht-btn">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            费用明细表:
+            <poptip content="content" placement="bottom" ref="filter" class="ht-poptip" @on-popper-show="isFilterVisible = true">
+                <i-button class="width200 h32">{{scheduleShow()}}</i-button>
+                <div class="ht-filterPoptipContent" slot="content">
+                    <p>
+                        <label class="inline-block label60">会计期间：</label>
+                        <select v-model="formData.for1" class="form-control inline-block width120">
+                            <option v-for="item in subjectList" :value="item.accountYearPeriodStr">{{item.accountYearPeriodStr}}</option>
+                        </select>
+                        至
+                        <select v-model="formData.for2" class="form-control inline-block width120">
+                            <option v-for="item in subjectList" :value="item.accountYearPeriodStr">{{item.accountYearPeriodStr}}</option>
+                        </select>
+                    </p>
+                    <div v-if="visible">
+                        <div class="mt10">
+                            <label class="inline-block label60">会计科目：</label>
+                            <i-input style="width: 250px;" v-model="formData.for3" readonly="true" @on-click="showSubjectTree" icon="search" type="text"></i-input>
+                            <!-- <div @dblclick="iconPopup" class="inline-block">
+                                <i-select v-model="formData.for3" icon="search" class="width260" filterable>
+                                    <i-option v-for="item in formDataList" :value="item.subjectCode" :key="item.subjectCode">
+                                        <slot>{{ item.subjectName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </div> -->
+                            <!--<form-item label="会计科目：">-->
+                            <!--<i-input icon="search" v-model="formData.for3" @on-click="showSubjectTree"></i-input>-->
+                            <!--</form-item>-->
+                        </div>
+
+                        <!--<p>
+                            <input type="radio" id="one" value="1" v-model="formData.for4">
+                            <label for="one" class="mr30">只显示下级科目</label>
+                            <input type="radio" id="two" value="2" v-model="formData.for4">
+                            <label for="two">只显示最明细科目</label>
+                            <br>
+                            <input type="radio" id="three" value="3" v-model="formData.for4">
+                            <label for="three">不显示下级科目</label>
+                        </p>
+                        <p>
+                            <label>
+                                <input type="checkbox" v-model="formData.for5"> 显示核算项目
+                            </label>
+                        </p>-->
+                        <p>
+                            <label>
+                                <input type="checkbox" v-model="formData.for6"> 显示本年累计列
+                            </label>
+                        </p>
+                    </div>
+                    <div class="mt10">
+                        <span type="text" size="small" @click="more" v-if="!visible">
+                            更多条件
+                            <Icon type="chevron-down"></Icon>
+                        </span>
+                        <span type="text" size="small" @click="nomore" v-else>
+                            收起更多
+                            <Icon type="chevron-up"></Icon>
+                        </span>
+                        <i-button type="primary" size="small" @click="save" class="ht-float-right ml10">确定</i-button>
+                        <i-button size="small" @click="cancel" class="ht-float-right">重置</i-button>
+                    </div>
+                </div>
+            </poptip>
+            <label>
+            <input type="checkbox"  v-model="formData.for7" @change="open"> 展开所有级次
+            </label>
+            <!--<label>
+                <input type="checkbox" v-model="formData.for8"> 显示折线图
+            </label>-->
+            <!--<div class="ht-float-right">-->
+            <!--<i-button @click="" type="primary">打印</i-button>-->
+            <!--<i-button @click="">导出</i-button>-->
+            <!--</div>-->
+        </div>
+        <table-charts v-model="formData.for8" :option="option" :opens="openCharts" :reload="reload" @get-reload="getReload"></table-charts>
+        <div class="jqGrid_wrapper ht-set-table mt10 pl20 pr20">
+            <table id="my_report"></table>
+            <!-- <div id="my_pager"></div> -->
+        </div>
+        <ht-modal-subject v-model="subjectVisable"  :custom-types="['sunyi']" @close="subjectClose" @save="subjectSave"></ht-modal-subject>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+        <!-- 会计科目树状菜单 -->
+        <!--<subject-tree :show="isShow" @close="subjectClose" @save="subjectCheck"></subject-tree>-->
+    </div>
+
+    <script>
+        htLoadJs([
+            'ht-print-choose'
+        ])
+    </script>
+
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <script src="${rc.contextPath}/js/echarts.min.js"></script>
+    <script src="${rc.contextPath}/js/finance/morerows/ht-modal-subject.js"> </script>
+    <script src="${rc.contextPath}/js/finance/morerows/ht-tree.js"> </script>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"> </script>
+    <script src="${rc.contextPath}/js/finance/feeSchedule/tableCharts.js"></script>
+    <script src="${rc.contextPath}/js/finance/feeSchedule/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

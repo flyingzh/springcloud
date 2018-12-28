@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>国际钻石价目表</title>
+    <style>
+    </style>
+</head>
+
+<body>
+    <div id="diamond-price-list" v-cloak>
+        <div class="btn-menu">
+            <span class="pd-rg-sm pd-lf-sm" @click="save">保存</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="exportTemplate">引出模板</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="importExcel">引入</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <Modal
+                v-model="showUpload"
+                title="上传文件"
+                @on-ok="modalOk"
+                @on-cancel="modalCancel">
+            <Upload
+                    ref="upload"
+                    :on-success="handleSuccess"
+                    :max-size="5120000"
+                    :on-format-error="handleFormatError"
+                    :on-exceeded-size="handleMaxSize"
+                    :before-upload="handleBeforeUpload"
+                    :format="['xlsx']"
+                    action="${rc.contextPath}/saleWorldDiamondPriceController/importExcel">
+                <i-button type="ghost" icon="ios-cloud-upload-outline">导入</i-button>
+            </Upload>
+        </Modal>
+        <table class="edit-table mg-top-md" id="myTable">
+            <thead>
+                <tr>
+                    <th>
+                        Lab
+                        <br>证书
+                    </th>
+                    <th>
+                        Packet
+                        <br>货号
+                    </th>
+                    <th>
+                        Report No
+                        <br>证书号
+                    </th>
+                    <th>
+                        Stage
+                        <br>是否
+                    </th>
+                    <th>
+                        DNA
+                    </th>
+                    <th>
+                        Shape
+                        <br>形状
+                    </th>
+                    <th>
+                        Carat
+                        <br>克拉
+                    </th>
+                    <th>
+                        Col
+                        <br>颜色
+                    </th>
+                    <th>
+                        Purity
+                        <br>净度
+                    </th>
+                    <th>
+                        Shade
+                        <br>色调
+                    </th>
+                    <th>
+                        Rap
+                        <br>国际报价/每克
+                    </th>
+                    <th>
+                        Disc%
+                        <br>折扣%
+                    </th>
+                    <th>
+                        Price/Ct
+                        <br>单价/每克拉
+                    </th>
+                    <th>
+                        Amount($)
+                        <br>总价/美元
+                    </th>
+                    <th>
+                        Cut
+                        <br>切工
+                    </th>
+                    <th>
+                        Pol
+                        <br>抛光
+                    </th>
+                    <th>
+                        Sym
+                        <br>对称性
+                    </th>
+                    <th>
+                        Fls
+                        <br>荧光
+                    </th>
+
+                </tr>
+            </thead>
+            <tbody v-for="item in diamondList">
+                <tr>
+                    <td>
+                        <input type="text" v-model="item.lab">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.packet">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.reportNo">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.stage">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.dna">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.shape">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.carat">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.col">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.purity">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.shade">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.rap">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.discount">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.price">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.amount">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.cut">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.pol">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.sym">
+                    </td>
+                    <td>
+                        <input type="text" v-model="item.fls">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script src='${rc.contextPath}/js/sale/sale-price/diamond-price-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

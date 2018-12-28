@@ -1,0 +1,17 @@
+html, body {
+    background-color: #fff !important;;
+    height: 100% !important;;
+}
+#receivableWriteofflist{background-color: #fff !important;}
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-nopadding{padding: 0px !important;}
+
+
+.ht-viewReportTxt{max-height: 150px;overflow: auto;}
+
+.ivu-form-item {margin-bottom: 10px;}

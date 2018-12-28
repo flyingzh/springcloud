@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>A008客户资料</title>
+    #parse("modules/public/header.html")
+    <style>
+        input~label {
+            position: absolute;
+            top: 8px;
+            left: 350px;
+        }
+
+        select~label {
+            position: absolute;
+            top: 8px;
+            left: 350px;
+        }
+
+        /*.ivu-input-wrapper{*/
+
+        /*width:200px;*/
+
+        /*}*/
+
+        .area-addr textarea {
+            width: 305px;
+            margin-top: 10px;
+        }
+
+        .ht-info-width {
+            width: 305px;
+        }
+
+        layui-tab-item .ivu-input-icon-normal+.ivu-input {
+            width: 305px;
+        }
+
+        #tabs .ivu-date-picker {
+            width: 305px;
+        }
+
+        table.edit-table td,
+        th {
+            width: 150px;
+            height: 40px;
+            padding: 0;
+            border: 1px solid #C9C9C9;
+            position: relative;
+        }
+        .add-border .ivu-select-selection{
+            border:1px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="customer-info" v-cloak>
+
+        <Modal v-model="showStoneList" @on-ok="ok1" width="850" @on-cancel="cancel1" :scrollable="true" title="石价列表" :mask-closable="false">
+            <i-form>
+                <row>
+                    <i-col span="9">
+                        <form-item label="石价表编码">
+                            <i-input class="ht-width-md" v-model="stoneNo"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="9">
+                        <form-item label="石价表名称">
+                            <i-input class="ht-width-md" v-model="stoneName"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="6">
+                        <i-button type="primary" @click="searchCut">搜索</i-button>
+                        <i-button type="primary" @click="searchClear">清空</i-button>
+                    </i-col>
+
+                </row>
+            </i-form>
+            <div class="modalCon">
+                <base-data-list :data_config="stone_data_config" :need-reload="stoneReload" :table_id="tabId" v-model="stoneSelected"></base-data-list>
+            </div>
+
+        </Modal>
+
+        <div id="popup" v-show="showModal" >
+            <modal v-model="showModal" :mask-closable="false" title="选择组织" @on-ok="okModel" @on-cancel="cancelModel" ok-text="确认">
+                <!-- 这里是表格部分 -->
+                <i-table border ref="test" :columns="columns" :data="colContent" @on-selection-change="changeselect"></i-table>
+            </modal>
+        </div>
+        <div class="btn-menu ht-menu-fix" v-show="!isEdit">
+            #if($shiro.hasPermission("basedata:tbasecustomer:add"))
+            <span @click="addData">新增</span>
+            #end #if($shiro.hasPermission("basedata:tbasecustomer:add"))
+            <span @click="copy">复制</span>
+            #end #if($shiro.hasPermission("basedata:tbasecustomer:update"))
+            <span @click="modify">修改</span>
+            #end #if($shiro.hasPermission("basedata:tbasecustomer:delete"))
+            <span @click="del">删除</span>
+            #end
+            <!--  #if($shiro.hasPermission("basedata:tbasecustomer:view"))
+        <span @click="view">查看</span>
+        #end-->
+         <!--   #if($shiro.hasPermission("basedata:tbasecustomer:allot"))
+            <span @click="showOrgin">分配</span>
+            #end-->
+            <span @click="cancle">退出</span>
+
+            <!--  <span @click="add_click" >新增</span>
+          <span @click="del" >删除</span>
+          <span @click="modify" >修改</span>
+          <span @click="view" >查看</span>
+          <span @click="showOrgin" >分配</span>-->
+        </div>
+
+        <div v-show="!isEdit" style="padding-top:50px">
+            <div v-show="isSearchHide">
+                <i-form label-width="120" >
+                    <row>
+                        <i-col span="8">
+                            <form-item label="客户名称：">
+                                <i-input class="ht-width-md"></i-input>
+                            </form-item>
+                            <form-item label="有效状态：">
+                                <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                                    <i-option :value="item.value" v-for="item in status">{{item.label}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="创建时间：">
+                                <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="客户等级：">
+                                <i-select v-model="body.ids" multiple class="ht-width-md" >
+                                    <i-option v-for="item in levels" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item>
+                                <ht-btns v-on:search="search" @clear="clearbody" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+                <!-- <div class="row">
+                    <div class="col-xs-4 control-label">
+                        <label>客户名称：</label>
+                        <i-input type="text" class="ht-width-md" v-model="body.name" />
+                    </div>
+                    <div class="col-xs-8 control-label">
+                        <label>创建时间：</label>
+                        <date-select v-model="body.beforetime" class="inline-block" ref="start"></date-select>
+                        <span>~</span>
+                        <date-select v-model="body.aftertime" :end="true" class="inline-block" ref="end"></date-select>
+                    </div>
+                </div> -->
+                <!-- <div class="row">
+                    <div class="col-xs-4 control-label">
+                        <label>客户等级：</label>
+                        <i-select v-model="body.ids" multiple class="ht-width-md">
+                            <i-option v-for="item in levels" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                        </i-select>
+                    </div>
+                    <div class="col-xs-4 control-label">
+                        <label>有效状态：</label>
+                        <i-select v-model="body.status" class="ht-width-md">
+                            <i-option :value="item.value" v-for="item in status">{{item.label}}</i-option>
+                        </i-select>
+                    </div>
+                    <div class="col-xs-4 control-label">
+                        <ht-btns v-on:search="search" @clear="clearbody" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                    </div>
+                </div> -->
+            </div>
+
+            <div style="height: 25px; margin-top:20px">
+                <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </span>
+            </div>
+            <div style="margin-top: 20px">
+                <base-data-list v-bind:data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+        </div>
+        <div v-show="isEdit">
+            <div id="customerInfo">
+                <!-- 按钮栏 -->
+                <div class="btn-menu ht-menu-fix">
+                    <span @click="save" v-show="saveDisable">保存</span>
+                    <span @click="exit">退出</span>
+                </div>
+                <div style="height:30px"></div>
+                <!-- 标签部分 -->
+                <div class="layui-tab" id="tabs">
+                    <!-- 标签页头 -->
+                    <ul class="layui-tab-title">
+                        <li class="layui-this">基本资料</li>
+                        <li v-if="!isView">联系人信息</li>
+                        <li v-if="isView">历史交易记录</li>
+                        <li v-if="!isView">银行卡账户信息</li>
+                        <li v-if="isView">附件</li>
+                        <li v-if="!isView">附件</li>
+                        <li v-if="isView">变更记录</li>
+                    </ul>
+
+                    <div class="layui-tab-content">
+                        <!-- tab1基本信息 -->
+                        <div class="layui-tab-item layui-show">
+                            <form class="form-horizontal ht-form" style="width:750px" id="customerForm">
+
+                                <div class="form-group">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        客户编码：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="true" name="customerCode" v-model="customer.code" class="required ht-info-width ivu-input"
+                                            type="text" placeholder="客户编码" />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        客户名称：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="name" v-model="customer.name" class="form-control required ht-info-width ivu-input" type="text"
+                                            placeholder="客户名称" />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        简称：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="abbreviation" v-model="customer.abbreviation" class="form-control required ht-info-width ivu-input"
+                                            type="text" placeholder="简称" />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        客户等级：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" v-model="customer.level" id="level" class="ht-info-width inline-block" required>
+                                            <i-option value="" selected="selected">请选择</i-option>
+                                            <i-option v-if="(level.status===1 && level.isDel ===1)|| level.id == customer.level" v-for="level in
+                                                levels" :value="level.id">
+                                                {{level.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        客户性质：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" name="nature" class="ht-info-width" v-model="customer.nature" required>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.value" v-for="item in clientType">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">客户地址：</label>
+                                    <div class="col-xs-9">
+                                        <area-select class="area-addr" v-model="area" :init="areaInit" url="${rc.contextPath}/baseaddress/queryAddress"></area-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">邮政编码：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="zipCode" v-model="customer.zipCode" class="form-control ht-info-width ivu-input" type="text"
+                                            placeholder="邮政编码" />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">付款方式：</label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" name="cpay" class="ht-info-width inline-block" v-model="customer.payWay">
+                                            <i-option value="0">请选择</i-option>
+                                            <i-option :value="item.value" v-for="item in payMethod">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">结算天数：</label>
+                                    <div class="col-xs-9">
+                                        <input v-model="customer.settlementDays" :disabled="customer.payWay!='ajsrjs' || is_lock" class="ivu-input form-control ht-info-width isPositiveInteger inline-block"
+                                            type="text" placeholder="结算天数" />
+                                        <span>(天)</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">预付比例：</label>
+                                    <div class="col-xs-9">
+                                        <input v-model="customer.prepaymentRatio" :disabled="customer.payWay!='yf' || is_lock" class="form-control ht-info-width  isDecimal inline-block ivu-input"
+                                            type="text" placeholder="预付比例" />
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        结算币种：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" v-model="customer.billingCurrency" name="billingCurrency" id="my" class="required ht-info-width inline-block">
+                                            <i-option value="">请选择</i-option>
+                                            <i-option v-for="currency in currencys" v-if="(currency.status==1 &&  currency.isDel==1) || currency.id == customer.billingCurrency"
+                                                :value="currency.id">
+                                                {{currency.currencyName}}
+                                            </i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        结算方式：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select multiple :disabled="is_lock" v-model="customer.billingMethod" :class="addBorder ? 'add-border':''" style="width:305px">
+                                            <i-option v-for="bill in billing" :value="bill.value">
+                                                {{bill.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">
+                                        <span class="star"></span>
+                                        计价方式：
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" v-model="customer.pricingMethod" name="pricingMethod" class="required ht-info-width inline-block">
+                                            <i-option value="">请选择</i-option>
+                                            <i-option v-for="item in pricingMethod" :value="item.value">
+                                                {{item.label}}
+                                            </i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">公司传真：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" v-model="customer.companyFax" class="form-control ht-info-width ivu-input" type="text" placeholder="公司传真"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">公司法人：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" v-model="customer.corporate" class="form-control ht-info-width ivu-input" type="text" placeholder="公司法人"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">注册日期：</label>
+                                    <div class="col-xs-9">
+                                        <!--<date-select  v-show="!is_lock" type="date"  v-model="customer.registratDate"
+                                                 class="inline-block ht-info-width" ref="startTime"
+                                                 placeholder="注册日期"></date-select>-->
+                                        <date-picker :disabled="is_lock" :readonly="is_lock" type="date" style="width:305px" v-model="customer.registratDate" class="inline-block ht-info-width"
+                                            ref="startTime" placeholder="注册日期" formate="yyyy-MM-dd HH:mm:ss"></date-picker>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">营业执照编号：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" v-model="customer.businessNumber" class="form-control ht-info-width ivu-input" type="text" placeholder="营业执照编号"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">税务登记号：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" v-model="customer.taxNumber" class="form-control ht-info-width ivu-input" type="text" placeholder="税务登记号"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">税分类：</label>
+                                    <div class="col-xs-9">
+                                        <i-select :disabled="is_lock" name="category" class="ht-info-width" v-model="customer.taxCategory">
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.value" v-for="item in taxType">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">增值税率：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="vatrate" v-model="customer.vatrate" class="form-control ht-info-width isDecimal inline-block ivu-input"
+                                            type="text" placeholder="增值税率" />
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">免息天数：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="interestFreeDays" v-model="customer.interestFreeDays" class="form-control ht-info-width ivu-input  isPositiveInteger inline-block"
+                                            type="text" placeholder="免息天数" />
+                                        <span>(天)</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">日利率：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="dailyRate" v-model="customer.dailyRate " class="form-control ivu-input ht-info-width isDecimal inline-block"
+                                            type="text" placeholder="日利率" />
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">信用额度：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" name="credits" type="text" class="ivu-input form-control ht-info-width inline-block" name="credits"
+                                            v-model="customer.credits" placeholder="信用额度" />
+                                        <span>元</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">石价表：</label>
+                                    <div class="col-xs-9">
+                                        <i-input :disabled="is_lock" v-model="customer.stonePriceCode" class="ht-info-width " style="width: 305px" icon="search"
+                                            @on-click="openReceipt"></i-input>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">代管仓：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="customer.wareHouse" :disabled="is_lock" name="" id="ck" class="ht-info-width">
+                                            <i-option value="">请选择</i-option>
+                                            <i-option v-for="ware in wares" :value="ware.id" v-if="(ware.status==1 &&  ware.isDel==1) || ware.id == customer.wareHouse">{{ware.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">有效状态：</label>
+                                    <div class="col-xs-9">
+                                        <input :disabled="is_lock" type="radio" v-model="customer.status" name="status" value="1" style="width: 30px">有效
+                                        <input :disabled="is_lock" type="radio" v-model="customer.status" name="status" value="0" style="width: 30px">无效
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">备注：</label>
+                                    <div class="col-xs-9">
+                                        <textarea :disabled="is_lock" name="remark" v-model="customer.remark" name="" placeholder="备注" id="remark" cols="30" rows="5"
+                                            class="form-control ht-info-width"></textarea>
+                                    </div>
+                                </div>
+                                <!-- <div class="form-group">
+                                <label class="col-xs-3"></label>
+                                <div class="col-xs-9">
+                                    <button type="button" class="btn btn-primary" >保存</button>
+                                    <button type="button" class="btn btn-primary" >返回</button>
+                                </div>
+                            </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        -->
+
+                                <div v-if="isView">
+                                    <!--联系人信息-->
+                                    <fieldset class="layui-elem-field layui-field-title">
+                                        <legend>联系人信息</legend>
+                                    </fieldset>
+                                    <table class="edit-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="width-xs">序号</th>
+                                                <th>姓名</th>
+                                                <th>手机号</th>
+                                                <th>Email邮箱</th>
+                                                <th>联系方式</th>
+                                                <th>微信</th>
+                                                <th>是否默认联系人</th>
+                                            </tr>
+                                        </thead>
+                                        <template v-show="customer.contacts.length>0">
+                                            <tbody v-for="(contact,index) in customer.contacts" v-show="contact.isDel=='1'">
+                                                <tr>
+                                                    <td class="">{{index +1}}</td>
+                                                    <td>
+                                                        <span>{{contact.name}}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span>{{contact.phone}}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span>{{contact.email}}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span>{{contact.landline}}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span>{{contact.wechat}}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span>{{contact.isDefault == 1 ?'是' :'否'}}</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </template>
+                                    </table>
+                                    <!--银行卡信息-->
+                                    <fieldset class="layui-elem-field layui-field-title">
+                                        <legend>银行卡信息</legend>
+                                    </fieldset>
+                                    <table class="edit-table">
+                                        <thead>
+                                            <tr>
+                                                <th>序号</th>
+                                                <th>开户银行</th>
+                                                <th>银行账号</th>
+                                                <th>开户人</th>
+                                                <th>是否默认</th>
+                                            </tr>
+                                        </thead>
+                                        <template v-show="customer.backCards.length>0">
+                                            <tbody v-for="(backCard,index) in customer.backCards" v-show="backCard.isDel=='1'">
+                                                <tr>
+                                                    <td>{{index+1}}</td>
+                                                    <td>
+                                                        {{backCard.name}}
+                                                    </td>
+                                                    <td>{{backCard.account}}</td>
+                                                    <td>{{backCard.holder}}</td>
+                                                    <td>
+                                                        {{backCard.isDefault == 1 ? '是' :'否'}}
+                                                    </td>
+
+                                                </tr>
+                                            </tbody>
+                                        </template>
+                                    </table>
+
+                                </div>
+
+                            </form>
+                        </div>
+                        <!-- tab2联系人信息 -->
+                        <div class="layui-tab-item">
+                            <div v-show="!isView">
+                                <!--<button class="btn btn-primary" >新增</button>-->
+                                <i-button type="primary" @click="addContact">新增</i-button>
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">序号</th>
+                                            <th>
+                                                <span class="star"></span>
+                                                姓名
+                                            </th>
+                                            <th>
+                                                <span class="star"></span>
+                                                手机号
+                                            </th>
+                                            <th>
+                                                <span class="star"></span>
+                                                Email邮箱
+                                            </th>
+                                            <th>联系方式</th>
+                                            <th>微信</th>
+                                            <th>是否默认联系人</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody v-for="(contact,index) in customer.contacts" v-show="contact.isDel=='1'">
+                                        <tr>
+                                            <td class="width-xs text-center">{{index+1}}</td>
+                                            <td>
+                                                <input :disabled="is_lock" type="text" v-model="contact.name" class="ivu-input">
+                                                <input :disabled="is_lock" type="text" v-model="contact.id" hidden>
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" @blur="validatephone(contact.phone)" v-model="contact.phone">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="contact.email" @blur="validatemail(contact.email)">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="contact.landline">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="contact.wechat">
+                                            </td>
+                                            <td class="text-center">
+                                                <input  :disabled="is_lock" type="checkbox" :checked="contact.isDefault == 1" @click="contactChecked(index)"
+                                                />
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="javascript:void(0)" @click="delContact(index,contact)">删除</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--订单信息-->
+                            <div v-show="isView">
+                                <div class="control-label" style="text-align: left">
+                                    <label>下单时间：</label>
+                                    <date-select class="inline-block" v-model="order.startDate"></date-select>
+                                    <span>~</span>
+                                    <date-select class="inline-block" v-model="order.endDate"></date-select>
+                                    <i-button type="primary">查询</i-button>
+                                </div>
+                                <table id="orderList">
+                                </table>
+                            </div>
+                        </div>
+                        <!-- tab3银行卡账户信息 -->
+                        <div class="layui-tab-item">
+                            <div v-if="!isView">
+                                <!--<button class="btn btn-primary"  @click="addbackcard()">新增</button>-->
+                                <i-button type="primary" @click="addbackcard">新增</i-button>
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">序号</th>
+                                            <th>
+                                                <span class="star"></span>
+                                                开户银行
+                                            </th>
+                                            <th>
+                                                <span class="star"></span>
+                                                银行账号
+                                            </th>
+                                            <th>
+                                                <span class="star"></span>
+                                                开户人
+                                            </th>
+                                            <th>是否默认</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody v-for="(backCard,index) in customer.backCards" v-show="backCard.isDel=='1'">
+                                        <tr>
+                                            <td class="width-xs text-center">{{index+1}}</td>
+                                            <td>
+                                                <input :disabled="is_lock" type="text" v-model="backCard.id" hidden/>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="backCard.name" />
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="backCard.account" />
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" :disabled="is_lock" type="text" v-model="backCard.holder" />
+                                            </td>
+                                            <td class="text-center">
+                                                <input  :disabled="is_lock" type="checkbox" :checked="backCard.isDefault == 1" @click="backCardChecked(index)"
+                                                />
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="javascript:void(0)" @click="delBackCard(index)">删除</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div v-if="isView">
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">序号</th>
+                                            <th>文件名</th>
+                                            <th>文件大小</th>
+                                            <th>上传人</th>
+                                            <th>上传时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item,index) in customer.sysFile.fileDetails">
+                                            <td class="width-xs text-center">{{index+1}}</td>
+                                            <td>
+                                                <input type="text" :value="item.fd_id" hidden> {{item.fdName}}
+                                            </td>
+                                            <td>
+                                                {{item.fdSize}}</td>
+                                            <td>{{item.uploadUser}}</td>
+                                            <td class="text-center">{{item.uploadTime}}</td>
+                                            <td class="text-center">
+                                                <a :href="'${rc.contextPath}/tbasecustomer/download?url='+item.fdUrl+'&name='+item.fdName">下载</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                        <!-- tab4附件信息 -->
+                        <div class="layui-tab-item">
+                            <div v-if="!isView">
+                                <i-button type="primary" @click="showUpload=true">上传文件</i-button>
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">序号</th>
+                                            <th>文件名</th>
+                                            <th>文件大小</th>
+                                            <th>上传人</th>
+                                            <th>上传时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-show="item.del==false" v-for="(item,index) in customer.sysFile.fileDetails">
+                                            <td class="width-xs text-center">{{index+1}}</td>
+                                            <td>
+                                                <input type="text" :value="item.fd_id" hidden> {{item.fdName}}
+                                            </td>
+                                            <td>
+                                                {{item.fdSize}}</td>
+                                            <td>{{item.uploadUser}}</td>
+                                            <td class="text-center">{{item.uploadTime}}</td>
+                                            <td class="text-center">
+                                                <a :href="'${rc.contextPath}/tbasecustomer/download?url='+item.fdUrl+'&name='+item.fdName">下载</a>
+
+                                                <a href="javascript:void(0)" @click.prevent="delfileDetails(index,item.fd_id)">删除</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div v-show="isView">
+                                <common-record-list :record_config="change_log" :url="logUrl"></common-record-list>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <Modal v-model="showUpload" title="上传文件" @on-ok="modalOk" @on-cancel="modalCancel">
+                <Upload ref="upload" :on-success="handleSuccess" :max-size="2048" :on-format-error="handleFormatError" :on-exceeded-size="handleMaxSize"
+                    :before-upload="handleBeforeUpload" multiple action="${rc.contextPath}/tbasecustomer/img">
+                    <i-button type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+                    <span>文件上传大小限制为2M以内</span>
+                </Upload>
+            </Modal>
+            <!--<div class="hide-render">-->
+            <!--<div id="uploadConfirm">-->
+            <!--<p>可批量上传jpg、png、bmp、jpeg等图片文件，电子发票支持pdf文件，最大支持批量上传2M</p>-->
+            <!--<button type="button" class="layui-btn" name="file" id="uploadfile" multiple="multiple">文件上传</button>-->
+            <!--</div>-->
+            <!--</div>-->
+        </div>
+    </div>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+    <script src="${rc.contextPath}/js/basedata/customer/customer-information.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

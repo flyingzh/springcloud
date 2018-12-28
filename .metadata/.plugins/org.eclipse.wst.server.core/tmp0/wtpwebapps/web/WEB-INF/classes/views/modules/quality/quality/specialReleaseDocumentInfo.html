@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+
+
+    <!-- 打印 lodop 组件 liuyu -->
+    <!--<script language="javascript"
+        src="${rc.contextPath}/plugins/Lodop/LodopFuncs.js"></script>
+    <script language="javascript"
+        src="${rc.contextPath}/plugins/Lodop/LodopCommFun.js"></script>-->
+
+    <!-- 以下js 文件 应该按页面需求引入 待讨论是否这样全局引入  -->
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/quality/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script
+            src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+    <link rel="stylesheet"
+          href="${rc.contextPath}/js/quality/specialReleaseOrder/index.css">
+    <style>
+        [v-cloak] {
+            display: none
+        }
+
+        .department-select .ivu-modal {
+            width: 70% !important;
+        }
+
+        .department-select .ivu-form-item {
+            display: inline-block;
+        }
+
+        .department-select .my-checkbox, .department-select .name,
+        .department-select .code {
+            display: inline-block;
+            text-align: center;
+            height: 30px;
+            line-height: 30px;
+        }
+
+        .department-select .my-checkbox {
+            width: 40px;
+            float: left;
+        }
+
+        .department-select .ivu-form-item {
+            margin-bottom: 0;
+        }
+
+        .department-select .name, .department-select .code {
+            width: 100px;
+            border-left: 1px solid #ccc;
+        }
+
+        .department-select .item {
+            border-top: 1px solid #ccc;
+        }
+
+        .ivu-table td.ht-number-right input {
+            text-align: right;
+        }
+
+        .ivu-table td.ht-number-right {
+            text-align: right;
+        }
+    </style>
+    <title>新增特别放行单</title>
+</head>
+
+<body>
+<div id="releaseOrder" v-cloak>
+    <div>
+        <!-- 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 -->
+        <modal title="审核" v-model="approveComment" :closable="false"
+               @on-ok="getApproveInfo">
+            <div>
+                <p class="mg-bm-md">
+                    <span>当前节点：{{currentStep}}</span> <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+                </p>
+                <span>审核意见</span>
+                <i-input type="textarea" :rows="4"
+                         v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+            </div>
+        </modal>
+        <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+        <modal title="驳回" v-model="rejectComment" :closable="false"
+               @on-ok="getRejectInfo">
+            <div>
+                <radio-group v-model="rejectement.approvalResult" class="mg-bm-md">
+                    <radio label="0">驳回上一级</radio>
+                    <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+                </radio-group>
+                <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+                <i-input type="textarea" :rows="4"
+                         v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+            </div>
+        </modal>
+
+        <div class="btn-menu ht-receivableW-menu ht-menu-fix">
+            #if($shiro.hasPermission("quality:specialReleaseDocument:add"))
+            <i-button type="text" @click="add">新增</i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:save"))
+            <i-button type="text"
+                      @click="isSourceDocument('save',1)"
+                      :disabled="documentStatusDisabled">保存
+            </i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:admit"))
+            <i-button type="text"
+                      @click="isSourceDocument('submit')"
+                      :disabled="documentStatusDisabled">提交
+            </i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:riskAssessment"))
+            <i-button type="text" @click="saveEV(2)"
+                      :disabled="riskEstimateDisabled">风险评估
+            </i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:approve"))
+            <i-button type="text" @click="approvalIndex">审核</i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:reject"))
+            <i-button type="text" @click="reject">驳回</i-button>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:list"))
+            <i-button type="text" @click="showlist">列表</i-button>
+            #end
+            <i-button type="text" @click="cancal">退出</i-button>
+        </div>
+        <div class="ht-menu-top">
+            <i-form label-width="100" ref="formValidate" :rules="ruleValidate" :model="formData">
+                <row>
+                    <i-col span="8">
+                        <form-item label="单据编号">
+                            <i-input style="width:200px"
+                                     v-model="formData.code" :disabled="true"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col
+                            span="8">
+                        <form-item label="单据日期"
+                                   prop="documentTime"
+                                   :disabled="applicationReasonsDisabled">
+                            <Date-picker
+                                    transfer
+                                    type="date"
+                                    style="width:200px"
+                                    @on-change="htTestChange"
+                                    :readonly="true"
+                                    clearable="false"
+                                    v-model="formData.documentTime" placeholder="选择日期"></Date-picker>
+                          </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item
+                                label="单据状态">
+                            <i-input disabled
+                                     v-model="formData.documentStatus" style="width:200px" value="暂存"></i-input>
+                            </form-item>
+                    </i-col>
+                </row>
+                <tabs value="name1">
+                    <tab-pane
+                            label="基本信息" name="name1">
+                        <div class="ht-approve-stamp" v-if="isStampShow">审核</div>
+                        <div class="ht-subtitle mg-top-md">
+                            <div>申请信息</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="申请部门" prop="departmentName">
+                                    <i-input
+                                            style="width: 200px;"
+                                            icon="search"
+                                             :disabled="releaseDisable"
+                                            readOnly="true"
+                                            v-model="formData.departmentName"
+                                             @on-click="showDepartmentTree('发出部门')"
+                                    ></i-input>
+                                    <div v-show="showDepartment === '发出部门'"
+                                         style="position: absolute; top: 33px; left: 0; z-index: 8; background: #fff; border: 1px solid #ccc;">
+                                        <ht-tree :init-load:="false" :node-data="queryalldeptList" ref="department"
+                                                 :setting="treeSetting"></ht-tree>
+                                    </div>
+                                </form-item>
+                                <form-item label="送检编号：">
+                                    <i-input style="width:200px"
+                                             class="inline-block"
+                                             :disabled="applicationReasonsDisabled"
+                                             icon="search"
+                                             @on-click="showTypeCode"
+                                             @on-change="htTestChange"
+                                             v-model="formData.sourceDocumentCode"
+                                    ></i-input>
+                                    <input type="text"
+                                           required name="code" v-model="formData.sourceDocumentCode"
+                                           class=" hidden-input "></form-item>
+                            </i-col>
+                            <i-col
+                                    span="8">
+                                <form-item label="申请人" prop="applicantName">
+                                    <i-select
+                                            v-model="formData.applicantName"
+                                            filterable
+                                            style="width:200px"
+                                            @on-change="htTestChange"
+                                            :disabled="applicationReasonsDisabled">
+                                        <i-option
+                                                v-for="item in queryAllEmpByDeptIdList" :value="item.empName"
+                                                :label="item.empName" :key="item.empCode">
+                                            <slot>{{item.empCode}}
+                                                | {{ item.empName }}
+                                            </slot>
+                                        </i-option>
+                                    </i-select>
+                                    </form-item>
+                                <form-item
+                                        label="检验单号">
+                                    <i-input disabled
+                                             v-model="formData.qcDocumentCode" style="width:200px"></i-input>
+                                    </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item
+                                        label="源单类型" prop="documentType">
+                                    <i-select
+                                            v-model="formData.documentType"
+                                            @on-change="htTestChange"
+                                              style="width:200px"
+                                            :disabled="applicationReasonsDisabled">
+                                        <i-option v-for="item in getDocumentTypeList" :value="item.value"
+                                                  :key="item.value" :disabled="applicationReasonsDisabled">
+                                            <slot>{{ item.name }}</slot>
+                                        </i-option>
+                                    </i-select>
+                                    </form-item>
+                                <form-item
+                                        label="供应商/客户">
+                                    <i-input disabled
+                                             v-model="formData.supplierCustomerCode" style="width:200px"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <form-item label="检验结论" prop="qcConclusion">
+                            <i-input
+                                    v-model="formData.qcConclusion" disabled type="textarea" :rows="4"
+                                    style="width:85%"></i-input>
+                        </form-item>
+                        <form-item
+                                label="申请原因" prop="applyReason">
+                            <i-input v-model="formData.applyReason"
+                                     @on-change="htTestChange"
+                                     type="textarea"
+                                     :rows="4"
+                                     :disabled="applicationReasonsDisabled"
+                                     style="width:85%"></i-input>
+                           </form-item>
+                        <div class="ht-subtitle mg-top-md">
+                            <div>待放行商品款式明细</div>
+                        </div>
+                        <div style="width: 85%">
+                            <div class="btn-menu">
+						<span class="pd-rg-md pd-lf-sm" @click="DeleteOneRow"
+                              :disabled="applicationReasonsDisabled">删除行</span>
+                            </div>
+                            <i-table border ref="selection" align="center" height="200"
+                                     :columns="unqualifiedStyleVoListColumns"
+                                     :data="formData.unqualifiedStyleVoList"
+                                     @on-selection-change="uVSelectChange"></i-table>
+                        </div>
+                        <div class="ht-subtitle mg-top-md">
+                            <div>风险评估</div>
+                        </div>
+                        <form-item label="确认人">
+                            <i-input disabled
+                                     v-model="formData.confirmer" style="width:200px"></i-input>
+                        </form-item>
+                        <form-item
+                                label="风险评估">
+                            <i-input
+                                    v-model="formData.riskEstimate"
+                                     :disabled="riskEstimateDisabled"
+                                    @on-change="htTestChange"
+                                    type="textarea"
+                                    :rows="4"
+                                     style="width:85%"></i-input>
+                        </form-item>
+                    </tab-pane>
+                    <tab-pane label="审批信息" name="name2">
+                        <steps :current="steplist[1] && steplist[1].currentLevel"
+                               style="margin-bottom: 20px;">
+                            <step
+                                    icon="checkmark-circled" v-for="item in steplist"
+                                    :title="item.processLevel"
+                                    :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+
+                        </steps>
+                        <div class="jqGrid_wrapper">
+                            <div id='gridContainer'>
+                                <table id="queryReceiptsByIdlist"></table>
+                            </div>
+
+                            <div id="queryReceiptsByIdlistpager"></div>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="其他" name="name3">
+                        <i-form
+                                :model="formData" label-width="120" style="width:85%">
+                            <row
+                                    class="mg-top-md">
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="创建人：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.createName"></i-input>
+                                        </form-item>
+                                        <form-item label="创建日期：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.createTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="修改人：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.updateName"></i-input>
+                                        </form-item>
+                                        <form-item label="修改日期：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.updateTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="审核人：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.examineVerifyName"></i-input>
+                                        </form-item>
+                                        <form-item label="审核日期：">
+                                            <i-input disabled
+                                                     style="width:200px" v-model="formData.examineVerifyTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </tab-pane>
+                    <tab-pane label="附件" name="name4">
+                        #parse("modules/public/access.html")
+
+
+                    </tab-pane>
+                </tabs>
+
+                <ht-sourcelist :show-modal="showSourceModal"
+                               :source-type="formData.documentType" @cancel="closeSourceModal"
+                               style="width:400px" v-on:input="callBackInfo"
+                               v-model="formData.sourceDocumentCode" @sure="closeSourceModal"></ht-sourcelist>
+            </i-form>
+        </div>
+    </div>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+
+
+<script
+        src="${rc.contextPath}/plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/utils.js"></script>
+<script
+        src='${rc.contextPath}/js/quality/specialReleaseOrder/ht-selectSourceList.js'></script>
+<script src='${rc.contextPath}/js/quality/components/ht-tree.js'></script>
+<script src='${rc.contextPath}/js/quality/components/ht-tree.js'></script>
+<script src='${rc.contextPath}/js/components/ht-close-modal.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='${rc.contextPath}/js/quality/specialReleaseOrder/index.js'></script>
+
+#parse("modules/public/footer.html")
+</body>
+
+</html>

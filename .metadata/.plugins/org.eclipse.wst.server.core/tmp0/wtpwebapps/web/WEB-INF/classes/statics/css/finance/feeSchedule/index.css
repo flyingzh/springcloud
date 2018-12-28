@@ -1,0 +1,22 @@
+.width200{
+    width: 200px;
+}
+.width120{
+    width: 120px;
+}
+.width80{
+    width: 80px;
+}
+.width260{
+    width: 260px;
+}
+.inline-block{
+    display: inline-block !important;
+}
+.h32{
+    height:32px;
+}
+.h300{
+    height: 300px;
+}
+/*.ui-jqgrid .ui-jqgrid-hdiv{overflow: auto !important;}*/

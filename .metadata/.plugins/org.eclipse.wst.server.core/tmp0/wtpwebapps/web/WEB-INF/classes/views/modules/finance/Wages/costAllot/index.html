@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>费用分配</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .filter .ivu-form-item{margin-bottom: 5px;}
+    </style>
+</head>
+
+<body>
+<div id="cost-allot" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="addFun" class="ht-btn">新增</button>
+        <button @click="editFun" class="ht-btn">修改</button>
+        <button @click="delFun" class="ht-btn">删除</button>
+        <button @click="voucherFun" class="ht-btn">生成凭证</button>
+        <button @click="vmFun" class="ht-btn">凭证管理</button>
+        <button @click="closeWindow" class="ht-btn">退出</button>
+    </div>
+    <p class="mt10">
+        <label class="w80 text-right">工资类别：</label>
+        <i-select class="w200" v-model="formData.wageCategoryId" @on-change="selectDefault">
+            <i-option v-for="item in wageCategoryList" :value="item.id" :label="item.categoryName" :key="item.id" />
+        </i-select>
+    </p>
+    <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
+        <table id="grid"></table>
+    </div>
+    <div class="ht-subtitle mt10 ml0">
+        <div>生成凭证选项设置</div>
+    </div>
+    <div class="ml20">
+        <label>
+            <checkbox v-model="formData.scarletLetterSterilisation">红字冲销凭证</checkbox>
+        </label>
+        <label class="ml20">
+            <checkbox v-model="formData.summaryOfCostItems">相同费用科目汇总</checkbox>
+        </label>
+        <label class="ml20">
+            <checkbox v-model="formData.summaryOfSalarySubjects">相同工资科目汇总</checkbox>
+        </label>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/finance/Wages/costAllot/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

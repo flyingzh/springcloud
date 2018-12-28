@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>固定资产构成分析表</title>
+    #parse("modules/public/header.html")
+    <style>
+        .filter .ivu-form-item{margin-bottom: 5px;}
+        .pageTitle1 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .subtotalClass {
+            background: #FFFFBB;
+        }
+        .alltotalClass {
+            background: #FFDD55;
+        }
+
+        .ui-jqgrid tr.jqgrow td {
+            white-space: normal !important;
+            height:auto;
+            vertical-align:text-top;
+            padding-top:2px;
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="fixed-assets-composition-analysis" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshFun">刷新</button>
+            <button class="ht-btn" @click="openFun">打开</button>
+            <button class="ht-btn" @click="exportExcel">引出</button>
+            <button class="ht-btn" @click="printV">打印</button>
+            <button class="ht-btn" @click="exitThisPage">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            <span class="mr20 pageTitle1">固定资产构成分析表</span>
+            <span class="mr20">会计期间：{{dateStr}}</span>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <table id="grid"></table>
+            <!--<div id="page"></div>-->
+        </div>
+        <!-- 过滤 -->
+        <Modal v-model="filterVisible" class="filter" width="350px" title="过滤" :mask-closable="false">
+            <i-form :model="formData" label-width="80">
+                <form-item label="所属组织：">
+                    <i-input class="calc-w80" v-model="orgName" disabled> </i-input>
+                </form-item>
+                <form-item label="会计年度：">
+                    <i-select v-model="formData.accountYear" class="inline-block" filterable :disabled="formData.initPeriod">
+                        <i-option v-for="item in yearList" :value="item.value" :key="item.value">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </form-item>
+                <form-item label="会计期间：">
+                    <i-select v-model="formData.accountPeriod" class="inline-block" filterable :disabled="formData.initPeriod">
+                        <i-option v-for="item in monthList" :value="item.name" :key="item.name">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </form-item>
+                <p>
+                    <input type="checkbox" v-model="formData.initPeriod"> 初始化期间
+                </p>
+                <form-item label="构成项目：">
+                    <i-select v-model="formData.item" class="inline-block">
+                        <i-option v-for="item in itemList" :value="item.value" :key="item.value">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </form-item>
+
+            </i-form>
+            <div slot="footer">
+                <i-button @click="saveFun" type="primary">确定</i-button>
+                <i-button @click="cancelFun">取消</i-button>
+            </div>
+        </Modal>
+
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+    #parse("modules/public/footer.html")
+</body>
+<script>
+    htLoadJs([
+        'ht-print-choose',
+        '${rc.contextPath}/js/finance/FixedAssets/FixedAssetsCompositionAnalysis/index.js'
+    ])
+</script>
+
+</html>

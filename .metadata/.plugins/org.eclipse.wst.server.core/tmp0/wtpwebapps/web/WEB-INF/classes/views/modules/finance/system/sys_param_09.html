@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>业务参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>采购参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">采购订单交货提前预警天数：</label>
+                <div class="col-sm-7">
+                    <input v-model="purchaseWarnDay.value" class="form-control" type="number" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">基本选项：</label>
+                <div class="col-sm-7">
+                    <label class="checkbox-inline">
+                        <input v-model="purchaseQuantityContrast.value" type="checkbox" true-value="1" false-value="0">
+                        允许采购入库单上数量大于采购订单上的数量
+                    </label>
+                </div>
+            </div>
+
+            <fieldset class="layui-elem-field layui-field-title mt30">
+                <legend>销售参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">销售订单交货提前预警天数：</label>
+                <div class="col-sm-7">
+                    <input v-model="salesWarnDay.value" class="form-control" type="number" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">基本选项：</label>
+                <div class="col-sm-7">
+                    <label class="checkbox-inline">
+                        <input v-model="salesQuantityContrast.value" type="checkbox" true-value="1" false-value="0">
+                        允许销售出库单上数量大于销售订单上的数量
+                    </label>
+                </div>
+            </div>
+
+            <fieldset class="layui-elem-field layui-field-title mt30">
+                <legend>仓存参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">保质期预警提前天数：</label>
+                <div class="col-sm-7">
+                    <input v-model="storageOverdueWarnDay.value" class="form-control" type="number" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">呆滞料预警（物料无发生额天数）：</label>
+                <div class="col-sm-7">
+                    <input v-model="storageSlowMovingWarn.value" class="form-control" type="number" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">基本选项：</label>
+                <div class="col-sm-7">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="storageHighestRemind.value" true-value="1" false-value="0" />
+                            库存总量高于或等于最高库存提示
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="storageLowestRemind.value" true-value="1" false-value="0" />
+                            库存总量低于或等于最低库存提示
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="storageLoadRemind.value" true-value="1" false-value="0" />
+                            出现负库存时提示
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <fieldset class="layui-elem-field layui-field-title mt30">
+                <legend>存货核算参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">暂估差额生成方式：</label>
+                <div class="col-sm-7">
+                    <label class="radio-inline">
+                        <input v-model="stockMakeDifferenceMethod.value" type="radio" name="p1008" value="0"> 单到冲回
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="stockMakeDifferenceMethod.value" type="radio" name="p1008" value="1"> 差额调整
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-5 control-label">基本选项：</label>
+                <div class="col-sm-7">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="stockNoTallyDocument.value" true-value="1" false-value="0" />
+                            结账检查未记账的单据
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="stockAllocateCertificate.value" true-value="1" false-value="0" />
+                            同价调拨单生成凭证
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-5"></label>
+                <div class="col-sm-7">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                purchaseQuantityContrast: {
+                    id: "",
+                    value: "0",
+                    readOnly: "",
+                    sobId: ""
+                },
+                purchaseQuantityContrast_init: "",
+                purchaseWarnDay: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                purchaseWarnDay_init: "",
+                salesQuantityContrast: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                salesQuantityContrast_init: "",
+                salesWarnDay: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                salesWarnDay_init: "",
+                storageHighestRemind: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                storageHighestRemind_init: "",
+                storageLowestRemind: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                storageLowestRemind_init: "",
+                storageLoadRemind: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                storageLoadRemind_init: "",
+                storageOverdueWarnDay: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                storageOverdueWarnDay_init: "",
+                storageSlowMovingWarn: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                storageSlowMovingWarn_init: "",
+                stockNoTallyDocument: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                stockNoTallyDocument_init: "",
+                stockAllocateCertificate: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                stockAllocateCertificate_init: "",
+                stockMakeDifferenceMethod: {
+                    id: "",
+                    value: "",
+                    readOnly: "",
+                    sobId: ""
+                },
+                stockMakeDifferenceMethod_init: "",
+            },
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.purchaseQuantityContrast.value != vm.purchaseQuantityContrast_init) {
+                        array.push(vm.purchaseQuantityContrast);
+                        vm.purchaseQuantityContrast_init = vm.purchaseQuantityContrast.value;
+                    }
+                    if (vm.purchaseWarnDay.value != vm.purchaseWarnDay_init) {
+                        array.push(vm.purchaseWarnDay);
+                        vm.purchaseWarnDay_init = vm.purchaseWarnDay.value;
+                    }
+                    if (vm.salesQuantityContrast.value != vm.salesQuantityContrast_init) {
+                        array.push(vm.salesQuantityContrast);
+                        vm.salesQuantityContrast_init = vm.salesQuantityContrast.value;
+                    }
+                    if (vm.salesWarnDay.value != vm.salesWarnDay_init) {
+                        array.push(vm.salesWarnDay);
+                        vm.salesWarnDay_init = vm.salesWarnDay.value;
+                    }
+                    if (vm.storageHighestRemind.value != vm.storageHighestRemind_init) {
+                        array.push(vm.storageHighestRemind);
+                        vm.storageHighestRemind_init = vm.storageHighestRemind.value;
+                    }
+                    if (vm.storageLowestRemind.value != vm.storageLowestRemind_init) {
+                        array.push(vm.storageLowestRemind);
+                        vm.storageLowestRemind_init = vm.storageLowestRemind.value;
+                    }
+                    if (vm.storageLoadRemind.value != vm.storageLoadRemind_init) {
+                        array.push(vm.storageLoadRemind);
+                        vm.storageLoadRemind_init = vm.storageLoadRemind.value;
+                    }
+                    if (vm.storageOverdueWarnDay.value != vm.storageOverdueWarnDay_init) {
+                        array.push(vm.storageOverdueWarnDay);
+                        vm.storageOverdueWarnDay_init = vm.storageOverdueWarnDay.value;
+                    }
+                    if (vm.storageSlowMovingWarn.value != vm.storageSlowMovingWarn_init) {
+                        array.push(vm.storageSlowMovingWarn);
+                        vm.storageSlowMovingWarn_init = vm.storageSlowMovingWarn.value;
+                    }
+                    if (vm.stockNoTallyDocument.value != vm.stockNoTallyDocument_init) {
+                        array.push(vm.stockNoTallyDocument);
+                        vm.stockNoTallyDocument_init = vm.stockNoTallyDocument.value;
+                    }
+                    if (vm.stockAllocateCertificate.value != vm.stockAllocateCertificate_init) {
+                        array.push(vm.stockAllocateCertificate);
+                        vm.stockAllocateCertificate_init = vm.stockAllocateCertificate.value;
+                    }
+                    if (vm.stockMakeDifferenceMethod.value != vm.stockMakeDifferenceMethod_init) {
+                        array.push(vm.stockMakeDifferenceMethod);
+                        vm.stockMakeDifferenceMethod_init = vm.stockMakeDifferenceMethod.value;
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: "POST",
+                            contentType: 'application/json;charset=utf-8',
+                            url: "${rc.contextPath}/systemProfileController/updateBatch",
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    alert("更改成功！");
+                                } else {
+                                    alert("更改失败！");
+                                }
+                            }
+
+                        });
+                    } else {
+                        alert("暂无数据提交！");
+                    }
+                }
+            },
+            created: function () {
+                //查询系统信息参数
+                var sysUrl = "${rc.contextPath}/systemProfileController/queryByType?type=业务参数&sobId=1"
+                $.ajax({
+                    type: "POST",
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'purchaseQuantityContrast') {
+                                vm.purchaseQuantityContrast = dataObj[i];
+                                vm.purchaseQuantityContrast_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'purchaseWarnDay') {
+                                vm.purchaseWarnDay = dataObj[i];
+                                vm.purchaseWarnDay_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salesQuantityContrast') {
+                                vm.salesQuantityContrast = dataObj[i];
+                                vm.salesQuantityContrast_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'salesWarnDay') {
+                                vm.salesWarnDay = dataObj[i];
+                                vm.salesWarnDay_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'storageHighestRemind') {
+                                vm.storageHighestRemind = dataObj[i];
+                                vm.storageHighestRemind_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'storageLowestRemind') {
+                                vm.storageLowestRemind = dataObj[i];
+                                vm.storageLowestRemind_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'storageLoadRemind') {
+                                vm.storageLoadRemind = dataObj[i];
+                                vm.storageLoadRemind_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'storageOverdueWarnDay') {
+                                vm.storageOverdueWarnDay = dataObj[i];
+                                vm.storageOverdueWarnDay_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'storageSlowMovingWarn') {
+                                vm.storageSlowMovingWarn = dataObj[i];
+                                vm.storageSlowMovingWarn_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'stockNoTallyDocument') {
+                                vm.stockNoTallyDocument = dataObj[i];
+                                vm.stockNoTallyDocument_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'stockAllocateCertificate') {
+                                vm.stockAllocateCertificate = dataObj[i];
+                                vm.stockAllocateCertificate_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'stockMakeDifferenceMethod') {
+                                vm.stockMakeDifferenceMethod = dataObj[i];
+                                vm.stockMakeDifferenceMethod_init = dataObj[i].value;
+                            }
+                        }
+                    }
+                });
+            },
+            mounted: function () {
+                $('form').validate();
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

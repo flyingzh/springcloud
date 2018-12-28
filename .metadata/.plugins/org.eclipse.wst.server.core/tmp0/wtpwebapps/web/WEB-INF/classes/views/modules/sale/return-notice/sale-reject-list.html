@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+	<style>
+		.form-content {
+			padding: 30px 30px 30px 0px;
+		}
+	</style>
+	<title>销售退货通知单列表</title>
+</head>
+
+<body>
+<div id="sale-reject-list" v-cloak>
+	<ht-approve-reject
+			:trigger="modalTrigger"
+			:modal-type="modalType"
+			:receipt-id="addBody.documentNo"
+			:receipt-status="addBody.documentStatus"
+			:step-list.sync="stepList"
+			url-check='${rc.contextPath}/tSaleReturnNotice/findUserOperation'
+			url-init-approve='${rc.contextPath}/tSaleReturnNotice/queryProcessByReceiptsId'
+			url-approve='${rc.contextPath}/tSaleReturnNotice/submitApproval'
+			@on-auto-approve="approvalOrRejectCallBack"
+			@on-approve="approvalOrRejectCallBack"
+			@on-reject="approvalOrRejectCallBack">
+	</ht-approve-reject>
+	<div class="btn-menu">
+		<span class="pd-rg-md pd-lf-sm" @click="refresh">刷新</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="add">新增</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="deleteData">删除</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="modify">修改</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="submit">提交</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+		<!--<span class="pd-rg-sm pd-lf-sm" @click="copyData">预览</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="copyData">打印</span>
+		<span class="pd-rg-sm pd-lf-sm" @click="copyData">附件</span>-->
+		<span class="pd-rg-md pd-lf-sm" @click="cancel">退出</span>
+	</div>
+	<!-- 搜索部分 -->
+	<i-form class="form-content" label-width="120" v-show="isHideSearch">
+		<!-- row代表行 -->
+		<row>
+			<i-col span="8">
+				<form-item label="业务类型：">
+					<i-select class="ht-width-md" clearable @on-clear="clearType" v-model="body.businessType" ref="mType">
+						<i-option v-for="item in businessTypeList" :value="item.value">{{item.label}}</i-option>
+					</i-select>
+				</form-item>
+				<form-item label="客户：">
+					<ht-customer-list
+							v-model="customerModel"
+							@sure="closeCustomer"
+							is-check="no"
+							ref="customerRef"
+                            is-check="no"
+					>
+					</ht-customer-list>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="单据编号：">
+					<i-input type="text" v-model='body.documentNo' class="ht-width-md" placeholder="可模糊搜索"
+							 style="width: 200px"></i-input>
+				</form-item>
+			</i-col>
+			<i-col span="8">
+				<form-item label="日期：">
+					<date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange"
+								 placement="bottom-end" placeholder="Select date" class="ht-width-md"></date-picker>
+				</form-item>
+				<form-item>
+					<ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+							 class="inline-block"></ht-btns>
+				</form-item>
+			</i-col>
+		</row>
+	</i-form>
+
+
+	<!-- 隐藏按钮 -->
+	<div>
+		<ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+	</div>
+	<!-- 列表部分 -->
+	<div>
+		<base-data-list table_id="myTable" v-show="isHideList" :data_config="data_config" :need-reload="reload"
+						v-model="selected"></base-data-list>
+	</div>
+</div>
+<script>
+    htLoadJs([
+        'ht-toggle',
+        'ht-approve-reject',
+        '${rc.contextPath}/js/components/ht-customer-list.js',
+        '${rc.contextPath}/js/sale/return-notice/sale-reject-list.js'
+	]);
+</script>
+#parse("modules/public/footer.html") </body>
+
+</html>

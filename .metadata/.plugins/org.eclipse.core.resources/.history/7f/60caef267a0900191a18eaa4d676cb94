@@ -1,0 +1,450 @@
+package com.htrfid.financeapp.remote;
+
+import com.htrfid.exception.MyException;
+import com.htrfid.finance.entity.VoucherEntity;
+import com.htrfid.finance.vo.VoucherQueryResultVO;
+import com.htrfid.finance.vo.VoucherQueryVO;
+import com.htrfid.finance.vo.VoucherVO;
+import com.htrfid.registry.consul.model.NewRequestMapping;
+import com.htrfid.util.Result;
+import org.springframework.cloud.netflix.feign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author lirui
+ * @version V1.0
+ * @className VoucherRemoteService
+ * @description 凭证服务远程调用Service
+ * @email lr@htrfid.com
+ * @date 2018-06-19 14:51
+ **/
+@FeignClient(value = "service-finance")
+@RequestMapping("/voucher")
+public interface VoucherRemoteService {
+
+    /**
+     * @param sobId                账套ID
+     * @param voucherGroupId       凭证字ID
+     * @param currentAccountYear   当前会计年度
+     * @param currentAccountPeriod 当前年度会计区间
+     * @return com.htrfid.util.Result
+     * @description: 获取当前会计年度会计期间最大凭证号
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-21 9:12
+     */
+    @RequestMapping(value = "/getSerialNum", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result getSerialNum(@RequestParam(value = "sobId") Long sobId,
+                        @RequestParam(value = "voucherGroupId") Long voucherGroupId,
+                        @RequestParam(value = "currentAccountYear") Integer currentAccountYear,
+                        @RequestParam(value = "currentAccountPeriod") Integer currentAccountPeriod);
+
+    /**
+     * @param voucherVO
+     * @return com.htrfid.util.Result
+     * @description:保存凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 10:32
+     */
+    @RequestMapping(value = "/saveOrUpdate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result saveOrUpdate(@RequestBody VoucherVO voucherVO, @RequestParam("userId") Long userId,
+                               @RequestParam("userName") String userName);
+
+
+    /**
+     * @param
+     * @return com.htrfid.util.Result
+     * @description:删除凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 17:41
+     */
+    @RequestMapping(value = "/deleteVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result deleteVoucher(@RequestParam("voucherId") Long voucherId, @RequestParam("sobId") Long sobId);
+
+    /**
+     * @param sobId     账套id
+     * @param voucherId 凭证id
+     * @param userId
+     * @param userName
+     * @return com.htrfid.util.Result
+     * @description: 凭证审核/反审核
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 16:34
+     */
+    @RequestMapping(value = "/approvalVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result approvalVoucher(@RequestParam("sobId") Long sobId,
+                                  @RequestParam("voucherId") Long voucherId,
+                                  @RequestParam("userId") Long userId,
+                                  @RequestParam("userName") String userName,
+                                  @RequestParam("type") Integer type);
+
+    /**
+     * @param sobId     账套id
+     * @param voucherId 凭证id
+     * @return com.htrfid.util.Result
+     * @description: 凭证复制
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 16:33
+     */
+    @RequestMapping(value = "/copyVoucher", method = RequestMethod.POST)
+    public Result copyVoucher(@RequestParam("sobId") Long sobId, @RequestParam("voucherId") Long voucherId);
+
+
+    /**
+     * @return com.htrfid.util.Result
+     * @description: 查询凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-25 19:30
+     */
+    @RequestMapping(value = "/infoVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result infoVoucher(@RequestBody VoucherEntity voucher);
+
+
+    /**
+     * @param sobId, voucherId
+     * @return com.htrfid.util.Result
+     * @description: 红字冲销
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-27 8:26
+     */
+    @RequestMapping(value = "/writeOff", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result writeOff(@RequestParam("sobId") Long sobId,
+                           @RequestParam("voucherId") Long voucherId);
+
+
+    /**
+     * @param
+     * @return
+     * @description 凭证汇总表数据
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date 2018/7/2 18:46
+     */
+    @RequestMapping(value = "/voucherCount", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result voucherCount(@RequestParam("subjctStartNum") Integer subjctStartNum,
+                               @RequestParam("subjctEndNum") Integer subjctEndNum,
+                               @RequestParam("startDate") String startDate,
+                               @RequestParam("endDate") String endDate,
+                               @RequestParam(value = "startVoucherNum", required = false) Integer startVoucherNum,
+                               @RequestParam(value = "endVoucherNum", required = false) Integer endVoucherNum,
+                               @RequestParam(value = "voucherId", required = false) Long voucherId
+    );
+
+    /**
+     * @param
+     * @return
+     * @description 获取借贷款总金额
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date 2018/7/2 18:47
+     */
+    @RequestMapping(value = "/queryVoucherEnclosure", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result queryVoucherEnclosure(@RequestParam("startDate") String startDate,
+                                        @RequestParam("endDate") String endDate,
+                                        @RequestParam(value = "startVoucherNum", required = false) Integer startVoucherNum,
+                                        @RequestParam(value = "endVoucherNum", required = false) Integer endVoucherNum,
+                                        @RequestParam(value = "voucherId", required = false) Long voucherId
+    );
+
+    /**
+     * @param voucherEntity
+     * @return com.htrfid.util.Result
+     * @description: 查询凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-27 16:14
+     */
+    @RequestMapping(value = "/queryVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result queryVoucher(@RequestBody VoucherEntity voucherEntity);
+
+    /**
+     * @param voucherEntity
+     * @return com.htrfid.util.Result
+     * @description:查询凭证(试算平衡调用)
+     * @author sxy
+     * @eamil sunxiaoyu@tobosoft.com.cn
+     * @date 2018-07-02 19:18
+     */
+    @RequestMapping(value = "/queryVoucherList", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result queryVoucherList(@RequestBody VoucherEntity voucherEntity);
+
+
+    /**
+     * @param
+     * @return
+     * @description
+     * @author lxy 查凭证
+     * @eamil lxyyxljava@163.com
+     * @date 2018/7/4 10:21
+     */
+    @RequestMapping(value = "/queryVoucherByVo", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Map<String, Object> queryVoucherByVo(@RequestBody(required = false) VoucherQueryVO voucherQueryVO);
+
+    /**
+     * @param
+     * @return
+     * @description 导出凭证 列表
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date 2018-10-16 14:56
+     */
+    @RequestMapping(value = "/exportVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    List<VoucherQueryResultVO> exportVoucher(@RequestBody(required = false) VoucherQueryVO voucherQueryVO);
+
+    /**
+     * @param
+     * @return
+     * @description: 查询凭证列表
+     * @author wangchunqiang
+     * @eamil wcq@htrfid.com
+     * @date 2018-07-04 17:11
+     */
+    @RequestMapping(value = "/list", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result list(@RequestBody VoucherEntity voucherEntity);
+
+    /**
+     * @param accountYear
+     * @param accountPeriod
+     * @param sobId
+     * @return 有断号返回true，无断号返回false
+     * @description: 检查会计期间内是否存在凭证号断号
+     * @author wangchunqiang
+     * @eamil wcq@htrfid.com
+     * @date 2018-07-07 15:34
+     */
+    @RequestMapping(value = "/checkVoucherNumberNonSequence", method = RequestMethod.POST)
+    boolean checkVoucherNumberNonSequence(@RequestParam("accountYear") int accountYear,
+                                          @RequestParam("accountPeriod") int accountPeriod,
+                                          @RequestParam("sobId") Long sobId);
+
+    /**
+     * @param
+     * @return com.htrfid.util.Result
+     * @description: 凭证过账
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-04 19:34
+     */
+    @RequestMapping(value = "/voucherPassBill", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result voucherPassBill(@RequestParam("ids[]") Long[] ids,
+                                  @RequestParam("sobId") Long sobId,
+                                  @RequestParam("userId") Long userId,
+                                  @RequestParam("userName") String userName) throws MyException;
+
+
+    @RequestMapping(value = "/queryVoucherEntryByVo", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<VoucherQueryResultVO> queryVoucherEntryByVo(@RequestBody(required = false) VoucherQueryVO voucherQueryVO);
+
+
+    /**
+     * @param
+     * @return
+     * @description
+     * @author lxy 获取会计期间
+     * @eamil lxyyxljava@163.com
+     * @date 2018/7/6 14:54
+     */
+    @RequestMapping(value = "/getVoucherDate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    List<Map<String, Object>> getVoucherDate(@RequestParam("sobId") Long sobId);
+
+    /**
+     * @param
+     * @param accountYear
+     * @param accountPeriod
+     * @param sobId         @return com.htrfid.util.Result
+     * @description: 凭证整理
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-05 16:58
+     */
+    @RequestMapping(value = "/sort", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result sortVoucher(@RequestParam("accountYear") Integer accountYear,
+                              @RequestParam("accountPeriod") Integer accountPeriod, @RequestParam("sobId") Long sobId);
+
+    /**
+     * @param ids
+     * @return Result
+     * @description:批量删除凭证
+     * @author lirui
+     * @eamil lr@htrfid.com
+     * @date 2018-06-13 17:39:55
+     */
+    @RequestMapping(value = "/deleteBatch", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result deleteBatch(@RequestParam(value = "ids[]") Long[] ids, @RequestParam("sobId") Long sobId);
+
+    /**
+     * @param
+     * @return com.htrfid.util.Result
+     * @description:删除机制凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 17:41
+     */
+    @RequestMapping(value = "/deleteMechanismVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result deleteMechanismVoucher(@RequestParam("voucherId") Long voucherId,
+                                         @RequestParam("sobId") Long sobId,
+                                         @RequestParam("currentUserId") Long currentUserId,
+                                         @RequestParam("username") String username);
+
+    /**
+     * 批量删除机制凭证
+     *
+     * @param
+     * @return
+     * @description:TODO
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-07-10 15:10
+     */
+    @RequestMapping(value = "/deleteMechanismVoucherBatch", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result deleteMechanismVoucherBatch(@RequestParam("sobId") Long sobId,
+                                       @RequestParam("ids[]") Long[] ids,
+                                       @RequestParam("currentUserId") Long currentUserId,
+                                       @RequestParam("username") String username);
+
+
+    /**
+     * @param sobId
+     * @return com.htrfid.util.Result
+     * @description: 获取会计年度区间  凭证最早年度到凭证最大最大年度
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-12 8:30
+     */
+    @RequestMapping(value = "/getFinanceYearPeriod", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result getFinanceYearPeriod(@RequestParam("sobId") Long sobId);
+
+
+    /**
+     * @param sobId
+     * @return com.htrfid.util.Result
+     * @description: 获取会计年度区间  凭证最早年度到凭证最大最大年度
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-07-12 8:30
+     */
+    @RequestMapping(value = "/selectIds", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<Long> selectIds(@RequestParam("sobId") Long sobId);
+
+    @RequestMapping(value = "/queryMechanismCertificate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Map<String, Object> queryMechanismCertificate(@RequestBody(required = false) VoucherQueryVO voucherQueryVO);
+
+    /**
+     * 删除机制凭证 异常时调用删除
+     *
+     * @param
+     * @return
+     * @description:TODO
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-08-02 17:18
+     */
+    @RequestMapping(value = "/deleteMechanismVouchere", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result deleteMechanismVouchere(@RequestParam("sobId") Long sobId,
+                                   @RequestParam("voucherId") Long voucherId,
+                                   @RequestParam("ownershipSystem") Integer ownershipSystem);
+
+
+    /**
+     * @param [sobId, ids, userId, userName, type]
+     * @return com.htrfid.util.Result
+     * @description: 批量审核、反审核
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-17 15:16
+     */
+    @RequestMapping(value = "/approvalVoucherBatch", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result approvalVoucherBatch(@RequestParam("sobId") Long sobId,
+                                @RequestParam(value = "ids[]") Long[] ids,
+                                @RequestParam("userId") Long userId,
+                                @RequestParam("userName") String userName,
+                                @RequestParam("type") Integer type);
+
+    /**
+     * @param sobId
+     * @return com.htrfid.util.Result
+     * @description: 查询是否已存在审核 过账的凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-08-17 15:16
+     */
+    @RequestMapping(value = "/queryVoucherType", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result queryVoucherType(@RequestParam("sobId") Long sobId);
+
+
+    /**
+     * @param entity
+     * @return com.htrfid.util.Result
+     * @description: 查询是否有生成计提折旧凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-09-26 17:15
+     */
+    @RequestMapping(value = "/queryDepreciationVoucher", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    Result queryDepreciationVoucher(@RequestBody VoucherEntity entity);
+
+    /**
+     * @param VoucherEntity
+     * @return Boolean true:已生成 false:未生成
+     * @description:查询当前期与以后期是否生成凭证
+     * @author yaoliang
+     * @eamil yaoliang1102@163.com
+     * @date 2018-10-15 15:35
+     */
+    @RequestMapping(value = "/getFaVoucherCurrenAndAfter", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Boolean getFaVoucherCurrenAndAfter(@RequestBody VoucherEntity entity);
+
+    /** map中封装的参数为:year sobId endPeriod startPeriod belongSystem
+     * @description:TODO 查询工资的凭证管理列表
+     * @author tangmi
+     * @eamil tangmi6698@163.com
+     * @date 2018-12-19 14:38
+     * @param year 会计年度
+     * @param sobId 组织id
+     * @param endPeriod 结束期间
+     * @param startPeriod 开始期间
+     * @param belongSystem 所属系统
+     * @return com.htrfid.util.Result
+     */
+    @RequestMapping(value = "/wageVoucherManagement", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result wageVoucherManagement(@RequestParam("year") Integer year,
+                                        @RequestParam("startPeriod") Integer startPeriod,
+                                        @RequestParam("endPeriod") Integer endPeriod,
+                                        @RequestParam("sobId") Long sobId);
+    
+    
+    /**
+     * 
+     * @Title: saveVoucherBatch   
+     * @Description: 批量保存凭证 -----for OA
+     * @author: zhengfei
+     * @Email: 936864724@qq.com
+     * @date: 2018年12月27日 上午9:30:48
+     * @param voucherVOs
+     * @param currentUser 
+     * @return    
+     * 			  
+     *    Result(List<Map<String,Long>>)   
+     *    key:voucherId
+     *    key:orgId
+     *          
+     * @throws
+     */
+    @RequestMapping(value = "/saveVoucherBatch",  method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Result saveVoucherBatch(@RequestBody List<VoucherVO> voucherVOs, @RequestParam("userId") Long userId, @RequestParam("userName") String userName);
+    
+}
+

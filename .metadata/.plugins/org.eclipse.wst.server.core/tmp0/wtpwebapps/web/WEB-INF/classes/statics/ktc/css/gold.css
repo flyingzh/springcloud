@@ -1,0 +1,32 @@
+.gradient{
+    filter:alpha(opacity=100 finishopacity=100 style=1 startx=0,starty=0,finishx=0,finishy=150) progid:DXImageTransform.Microsoft.gradient(startcolorstr=#fff5d9,endcolorstr=#f5dfab,gradientType=0);	
+    -ms-filter:alpha(opacity=100 finishopacity=100 style=1 startx=0,starty=0,finishx=0,finishy=150) progid:DXImageTransform.Microsoft.gradient(startcolorstr=#fff5d9,endcolorstr=#f5dfab,gradientType=0);	
+	background:#fff5d9;
+    background:-moz-linear-gradient(top, #fff5d9, #d6a638);
+    background:-webkit-gradient(linear, 0 0, 0 bottom, from(#fff5d9), to(#d6a638));
+}
+
+/* login */
+.logo-login{background:transparent url("../img/logo-login.png") center top no-repeat;height:160px;margin-top:0;}
+
+/* color #cc9966 */
+.clr-main{color:#581C1B;}
+.clr-sub{color:#f5dfab;}
+.clr-sub-more{color:#d6a638;}
+.clr-less{color:#fff5d9;}
+
+.bgclr-main{background-color:#581C1B  !important;}
+.bgclr-sub{background-color:#f5dfab !important;}
+.bgclr-sub-more{background-color:#d6a638 !important;}
+.bgclr-sub-less{background-color:#fff5d9 !important;}
+
+.bdrclr-main{border-color:#581C1B !important;}
+.bdrclr-sub{border-color:#f5dfab !important;}
+.bdrclr-sub-more{border-color:#d6a638 !important;}
+.bdrclr-less{border-color:#fff5d9 !important;}
+
+/* form controller */
+.login-box-body{padding: 40px 35px 35px;}
+.form-control:focus{border-color:#d6a638;}
+.btn-primary, .btn-primary:focus{background-color:#d6a638 !important;border-color:#d6a638;}
+.btn-primary:hover{background-color:#581C1B !important;border-color:#581C1B;}

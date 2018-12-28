@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>A009供应商列表</title>
+    <style>
+        /*.ivu-select{*/
+
+        /*width:200px !important;*/
+
+        /*}*/
+
+        /*.ht-width-input{*/
+
+        /*width:200px !important;*/
+
+        /*border:1px solid #dddee1 !important;*/
+
+        /*}*/
+
+        .ivu-input-icon-normal+.ivu-input {
+            width: 305px;
+        }
+
+        table.edit-table td,
+        th {
+            width: 150px;
+            height: 40px;
+            padding: 0;
+            border: 1px solid #C9C9C9;
+            position: relative;
+        }
+
+        .control-label:not(.ivu-select) {
+            text-align: right;
+        }
+
+        .select-area textarea {
+            width: 305px;
+            margin-top: 10px;
+        }
+
+        #supplier2 .ht-width {
+            width: 305px;
+            display: inline-block;
+        }
+
+        .select-area textarea {
+            width: 305px;
+        }
+    </style>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="supplier-info" style="width: 100%" v-cloak>
+        <div id="popup" v-show="showModal">
+            <modal v-model="showModal" title="选择组织" @on-ok="okModel" @on-cancel="cancelModel" ok-text="确认">
+                <!-- 这里是表格部分 -->
+                <i-table border ref="test" :columns="columns" :data="colContent" @on-selection-change="changeselect"></i-table>
+            </modal>
+            <!-- 这里是表格部分 -->
+        </div>
+        <ht-common-confirm v-if="confirmConfig.showConfirm" :config="confirmConfig" @sure="confirmSure" @cancel="confirmCancel">
+
+        </ht-common-confirm>
+        <div v-show="!isInfo">
+            <div v-show="!isEdit">
+                <!--按钮栏-->
+                <div class="btn-menu ht-menu-fix">
+                    #if($shiro.hasPermission("basedata:supplier:add"))
+                    <span @click="add">新增</span>
+
+                    <span @click="copy">复制</span>
+                    #end #if($shiro.hasPermission("basedata:supplier:update"))
+                    <span @click="modify">修改</span>
+
+                    #end #if($shiro.hasPermission("basedata:supplier:delete"))
+                    <span @click="del">删除</span>
+
+                    <!--#end-->
+                    <!--#if($shiro.hasPermission("basedata:supplier:view"))-->
+                    <!--<span @click="view">查看</span>-->
+
+               <!--     #end #if($shiro.hasPermission("basedata:supplier:allot"))
+                    <span @click="showOrgin">分配</span>-->
+                    #end
+                    <span @click="exit">退出</span>
+                </div>
+                <div style="height:50px"></div>
+                <!--搜索栏-->
+                <div v-show="isSearchHide">
+                    <i-form label-width="120">
+                        <row>
+                            <i-col span='8'>
+                                <form-item label='供应商名称：'>
+                                    <i-input class="ht-width-md" v-model="body.supplierName"></i-input>
+                                </form-item>
+                                <form-item label='有效状态：'>
+                                    <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                                        <!-- <i-option value="all">所有</i-option> -->
+                                        <i-option v-for="item in suppStatus" :value="item.code">{{item.name}}</i-option>
+                                    </i-select>
+                                    <!-- <select v-model="body.status" class="form-control input-sm ht-width-md inline-block">
+                                        <option value="">所有</option>
+                                        <option v-for="item in suppStatus" :value="item.code">{{item.name}}</option>
+                                    </select> -->
+                                </form-item>
+                                <form-item label='联系人：'>
+                                    <i-input class="ht-width-md" v-model="body.contact"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span='8'>
+                                <form-item label='供应商编码：'>
+                                    <i-input class="ht-width-md" v-model="body.supplierCode"></i-input>
+                                </form-item>
+                                <form-item label='类别：'>
+                                    <search-select-more  class="inline-block ht-width-md" :options="suppType" v-model="supplierType"
+                                        ref="supplierType"></search-select-more>
+                                </form-item>
+                            </i-col>
+                            <i-col span='8'>
+                                <form-item label='供应商等级：'>
+                                    <search-select-more  class="inline-block ht-width-md" :options="suppLevel" v-model="supplierLevel"
+                                        ref="supplierLevel"></search-select-more>
+                                </form-item>
+                                <form-item label='主营商品：'>
+                                    <search-select-more  class="inline-block ht-width-md" :options="mainProducts" v-model="mainProd"
+                                        ref="mainProd"></search-select-more>
+                                </form-item>
+                                <form-item>
+                                    <ht-btns class="inline-block" v-on:search="search" @clear="clear" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </i-form>
+                    <!-- <div class="row">
+                        <div class="col-xs-4 control-label">
+                            <label>供应商名称：</label>
+                            <input type="text" v-model="body.supplierName" class="form-control input-sm inline-block ht-width-md">
+                        </div>
+                        <div class="col-xs-4 control-label">
+                            <label>供应商编码：</label>
+                            <input type="text" v-model="body.supplierCode" class="form-control input-sm inline-block ht-width-md">
+                        </div>
+                        <div class="col-xs-4 control-label">
+                            <label>供应商等级：</label>
+                            <search-select-more style="text-align: left" class="inline-block ht-width-md" :options="suppLevel" v-model="supplierLevel"
+                                ref="supplierLevel"></search-select-more>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4 control-label">
+                            <label>有效状态：</label>
+                            <select v-model="body.status" class="form-control input-sm ht-width-md inline-block">
+                                <option value="">所有</option>
+                                <option v-for="item in suppStatus" :value="item.code">{{item.name}}</option>
+                            </select>
+                        </div>
+                        <div class="col-xs-4 control-label">
+                            <label>类别：</label>
+                            <search-select-more style="text-align: left" class="inline-block ht-width-md" :options="suppType" v-model="supplierType"
+                                ref="supplierType"></search-select-more>
+                        </div>
+                        <div class="col-xs-4 control-label">
+                            <label>主营商品：</label>
+                            <search-select-more style="text-align: left" class="inline-block ht-width-md" :options="mainProducts" v-model="mainProd"
+                                ref="mainProd"></search-select-more>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4 control-label">
+                            <label>联系人：</label>
+                            <input type="text" v-model="body.contact" class="form-control inline-block input-sm ht-width-md">
+                        </div>
+                        <div class="col-xs-4 control-label col-xs-offset-4">
+                            <ht-btns class="inline-block" v-on:search="search" @clear="clear" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                        </div>
+                    </div> -->
+                </div>
+               
+                <div style="height: 25px;margin-top: 20px">
+                    <sapn class="chevron">
+                        <span v-show="isTabulationHide">
+                            <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                            <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                        </span>
+                    </sapn>
+                </div>
+                <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+            <div v-show="isEdit">
+                <div id="supplier">
+                    <div class="btn-menu ht-menu-fix">
+                        <span @click="save">保存</span>
+                        <span @click="exitTab">退出</span>
+                    </div>
+                    <div style="height:30px"></div>
+                    <div class="layui-tab">
+                        <ul class="layui-tab-title one" id="tab2">
+                            <li class="layui-this">基本资料</li>
+                            <li>联系人信息</li>
+                            <li>银行卡账户信息</li>
+                            <li>附件</li>
+                        </ul>
+                        <div class="layui-tab-content">
+                            <div class="layui-tab-item layui-show">
+                                <form class="form-horizontal ht-form" style="width:600px">
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            供应商编码：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <input id="supplierCode" style="width:305px" class="form-control" name="supplierCode" v-model="supplier.supplierCode" type="text"
+                                                disabled placeholder="保存时自动生成" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            公司名称：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <input id="supplierName" style="width:305px" class="form-control" type="text" name="supplierName" v-model="supplier.supplierName"
+                                            />
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            简称：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <input id="siShortName" style="width:305px" class="form-control" type="text" name="siShortName" v-model="supplier.siShortName"
+                                            />
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            供应商等级：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <i-select name="supplierLevelId" v-model="supplier.supplierLevelId" id="supplierLevelId" style="width:305px">
+                                                <i-option v-if="(item.status == 1 && item.isDel == 1) || item.id ==supplier.supplierLevelId" v-for="item in suppLevel" :value="item.id">{{item.name}}</i-option>
+                                            </i-select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            主营商品：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <search-select-more style="width:305px" v-model="mainProdArr" :options="mainProducts" ref="mainProdArr"></search-select-more>
+                                            <p class="error" v-show="mpisEdit">请输入主营商品</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <!--<label class="col-xs-3 control-label">供应商产品类型：<span class="star"></span></label>-->
+                                        <!--<div class="col-xs-9">-->
+                                        <!--<search-select-more style="width:305px" v-model="prodType" :options="productTypes" ref="prodType"></search-select-more>-->
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            主营商品类型：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <input name="prodTypeName" style="width:305px" class="form-control inline-block" type="text" v-model="supplier.prodTypeName"
+                                                placeholder="请输入" @focus="showTypeTree = isEdit" />
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            供应商所属类别：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <i-select name="supplierType" style="width:305px" v-model="supplier.supplierType" id="supplierType">
+                                                <i-option :value="item.code" v-for="item in suppCategory">{{item.name}}</i-option>
+                                            </i-select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">供应商地址：</label>
+                                        <div class="col-xs-9">
+                                            <area-select class="select-area" v-model="area" :init="areaInit" url='${rc.contextPath}/baseaddress/queryAddress' ref="areaSelect"></area-select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">邮政编码：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control" type="text" v-model="supplier.zipcode" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            付款方式：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <i-select name="payWay" v-model="supplier.payWay" id="payWay" style="width:305px">
+                                                <i-option value="">请选择</i-option>
+                                                <i-option :value="item.code" v-for="item in payMethod">{{item.name}}</i-option>
+                                                <!-- <option value="">按结算日结算</option>
+                                            <option value="">到货付</option> -->
+                                            </i-select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">结算天数：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control isPositiveInteger inline-block" type="text" v-model="supplier.settleDay" />
+                                            <span>(天)</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">预付比例：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control inline-block" type="text" v-model="supplier.prepayRatio" />
+                                            <span>%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            结算币种：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <i-select style="width:305px" name="billingCurrencyId" v-model="supplier.billingCurrencyId" id="billingCurrencyId">
+                                                <i-option value="">请选择</i-option>
+                                                <i-option :value="item.id" v-if="(item.status == 1 && item.isDel == 1) || item.id == supplier.billingCurrencyId" v-for="item in currency">{{item.currencyName}}</i-option>
+                                            </i-select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            结算方式：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <i-select style="width:305px" name="billingWay" v-model="supplier.billingWay" id="billingWay" class="ht-width">
+                                                <i-option value="">请选择</i-option>
+                                                <i-option :value="item.code" v-for="item in billing">{{item.name}}</i-option>
+                                            </i-select>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">公司传真：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control" type="text" v-model="supplier.companyFax" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">公司法人：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control" type="text" v-model="supplier.corporate" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">注册日期：</label>
+                                        <div class="col-xs-9">
+                                            <date-select style="width:305px" v-model="supplier.regTime" ref="regTime"></date-select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">营业执照编号：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control" type="text" v-model="supplier.bizLisenceNum" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">税务登记号：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control" type="text" v-model="supplier.taxRegNum" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">税分类：</label>
+                                        <div class="col-xs-9">
+                                            <i-select name="taxType" id="taxType" v-model="supplier.taxType" style="width:305px">
+                                                <i-option value="">请选择</i-option>
+                                                <i-option :value="item.code" v-for="item in taxType">{{item.name}}</i-option>
+                                                <!-- <option value="">小规模纳税人</option> -->
+                                            </i-select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">税率：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control isDecimal inline-block" type="text" v-model="supplier.taxRatio" />
+                                            <span>%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">日利率：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control isDecimal inline-block" type="text" v-model="supplier.daliyRatio" />
+                                            <span>%</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">免息天数：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control isPositiveInteger inline-block" type="text" v-model="supplier.freeInterestDay"
+                                            />
+                                            <span>天</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">信用额度：</label>
+                                        <div class="col-xs-9">
+                                            <input style="width:305px" class="form-control inline-block" type="text" v-model="supplier.credit" />
+                                            <span>元</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">
+                                            <span class="star"></span>
+                                            有效状态：
+                                        </label>
+                                        <div class="col-xs-9">
+                                            <label class="radio-inline" v-for="item in suppStatus">
+                                                <input type="radio" name="status" :value="item.code" v-model="supplier.status">{{item.name}}
+                                            </label>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label class="col-xs-3 control-label">备注：</label>
+                                        <div class="col-xs-9">
+                                            <textarea v-model="supplier.remark" name="remark" id="remark" cols="30" rows="5" style="width:305px" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" value="" id="id" />
+                                </form>
+                            </div>
+                            <div class="layui-tab-item">
+                                <i-button type="primary" @click="addContacts">新增</i-button>
+                                <form action="">
+                                    <table class="edit-table">
+                                        <thead>
+                                            <tr>
+                                                <th>序号</th>
+                                                <th>
+                                                    <span class="star"></span>
+                                                    姓名
+                                                </th>
+                                                <th>
+                                                    <span class="star"></span>
+                                                    手机号
+                                                </th>
+                                                <th>Email邮箱</th>
+                                                <th>座机</th>
+                                                <th>微信</th>
+                                                <th>是否默认联系人</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <template v-if="supplier.contacts.length>0">
+                                            <tbody>
+                                                <tr v-for='(item,index) in supplier.contacts' v-show="item.isDel=='1'">
+                                                    <td>{{index +1}}</td>
+                                                    <td>
+                                                        <input type="text" v-model="item.name">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.phone">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.email">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.landline">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.wechat">
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" :checked="item.isDefault == 1" @click="clickContacts(index)">
+                                                    </td>
+                                                    <td>
+                                                        <a @click="delContact(item,index)">删除</a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </template>
+                                        <template v-else>
+                                            <tbody></tbody>
+                                        </template>
+                                    </table>
+                                </form>
+                            </div>
+                            <div class="layui-tab-item">
+                                <i-button type="primary" @click="addBankAccount">新增</i-button>
+                                <form action="">
+                                    <table class="edit-table">
+                                        <thead>
+                                            <tr>
+                                                <th>序号</th>
+                                                <th>银行账号</th>
+                                                <th>开户人</th>
+                                                <th>开户银行</th>
+                                                <th>是否默认</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <template v-if="supplier.bankCardInfos.length>0">
+                                            <tbody>
+                                                <tr v-for='(item,index) in supplier.bankCardInfos' v-show="item.isDel=='1'">
+                                                    <td>{{index +1}}</td>
+                                                    <td>
+                                                        <input type="text" v-model="item.account">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.holder">
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" v-model="item.name">
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" :checked="item.isDefault == 1" @click="clickAccount(index)">
+                                                    </td>
+                                                    <td>
+                                                        <a>修改</a>
+                                                        <a @click="delAccount(item,index)">删除</a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </template>
+                                        <template v-else>
+                                            <tbody></tbody>
+                                        </template>
+                                    </table>
+                                </form>
+                            </div>
+                            <div class="layui-tab-item">
+                                <i-button type="primary" @click="uploadfile">上传文件</i-button>
+                                <form action="">
+                                    <table class="edit-table">
+                                        <thead>
+                                            <tr>
+                                                <th>序号</th>
+                                                <th>文件名</th>
+                                                <th>文件大小</th>
+                                                <th>上传人</th>
+                                                <th>上传时间</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(item,index) in supplier.sysFile.fileDetails" v-show="!item.del">
+                                                <td>{{index+1}}</td>
+                                                <td>{{item.fdName}}</td>
+                                                <td>{{item.fdSize}}</td>
+                                                <td>{{item.uploadUser}}</td>
+                                                <td>{{item.uploadTime}}</td>
+                                                <td>
+                                                    <a href="" @click.prevent="download(item)">下载</a>
+                                                    <a href="" @click.prevent="delFile(item)">删除</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-show="isInfo">
+            <div id="supplier2">
+                <div class="btn-menu">
+                    <span @click="goBack()">退出</span>
+                </div>
+                <div class="layui-tab">
+                    <ul class="layui-tab-title two" id="tab1">
+                        <li class="layui-this">基本资料</li>
+                        <li>历史采购信息</li>
+                        <li>附件</li>
+                        <li>变更信息</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                            <form class="form-horizontal ht-form">
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">供应商编码：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" v-model="supplier.supplierCode" type="text" disabled />
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">公司名称：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.supplierName" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">简称：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.siShortName" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">等级分类：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.supplierLevelId" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option v-if="(item.status == 1 && item.isDel == 1) || item.id ==supplier.supplierLevelId" v-for="item in suppLevel" :value="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">主营商品：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" id="mainProdInfo" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">主营商品类型：</label>
+                                    <div class="col-xs-9">
+                                        <input name="prodTypeName" style="width:305px" class="form-control inline-block" type="text" v-model="supplier.prodTypeName"
+                                            placeholder="请输入" @focus="showTypeTree = isEdit" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">供应商所属类别：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.supplierType" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.code" v-for="item in suppCategory">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">供应商地址：</label>
+                                    <div class="col-xs-9">
+                                        <area-select class="select-area" v-model="area" :init="areaInit" url='${rc.contextPath}/baseaddress/queryAddress'></area-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">邮政编码：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.zipcode" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">付款方式：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.payWay" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.code" v-for="item in payMethod">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">结算天数：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width isPositiveInteger" type="text" v-model="supplier.settleDay" disabled />
+                                        <span>(天)</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">预付比例：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.prepayRatio" disabled/>
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">结算币种：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.billingCurrencyId" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.id" v-if="(item.status == 1 && item.isDel == 1) || item.id == supplier.billingCurrencyId" v-for="item in currency">{{item.currencyName}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">结算方式：</span>
+                                    </label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.billingWay" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.code" v-for="item in billing">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">公司传真：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.companyFax" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">公司法人：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.corporate" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">注册日期：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.regTime" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">营业执照编号：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.bizLisenceNum" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">税务登记号：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.taxRegNum" disabled/>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">税分类：</label>
+                                    <div class="col-xs-9">
+                                        <i-select v-model="supplier.taxType" class="ht-width" disabled>
+                                            <i-option value="">请选择</i-option>
+                                            <i-option :value="item.code" v-for="item in taxType">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">税率：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width isDecimal" type="text" v-model="supplier.taxRatio" disabled/>
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">日利率：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width isDecimal" type="text" v-model="supplier.daliyRatio" disabled/>
+                                        <span>%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">免息天数：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width isPositiveInteger" type="text" v-model="supplier.freeInterestDay" disabled/>
+                                        <span>天</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">信用额度：</label>
+                                    <div class="col-xs-9">
+                                        <input class="form-control ht-width" type="text" v-model="supplier.credit" disabled/>
+                                        <span>元</span>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">有效状态：</label>
+                                    <div class="col-xs-9">
+                                        <label class="radio-inline" v-for="item in suppStatus">
+                                            <input type="radio" :value="item.code" v-model="supplier.status" disabled> {{item.name}}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label class="col-xs-3 control-label">备注：</label>
+                                    <div class="col-xs-9">
+                                        <textarea v-model="supplier.remark" cols="30" rows="5" class="form-control ht-width" disabled></textarea>
+                                    </div>
+                                </div>
+                            </form>
+                            <fieldset class="layui-elem-field layui-field-title">
+                                <legend>联系人信息</legend>
+                            </fieldset>
+                            <form action="">
+                                <table class="layui-table" lay-size="sm">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>姓名</th>
+                                            <th>手机号</th>
+                                            <th>Email邮箱</th>
+                                            <th>座机</th>
+                                            <th>微信</th>
+                                            <th>是否默认联系人</th>
+                                        </tr>
+                                    </thead>
+                                    <template v-if="supplier.contacts.length>0">
+                                        <tbody>
+                                            <tr v-for='(item,index) in supplier.contacts' v-show="item.isDel==1">
+                                                <td>{{index +1}}</td>
+                                                <td>
+                                                    <span>{{item.name}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.phone}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.email}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.landline}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.wechat}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.isDefault == 1 ?'是' :'否'}}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                    <template v-else>
+                                        <tbody></tbody>
+                                    </template>
+                                </table>
+                            </form>
+                            <fieldset class="layui-elem-field layui-field-title">
+                                <legend>银行卡信息</legend>
+                            </fieldset>
+                            <form action="">
+                                <table class="layui-table" lay-size="sm">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>银行账号</th>
+                                            <th>开户人</th>
+                                            <th>开户银行</th>
+                                            <th>是否默认</th>
+                                        </tr>
+                                    </thead>
+                                    <template v-if="supplier.bankCardInfos.length>0">
+                                        <tbody>
+                                            <tr v-for='(item,index) in supplier.bankCardInfos' v-show="item.isDel=='1'">
+                                                <td>{{index +1}}</td>
+                                                <td>
+                                                    <span>{{item.account}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.holder}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.name}}</span>
+                                                </td>
+                                                <td>
+                                                    <span>{{item.isDefault == 1 ? '是' :'否'}}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                    <template v-else>
+                                        <tbody></tbody>
+                                    </template>
+                                </table>
+                            </form>
+                            <!--<center><button type="button" class="btn btn-default" @click="goBack()">退出</button></center>-->
+                        </div>
+                        <div class="layui-tab-item">
+                        </div>
+                        <div class="layui-tab-item">
+                            <form action="">
+                                <table class="layui-table" lay-size="sm">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>文件名</th>
+                                            <th>文件大小</th>
+                                            <th>上传人</th>
+                                            <th>上传时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item,index) in supplier.sysFile.fileDetails">
+                                            <td>{{index+1}}</td>
+                                            <td>{{item.fdName}}</td>
+                                            <td>{{item.fdSize}}</td>
+                                            <td>{{item.uploadUser}}</td>
+                                            <td>{{item.uploadTime}}</td>
+                                            <td>
+                                                <a href="" @click.prevent="download(item)">下载</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+
+                        </div>
+                        <div class="layui-tab-item">
+                            <common-record-list :record_config="logConfig" :url="logUrl"></common-record-list>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <Modal v-model="showUpload" title="上传文件" @on-ok="modalOk" @on-cancel="modalCancel">
+            <Upload ref="upload" :on-success="handleSuccess" :max-size="2048" :on-format-error="handleFormatError" :on-exceeded-size="handleMaxSize"
+                :before-upload="handleBeforeUpload" multiple action='${rc.contextPath}/supplier/fileUploads'>
+                <i-button type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+                <span>文件上传大小限制为2M以内</span>
+            </Upload>
+        </Modal>
+        <modal v-model="showTypeTree" @on-ok="goodsTypeClick" :closable="false">
+            <ht-tree url="${rc.contextPath}/tbasecommoditycategory/queryAllList" :setting="goodsTypeTreeSetting" tid="tree2"></ht-tree>
+        </modal>
+    </div>
+    <div class="hide-render">
+        <div id="uploadConfirm">
+            <p>可批量上传jpg、png、bmp、jpeg等图片文件，电子发票支持pdf文件，最大支持批量上传2M</p>
+            <input id="upload" type="file" multiple="multiple" />
+            <ul id="fileUl"></ul>
+        </div>
+
+    </div>
+
+    </div>
+
+    <script src="${rc.contextPath}/js/basedata/supplier-list.js"></script>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

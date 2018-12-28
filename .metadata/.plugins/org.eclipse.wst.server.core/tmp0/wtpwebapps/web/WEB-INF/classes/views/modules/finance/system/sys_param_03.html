@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>总账参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+        <ht-modal-subject v-model="subjectVisiable" @close="subjectClose" @save="subjectData" :is-parent-click="true"></ht-modal-subject>
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>初始参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="financeEnabledAccountingYear.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="financeEnabledAccountingPeriod.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="financeCurrentAccountingYear.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="financeCurrentAccountingPeriod.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">本年利润科目：</label>
+                <div class="col-sm-10">
+                    <i-input v-model="financeProfitSubject.value" icon="ios-list-outline" readonly="true" @on-click="openModalSubject(1)"></i-input>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">利润分配科目：</label>
+                <div class="col-sm-10">
+                    <i-input v-model="financeProfitDistributionSubject.value" icon="ios-list-outline" readonly="true"
+                        @on-click="openModalSubject(2)"></i-input>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">基本选项：</label>
+                <div class="col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeEqualBalance.value" true-value="1" false-value="0" />
+                            账簿余额方向与科目设置的余额方向相同
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeAbstractInherit.value" true-value="1" false-value="0" />
+                            明细账（表）摘要自动继承上条分录摘要
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeProfitBalanceFetch.value" true-value="1" false-value="0" />
+                            多栏式明细账损益类科目期初余额从余额表取数
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeCostBalanceFetch.value" true-value="1" false-value="0" />
+                            多栏式明细账成本类科目期初余额从余额表取数
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeYearAntiSettlement.value" true-value="1" false-value="0" />
+                            不允许跨财务年度的反结账
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeBalanceMerge.value" true-value="1" false-value="0" />
+                            核算项目余额表非明细级核算相的余额合并在一个方向
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeAuditCertificatePosting.value" true-value="1"
+                                false-value="0" />
+                            凭证过账前必须审核
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeCashierAuditCertificatePosting.value" true-value="1"
+                                false-value="0" />
+                            凭证过账前必须出纳复核
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeAuditCertificateNoCheck.value" true-value="1"
+                                false-value="0" />
+                            凭证审核后不允许出纳复核
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeManualUpdateCertificate.value" true-value="1"
+                                false-value="0" />
+                            不允许手工修改凭证号
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="financeAssignFlowsProject.value" true-value="1" false-value="0" />
+                            录入凭证必须输入现金流量项目
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number.number="financeAssignFlowsListsProject.value"
+                                true-value="1" false-value="0" />
+                            录入凭证时指定现金流量表附表项目
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number="financeUpdateBusinessCertificate.value" true-value="1"
+                                false-value="0" />
+                            不允许修改/删除业务系统凭证
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number="financeInputBillingInformation.value" true-value="1"
+                                false-value="0" />
+                            银行存款科目必须输入结算方式和结算号
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number="financeBatchAudit.value" true-value="1" false-value="0" />
+                            禁止成批审核
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number="financeAuditSameMan.value" true-value="1"
+                                false-value="0" />
+                            审核与反审核必须为同一人
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model.number="financeAuditCertificateNoSameMan.value" true-value="1"
+                                false-value="0" />
+                            凭证审核与制单不能为同一人
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/system/sys_param_03.js"></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

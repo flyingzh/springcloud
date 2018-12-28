@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>标准卡片引出提示</title>
+    #parse("modules/public/header.html")
+    <style>
+    .w350{
+        width:350px;
+    }
+    </style>
+</head>
+<body>
+<div id="standard-card-lead" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="checkCard" class="ht-btn">检查卡片</button>
+        <button @click="beginExport" class="ht-btn">开始引出</button>
+        <button class="ht-btn">退出</button>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <div class="ht-subtitle mt10 ml0">
+            <div>标准卡片引出提示</div>
+        </div>
+        <p>
+            <Icon type="android-bulb"></Icon>
+            本功能引出的是当前期间的最新原值和最新累计折旧额。
+        </p>
+        <p>
+            <Icon type="android-bulb"></Icon>
+            卡片目前支持MDB格式、INI格式和XLS格式，如需引出，请先指定将要被引出到的卡片库或格式文件名称。
+        </p>
+        <div class="ht-subtitle mt10 ml0">
+            <div>指定引出的文件</div>
+        </div>
+        <div>
+            卡片库或格式文件
+            <input type="text" 
+                placeholder="请指定引出的卡片库或格式文件的名称"
+                class="form-control w350 inline-block" disabled />
+            <upload action="//jsonplaceholder.typicode.com/posts/" class="inline">
+                <i-button type="ghost" icon="ios-cloud-upload-outline">选择文件</i-button>
+            </upload>
+        </div>
+        <div class="ht-subtitle mt10 ml0">
+            <div>选择引出的卡片范围</div>
+        </div>
+        <p>
+            <label class="w100 text-right">卡片日期从：</label>
+            <Date-picker transfer type="date"  class="inline-block w200" v-model="formData.for1"
+                placeholder="选择日期">
+            </Date-picker>
+            <label class="w100 text-right">到：</label>
+            <Date-picker transfer type="date" class="inline-block w200" v-model="formData.for2"
+                placeholder="选择日期">
+            </Date-picker>
+        </p>
+        <p class="mt5">
+            <label class="w100 text-right">卡片年度从：</label>
+            <i-select v-model="formData.for3" class="inline-block w200" filterable>
+                <i-option v-for="item in documentTypeList" :value="item.value" :key="item.value">
+                    <slot>{{ item.label }}</slot>
+                </i-option>
+            </i-select>
+            <label class="w100 text-right">到：</label>
+            <i-select v-model="formData.for4" class="inline-block w200" filterable>
+                <i-option v-for="item in documentTypeList" :value="item.value" :key="item.value">
+                    <slot>{{ item.label }}</slot>
+                </i-option>
+            </i-select>
+        </p>
+        <p class="mt5">
+            <label class="w100 text-right">卡片期间从：</label>
+            <i-select v-model="formData.for5" class="inline-block w200" filterable>
+                <i-option v-for="item in documentTypeList" :value="item.value" :key="item.value">
+                    <slot>{{ item.label }}</slot>
+                </i-option>
+            </i-select>
+            <label class="w100 text-right">到：</label>
+            <i-select v-model="formData.for6" class="inline-block w200" filterable>
+                <i-option v-for="item in documentTypeList" :value="item.value" :key="item.value">
+                    <slot>{{ item.label }}</slot>
+                </i-option>
+            </i-select>
+        </p>
+        <p class="mt5">
+            <label class="w100 text-right">资产编码从：</label>
+            <Date-picker transfer type="date" class="inline-block w200" v-model="formData.for7"
+                placeholder="选择日期">
+            </Date-picker>
+            <label class="w100 text-right">到：</label>
+            <Date-picker transfer type="date" class="inline-block w200" v-model="formData.for8"
+                placeholder="选择日期">
+            </Date-picker>
+        </p>
+        <p class="mt5">
+            <label class="w100 text-right">资产类别：</label>
+            <Date-picker transfer type="date" class="inline-block w200" v-model="formData.for7"
+                placeholder="选择日期">
+            </Date-picker>
+            <label class="w100 text-right">使用部门：</label>
+            <Date-picker transfer type="date" class="inline-block w200" v-model="formData.for8"
+                placeholder="选择日期">
+            </Date-picker>
+        </p>
+        <p class="mt5">
+            <label class="w100 text-right">存放地点：</label>
+            <i-select v-model="formData.for9" class="inline-block w200" filterable>
+                <i-option v-for="item in documentTypeList" :value="item.value" :key="'documentTypeList'+item.value">
+                    <slot>{{ item.label }}</slot>
+                </i-option>
+            </i-select>
+        </p>
+    </div>
+</div>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/StandardCardLead/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

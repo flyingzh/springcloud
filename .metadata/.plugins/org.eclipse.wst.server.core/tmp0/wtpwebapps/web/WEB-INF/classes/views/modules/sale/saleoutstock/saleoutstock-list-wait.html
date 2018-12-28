@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> #parse("modules/public/header.html")
+
+    <style>
+        .form-content {
+            padding: 30px 30px 30px 0px;
+        }
+    </style>
+    <title>2.5 待销售出库——列表</title>
+</head>
+
+<body>
+    <div id="customer-order-wait-list" v-cloak>
+        <div class="btn-menu">
+            <span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="save">生成销售出库单</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>
+
+        </div>
+        <!-- 搜索部分 -->
+        <i-form class="form-content" label-width="120" v-show="isHideSearch">
+            <!-- row代表行 -->
+            <row>
+                <i-col span="8">
+                    <form-item label="客户订单编号：">
+                        <i-input class="ht-width-md"  placeholder="可模糊搜索" v-model="body.saleOrderNo"></i-input>
+                    </form-item>
+                    <form-item label="商品名称：">
+                        <i-input class="ht-width-md"  placeholder="可模糊搜索" v-model="body.goodsName"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品类型：">
+                        <cascader @on-change="changeCategory($event)" change-on-select class="ht-width-input" transfer :data="categoryType" v-model="body.goodsType">
+                        </cascader>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="商品编码：">
+                        <i-input class="ht-width-md"  placeholder="可模糊搜索" v-model="body.goodsCode"></i-input>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <!-- 隐藏按钮 -->
+        <ht-toggle :is-search-hide.sync="isHideSearch" :is-tabulation-hide.sync="isHideList"></ht-toggle>
+        <!-- 列表部分 -->
+        <base-data-list :return-row-data="true" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+
+    </div>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/date-select.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-img-magnifier.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/sale/saleoutstock/saleoutstock-list-wait.js"></script> #parse("modules/public/footer.html") </body>
+
+</html>

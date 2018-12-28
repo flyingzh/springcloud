@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>库存退库单</title>
+    #parse("modules/public/header.html")
+    <style>
+        .testTableWrap {
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-bottom: 100px;
+            overflow-x: scroll;
+        }
+
+        .testTableWrap .edit-table th:not(:first-child) {
+            min-width: 100px;
+            padding: 0 6px;
+        }
+
+        .testTableWrap .edit-table th, td:first-child {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .testTableWrap .edit-table td {
+            line-height: 100%;
+        }
+
+        #barcode .ivu-modal-body{
+            height:300px;
+            overflow-y:scroll;
+        }
+    </style>
+</head>
+
+<body>
+<div id="stockReport" v-cloak>
+
+    <!--
+    //modalTrigger:boolean型 每次点击审核 驳回按钮时 做取反操作 以便让组件 监听到变化 来触发判断用户是否有权限审核/启动审核流程
+    //modalType:String approve:审核弹窗  reject:驳回弹窗
+    //receipt-id:String 当前单据编号
+    //receipt-status:int 当前单据状态
+    //step-list: 数组型 在data 里面绑定一个 空数组[]即可，用于显示审核进度条
+    //url-check: String 判断当前用户关于审核的一些前置操作的接口路径
+    //url-init-approve： String 初始化 审核信息，和审核进度条的数据接口路径
+    //url-approve: 审核或驳回弹窗 点击确定按钮，提交审核或驳回信息的接口路径
+    //url-table-data: 查询审批表格信息
+    //@on-auto-approve="approvalOrRejectCallBack"
+    //@on-approve="approvalOrRejectCallBack"
+    //@on-reject="approvalOrRejectCallBack"-->
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="stockReturn.orderNo"
+            :receipt-status="stockReturn.orderStatus"
+            :step-list.sync="steplist"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/stockReturnController/queryCurUserIsAuthorized'
+            url-init-approve='${rc.contextPath}/tpurchasecollectgoods/queryProcessInfoByOrderNo'
+            url-approve='${rc.contextPath}/stockReturnController/approvalStockReturn'
+            url-table-data='${rc.contextPath}/tpurchasecollectgoods/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar"
+    ></ht-approve-reject>
+
+    <modal v-model="isShowBarCodeModal"  mask-closable="true" title="扫码录入" id="barcode" :scrollable="true" @on-ok="scanOk">
+        <div>
+            <input type="text" @keyup.enter="barCodeEnter" v-model="inputBarCode" ref="inputBarCode" class="ivu-input" style="width: 200px;margin-bottom: 20px">
+        </div>
+        <div class="table-responsive">
+            <table class="table edit-table">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>条码号</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(item,index) in barCodeList">
+                    <td>{{index+1}}</td>
+                    <td>{{item.goodsBarcode}}</td>
+                    <td @click="deleteBarCode(index)">
+                        <a>删除</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </modal>
+
+    <div v-cloak>
+        <div class="btn-menu ht-menu-fix">
+            <i-button :disabled="stockReturn.orderStatus != 1" type="text" class="pd-rg-md" @click="saveClick('save')">
+                保存
+            </i-button>
+            <i-button :disabled="stockReturn.orderStatus != 1" type="text" class="pd-rg-md"
+                      @click="saveClick('submit')">提交
+            </i-button>
+            <i-button :disabled="stockReturn.orderStatus == 1 || stockReturn.orderStatus == 4" type="text"
+                      class="pd-rg-md" @click="approval">审核
+            </i-button>
+            <i-button :disabled="stockReturn.orderStatus == 1 || stockReturn.orderStatus == 4" type="text"
+                      class="pd-rg-md" @click="reject">驳回
+            </i-button>
+            <i-button :disabled="stockReturn.orderStatus != 4" type="text" class="pd-rg-md">预览</i-button>
+            <i-button :disabled="stockReturn.orderStatus != 4" type="text" class="pd-rg-md">打印</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <supplier-source-list :show-modal="showSupplier" v-model="selectSupplier"
+                              @sure="closeSupplier" @cancel="closeSupplier"></supplier-source-list>
+        <div class="ht-menu-top">
+            <div class="ht-approve-stamp" v-show="stockReturn.orderStatus == 4">
+                审核
+            </div>
+            <i-form label-width="120" :model="stockReturn" ref="formValidate" :rules="ruleValidate">
+                <tabs value="name1" :animated="false" v-show="isSearchHide">
+                    <tab-pane label="基本信息" name="name1">
+                        <row>
+                            <i-col span="8">
+                                <form-item label="单据编号">
+                                    <i-input v-model="stockReturn.orderNo" :disabled="true" class="ht-width-input"
+                                             placeholder="保存时自动生成"></i-input>
+                                </form-item>
+                                <form-item label="退料日期" prop="returnDate">
+                                    <date-picker type="date" :disabled="stockReturn.orderStatus != 1"
+                                                 v-model="stockReturn.returnDate"
+                                                 :clearable="false"
+                                                 format="yyyy-MM-dd" class="ht-width-md" transfer></date-picker>
+                                </form-item>
+                                <form-item label="商品类型" prop="typeValue">
+                                    <cascader transfer @on-change="changeProductType"
+                                              :data="productTypeList" trigger="hover" @on-visible-change="isHintShow"
+                                              v-model="stockReturn.typeValue"
+                                              class="ht-input-width"
+                                              style="display: inline-block;width: 200px;"
+                                              :disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2">
+                                    </cascader>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="所属组织" prop="orgName">
+                                    <i-input class="ht-width-input" :disabled="true" v-model="stockReturn.orgName"
+                                             icon="search"></i-input>
+                                </form-item>
+                                <form-item label="退库去向" prop="direction">
+                                    <i-select :disabled="stockReturn.orderStatus != 1"
+                                              transfer
+                                              class="ht-width-input"
+                                              v-model="stockReturn.direction">
+                                        <i-option :value="1">退供应商</i-option>
+                                        <i-option :value="2">转旧料处理</i-option>
+                                        <i-option :value="3">转维修</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="业务员">
+                                    <i-select transfer @on-change="changeEmp"
+                                              :disabled="stockReturn.orderStatus != 1" v-model="stockReturn.salesmanId"
+                                              label-in-value class="ht-width-input" filterable>
+                                        <i-option v-if="item.empStatus == 1"
+                                                  v-for="item in employees"
+                                                  :value="item.id"
+                                                  :key="item.id"
+                                        >{{item.empCode}}--{{item.empName}}</i-option>
+                                    </i-select>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="供应商" class="ivu-form-item-required">
+                                    <ht-selectsupplier
+                                            @getinfo="closeSupplier"
+                                            :disabled="stockReturn.orderStatus == 2|| stockReturn.orderStatus != 1"
+                                            ref="supplier">
+                                    </ht-selectsupplier>
+                                </form-item>
+                                <form-item label="物流方式" prop="logisticsMode">
+                                    <i-select class="ht-input-width" v-model="stockReturn.logisticsMode"
+                                              :disabled="stockReturn.orderStatus != 1" ref="dType"
+                                              style="width: 200px;display: inline-block;" transfer="true">
+                                        <i-option v-for="item in selectLogisticMode" :value="item.value"
+                                                  :key="item.value">{{item.name}}
+                                        </i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="备注">
+                                    <i-input class="ht-width-input" :disabled="stockReturn.orderStatus != 1"
+                                             v-model="stockReturn.remark"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </tab-pane>
+                    <tab-pane label="审批信息" name="name2">
+                        <steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+                            <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel"
+                                  :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                        </steps>
+                        <!--<base-data-list :data_config="data_config_approval" table_id="approvalList" :need-reload= "needReload"></base-data-list>-->
+                        <table class="table edit-table" style="width: 1100px;">
+                            <tr>
+                                <th>操作类型</th>
+                                <th>开始级次</th>
+                                <th>目的级次</th>
+                                <th>审批人</th>
+                                <th>审批意见</th>
+                                <th>审批时间</th>
+                            </tr>
+                            <tr v-for="item in approvalTableData">
+                                <td>{{item.approvalResult}}</td>
+                                <td>{{item.currentLevel}}</td>
+                                <td>{{item.nextLevel}}</td>
+                                <td>{{item.createName}}</td>
+                                <td>{{item.approvalInfo}}</td>
+                                <td>{{item.createTime}}</td>
+                            </tr>
+                        </table>
+                    </tab-pane>
+                    <tab-pane label="其他" name="name3">
+                        <row class="mg-top-md">
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="创建人：">
+                                        <i-input disabled v-model="stockReturn.createName"
+                                                 class="ht-width-input"></i-input>
+                                    </form-item>
+                                    <form-item label="创建日期：">
+                                        <i-input disabled v-model="stockReturn.createTime"
+                                                 class="ht-width-input"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="修改人：">
+                                        <i-input disabled v-model="stockReturn.updateName"
+                                                 class="ht-width-input"></i-input>
+                                    </form-item>
+                                    <form-item label="修改日期：">
+                                        <i-input disabled disabled v-model="stockReturn.updateTime"
+                                                 class="ht-width-input"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                            <i-col span="8">
+                                <div>
+                                    <form-item label="审核人：">
+                                        <i-input disabled class="ht-width-input"
+                                                 v-model="stockReturn.auditor"></i-input>
+                                    </form-item>
+                                    <form-item label="审核日期：">
+                                        <i-input disabled class="ht-width-input"
+                                                 v-model="stockReturn.auditTime"></i-input>
+                                    </form-item>
+                                </div>
+                            </i-col>
+                        </row>
+                    </tab-pane>
+                    <tab-pane label="附件" name="name4">
+                        #parse("modules/public/access.html")
+                    </tab-pane>
+                </tabs>
+                <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+                <tabs :animated="false" v-show="isTabulationHide" :value="tabVal" @on-click="crolMark">
+                    <tab-pane label="商品简述" name="name1">
+                        <div class="testTableWrap" style="min-height: 200px;">
+                            <div class="btn-menu">
+                                <i-button :disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2"
+                                          type="text" @click="rowClick('add')">新增行
+                                </i-button>
+                                <i-button :disabled="stockReturn.orderStatus != 1" type="text" @click="rowClick('del')">
+                                    删除行
+                                </i-button>
+                                <!--<i-button type="text">删除行</i-button>-->
+                                <i-button type="text"  @click="scavengingEntry" :disabled="stockReturn.dataSource == 2">扫码录入</i-button>
+                            </div>
+                            <table class="edit-table">
+                                <thead>
+                                <th>序号</th>
+                                <th>明细</th>
+                                <th>商品图片</th>
+                                <th><span class="star"></span>商品编码</th>
+                                <th>商品名称</th>
+                                <th>款式类别</th>
+                                <th>商品明细</th>
+                                <th>计数单位</th>
+                                <th><span class="star"></span>数量</th>
+                                <th>计重单位</th>
+                                <th><span class="star"></span>总重</th>
+                                <th><span class="star"></span>仓库</th>
+                                <!--<th>库位</th>-->
+                                <th>计价单位</th>
+                                <th>单位成本</th>
+                                <th>成本</th>
+                                <th v-if="stockReturn.dataSource != 1">源单类型</th>
+                                <th v-if="stockReturn.dataSource != 1">源单编号</th>
+                                <th>备注</th>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(item,index) in productDetailList"
+                                    @click="selectProductDetail(index)"
+                                    :class="{'ht-selected':selectedIndex === index }" :key="index">
+                                    <td>{{index + 1}}</td>
+                                    <td class="text-center">
+                                        <a @click="detailAction(index)"
+                                           v-if="item.goodsMainType != 'attr_ranges_gold'">条码信息</a>
+                                    </td>
+                                    <td>
+                                        <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                                    </td>
+                                    <td style="position:static;">
+                                        <ht-select
+                                                :is-disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2"
+                                                :init-model="item.goodsCode"
+                                                @getitem="getSelectedItem($event,index)"
+                                                v-model="item.goodsCode">
+                                        </ht-select>
+                                    </td>
+                                    <td>{{item.goodsName}}</td>
+                                    <td>{{item.styleName}}</td>
+                                    <td>
+                                        <a @click="showProductDetail2(index)"
+                                           v-if="item.detailMark != 2" >明细</a>
+                                    <td v-if="item.detailMark == 2"><span class="detail-disabled-click">明细</span></td>
+                                    </td>
+                                    <td>{{item.countingUnit}}</td>
+                                    <td>
+                                        <!--<span v-if="stockReturn.orderStatus != 1">{{item.returnCount}}</span>-->
+                                        <input :disabled="stockReturn.dataSource != 1 || item.goodsMainType == 'attr_ranges_gold'"
+                                               @input="clearNoNum(item,'returnCount',0)" class="ht-number-right ivu-input"
+                                               v-model="item.returnCount"/></td>
+                                    <td>{{item.weightUnit}}</td>
+                                    <td>
+                                        <input :disabled="stockReturn.dataSource == 2"
+                                               @input="clearNoNum(item,'returnWeight',2)" class="ht-number-right ivu-input"
+                                               v-model="item.returnWeight"/>
+                                    </td>
+                                    <!--仓库--下拉选择-->
+                                    <td>
+                                        <i-select
+                                                :disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2"
+                                                v-model="item.warehouseId" transfer filterable :clearable="isCleanStore"
+                                                class="ht-width-lg" @on-change="locatorChange($event,index)">
+                                            <i-option v-for="local in wareHouse" :value="local.id"
+                                                      v-if="local.isDel==1 || local.id == item.warehouseId"
+                                                      :key="local.id">{{local.codes}}-{{local.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </td>
+                                    <!--<td>-->
+                                    <!--<i-select :disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2" v-model="item.reservoirPositionId"-->
+                                    <!--transfer filterable clearable-->
+                                    <!--class="ht-width-lg" >-->
+                                    <!--<i-option v-for="storage in storageList[index]" :value="storage.id"  v-if="storage.isDel==1 || storage.id == item.repertoryPositionId"-->
+                                    <!--:key="storage.id">{{storage.code}}-{{ storage.name }}-->
+                                    <!--</i-option>-->
+                                    <!--</i-select>-->
+                                    <!--</td>-->
+                                    <td>{{item.pricingMethod==1?"重量":"数量" }}</td>
+                                    <td>
+                                        <input :disabled="stockReturn.orderStatus != 1 && (stockReturn.dataSource == 2 || item.goodsMainType == 'attr_ranges_gold')"
+                                               @input="clearNoNum(item,'price',4)" class="ht-number-right ivu-input"
+                                               v-model="item.price"/>
+                                    </td>
+                                    <td><span class="ht-number-right">{{item.amount}}</span>
+                                    </td>
+                                    <td v-if="stockReturn.dataSource != 1">
+                                        <span v-if="stockReturn.dataSource != 1">调拨单-库存退料</span>
+                                    </td>
+                                    <td v-if="stockReturn.dataSource != 1">{{item.sourceOrderNo}}</td>
+                                    <td>
+                                        <i-input :disabled="stockReturn.orderStatus != 1" class="ht-width-input"
+                                                 v-model="item.remark"></i-input>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td>合计</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="ht-number-right">{{stockReturn.returnCount}}</td>
+                                    <td></td>
+                                    <td class="ht-number-right">{{stockReturn.returnWeight}}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td v-if="stockReturn.dataSource != 1"></td>
+                                    <td v-if="stockReturn.dataSource != 1"></td>
+                                    <td></td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="条码信息" class="finish-pick" name="name2" :disabled="selectTab">
+                        <div class="testTableWrap" style="min-height: 200px;">
+                            <row class="mg-top-md">
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="商品名称">
+                                            <i-input v-model="productDetailListTemp.goodsName" disabled
+                                                     style="width:200px"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="商品编码：">
+                                            <i-input v-model="productDetailListTemp.goodsCode" disabled
+                                                     style="width:200px"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="数量：">
+                                            <i-input v-model="productDetailListTemp.returnCount" disabled
+                                                     style="width:200px"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                            </row>
+                            <table class="edit-table">
+                                <thead>
+                                <th>序号</th>
+                                <th>条码号</th>
+                                <!--<th>商品图片</th>-->
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>商品明细</th>
+                                <th>标配证书类型</th>
+                                <th>证书编号</th>
+                                <th>批号</th>
+                                <th>计数单位</th>
+                                <th>数量</th>
+                                <th>计重单位</th>
+                                <th>重量</th>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(item,index) in  productDetailListTemp.goodsEntities"
+                                    @click="selectProductDetail2(index,item)"
+                                    :class="{active:selectedIndex1 === index }" :key="index">
+                                    <td class="text-center">{{index+1}}</td>
+                                    <td>
+                                        <ht-barcode-select
+                                                :is-disabled="stockReturn.orderStatus != 1 || stockReturn.dataSource == 2"
+                                                :init-model="item.goodsEntity.goodsBarcode"
+                                                @getitem="getGoodsItem($event,index)"
+                                                @getinput="getGoodsBarcodeValue($event, index)"
+                                                v-model="item.goodsEntity.goodsBarcodeId"
+                                                :option-data="item.goodsEntity.options || []"
+                                                :codes-used="codesUsed">
+
+                                        </ht-barcode-select>
+                                    </td>
+                                    <td>{{item.goodsEntity.goodsNo}}</td>
+                                    <td>{{item.goodsEntity.goodsName}}</td>
+                                    <td v-if="item.goodsEntity.detailMark != 2"><a @click="showProductDetail(index)">商品明细</a></td>
+                                    <td v-if="item.goodsEntity.detailMark == 2"><span class="detail-disabled-click">商品明细</span></td>
+                                    <td>{{item.goodsEntity.standardCertType}}</td>
+                                    <td>{{item.goodsEntity.certificateNo}}</td>
+                                    <td>{{item.goodsEntity.batchNum}}</td>
+                                    <td>{{item.goodsEntity.countingUnitName}}</td>
+                                    <td>1</td>
+                                    <td>{{item.goodsEntity.weightUnitName}}</td>
+                                    <td>{{item.goodsEntity.weight}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </tab-pane>
+                </tabs>
+            </i-form>
+
+            <product-detail
+                    ref="modalRef2"
+                    :show-modal="productDetailModal2.showModal"
+                    :goods-main-type="productDetailList[selectedIndex] && productDetailList[selectedIndex].goodsMainType"
+                    :ids="productDetailModal2.ids"
+                    :over-edit="productDetailList[selectedIndex] && productDetailList[selectedIndex].overEdit"
+                    :order-status="stockReturn.dataSource == 2 ? 2 : stockReturn.orderStatus"
+                    :t-base-bom-entity="productDetailList[selectedIndex] && productDetailList[selectedIndex].tBaseBomEntity"
+                    :my-assist-attrs="productDetailList[selectedIndex] && productDetailList[selectedIndex].assistAttrs"
+                    @ok="modalSure2($event)"
+                    @cancel="modalCancel($event)"
+            ></product-detail>
+
+            <product-detail
+                    ref="modalRef"
+                    :show-modal="productDetailModal.showModal"
+                    :goods-main-type="productDetailListTemp.goodsEntities[selectedIndex1] && productDetailListTemp.goodsEntities[selectedIndex1].goodsEntity.goodsMainType"
+                    :ids="productDetailModal.ids"
+                    :over-edit="false"
+                    :order-status="2"
+                    :t-base-bom-entity="productDetailListTemp.goodsEntities[selectedIndex1] && productDetailListTemp.goodsEntities[selectedIndex1].goodsEntity.tBaseBomEntity"
+                    :my-assist-attrs="productDetailListTemp.goodsEntities[selectedIndex1] && productDetailListTemp.goodsEntities[selectedIndex1].goodsEntity.assistAttrs"
+                    @ok="modalSure($event)"
+                    @cancel="modalCancel($event)"
+
+            ></product-detail>
+            <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+        </div>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/math.min.js"></script>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        'ht-select',
+        'ht-barcode-select',
+        'access',
+        'ht-product-detail',
+        'ht-approve-reject',
+        'ht-img-magnifier',
+        'ht-barcode-select',
+        '${rc.contextPath}/js/quality/components/ht-btns.js',
+        '${rc.contextPath}/js/quality/components/ht-tree.js',
+        '${rc.contextPath}/js/components/ht-selectsupplier.js',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/purchase/stockreturn/stockreturn-add.js',
+    ], 'debug');
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

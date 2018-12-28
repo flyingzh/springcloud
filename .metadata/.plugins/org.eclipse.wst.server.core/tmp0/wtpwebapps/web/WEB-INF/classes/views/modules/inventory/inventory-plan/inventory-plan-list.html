@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>盘点方案列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/inventory/inventory-plan/inventory-plan-list.css'>
+    <style>
+        .ivu-modal-confirm-body{
+            width: 235px;
+            overflow: hidden;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="reloadAgain">刷新</span>
+            <span class="pd-rg-md"  v-if="!isEdit" @click="add">新增</span>
+            <span class="pd-rg-md" @click="update">修改</span>
+            <span class="pd-rg-md" @click="del">删除</span>
+            <span class="pd-rg-md" @click="entryData">录入盘点数据</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="盘点方案编号：">
+                        <i-input type="text" style="width: 200px"
+                                 class="ht-input-width" v-model="body.documentNo"></i-input>
+                    </form-item>
+                    <form-item label="状态：">
+                    <i-select v-model="body.documentStatus" clearable @on-clear="handleClearType('docStatus')" class="ht-input-width" style="width: 200px;display: inline-block;" ref="docStatus">
+                        <i-option v-for="item in documentStatusList" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                    </i-select>
+                </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="盘点方案名称：">
+                        <i-input type="text"  style="width: 200px"
+                                 class="ht-input-width" v-model="body.documentName"></i-input>
+                    </form-item>
+                    <form-item label="创建日期：">
+                        <date-picker  format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="Select date" style="width: 200px" v-model="dateAttr"></date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="盘点类型：">
+                        <i-select v-model="body.inventoryType" clearable @on-clear="handleClearType('inventType')"　class="ht-input-width" style="width: 200px;display: inline-block;" ref="inventType">
+                            <i-option v-for="item in inventoryTypeList" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                        </i-select>
+                    </form-item>
+                   <form-item>
+                       <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                class="inline-block"></ht-btns>
+                   </form-item>
+                </i-col>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="tblInventoryList" :data_config="data_config_inventory_list" v-show="isTabulationHide" :need-reload="reload" v-model="selected" :return-row-data="true"></base-data-list>
+        </div>
+        </div>
+</div>
+<script>
+    htLoadJs([
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+
+            '${rc.contextPath}/js/inventory/inventory-plan/inventory-plan-list.js'
+        ],
+
+    );
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

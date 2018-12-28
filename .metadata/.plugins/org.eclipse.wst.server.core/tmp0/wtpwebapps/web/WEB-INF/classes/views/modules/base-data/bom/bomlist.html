@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>BOM列表</title>
+    #parse("modules/public/header.html")
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <script>var contextPath = '${rc.contextPath}';
+    var rcContextPath = '${rc.contextPath}';</script>
+    <style>
+
+        #ht-select ul {
+            z-index: 9999;
+            width: 500px;
+        }
+
+        #ht-select ul > li {
+            padding: 5px 10px;
+        }
+
+        #ht-select ul > li:hover {
+            background: #f8f8f8;
+        }
+
+        .ht-title-font > tr > th {
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        /* 去掉i-select样式 */
+
+        .edit-table .ivu-select-selection {
+            border: none;
+        }
+
+        .edit-table .ivu-select-selection {
+            height: 100%;
+        }
+
+        .edit-table tr td,
+        .edit-table tr td select,
+        .edit-table tr td input, 
+        .edit-table tr td .ivu-select-selection{
+            background:#f1f1e6;
+        }
+        .edit-table tr td .width-select{
+            width: 230px;
+        }
+        .edit-table tr td .width-select .ivu-select-selection{
+            max-height:65px;           
+            overflow-y: scroll;
+        }
+        html,
+        body {
+            height: 100%
+        }
+    </style>
+</head>
+<body>
+<div id="paraLevel" v-cloak style="height: 100%">
+    <div>
+        <div class="btn-menu mg-bm-md" v-show="!isShow">
+            <!--  #if($shiro.hasPermission("basedata:bom:view"))
+              <span @click="view">查看</span>
+              #end-->
+            <span @click="cancle_out">退出</span>
+
+        </div>
+    </div>
+
+    <div v-show="!isShow" style="height: 100%">
+
+        <i-form label-width="120" v-show="isSearchHide">
+            <row>
+                <i-col span="8">
+                    <form-item label="商品编码：">
+                        <i-input v-model="body.commodityCode" placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                    </form-item>
+                </i-col>
+
+                <i-col span="8">
+                    <form-item label="创建时间：">
+                        <!-- <date-select v-model="body.createTimeStart" ref="start" style="width:110px"
+                                     class="inline-block"></date-select>
+                        <span>~</span>
+                        <date-select v-bind:end="true" ref="end" v-model="body.createTimeEnd" style="width:110px"
+                                     class="inline-block"></date-select> -->
+                        <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="BOM编号：">
+                        <i-input v-model="body.code" placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                    </form-item>
+                    <form-item>
+                        <ht-btns class="inline-block" v-on:search="search" @clear="clear" v-bind:is-search="true"
+                            v-bind:is-add="false"></ht-btns>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+        <div style="height: 25px;">
+                            <span class="chevron">
+                                 <span>
+                                     <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                                     <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                                 </span>
+                            </span>
+        </div>
+        <div style="height: 100%">
+            <div class="row" style="height: 100%">
+                <div class="col-xs-2 bg-tree" style="height: 100%">
+                    <ht-tree :setting="setting1" :node-data="standBOM" tid='tree' ref="my_tree"></ht-tree>
+                </div>
+                <div class="col-xs-10">
+                    <base-data-list :data_config="data_config" :need-reload="reload"
+                                    v-model="selected"></base-data-list>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div v-show="isShow" id="standardbom" class="ht-common-list">
+        <section>
+            <div class="btn-menu mg-bm-md">
+                <!-- <span @click="save" v-if="!isLock">保存</span>-->
+                <span @click="cancel">退出</span>
+            </div>
+            <div class="ht-subtitle">
+                <div>基本信息</div>
+            </div>
+            <i-form :model="add" label-width="150">
+                <row>
+                    <i-col span="8">
+                        <form-item label="BOM编号:">
+                            <i-input v-model="add.code" :disabled="isDisable" class="ht-width-md"></i-input>
+                        </form-item>
+                        <!--  <form-item label="所属组织:">
+                              <i-input v-for="item in offices" v-if="add.organizationId == item.id" :value="item.name" icon="search"
+                                       :disabled="isDisable"></i-input>
+                          </form-item>-->
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="BOM类型：">
+                            <i-input v-for="item in type" v-if="add.type == item.value" :value="item.label"
+                                     :disabled="isDisable" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="父项商品编码:">
+                            <i-input v-model="add.commodityCode" :disabled="isDisable" icon="search"
+                                     class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="8">
+                        <form-item label="父项商品名称:">
+                            <i-input v-model="add.commodityName" :disabled="isDisable" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="计数/量单位：">
+                            <div v-for="unitItem in weightUnit">
+                                <div v-for="unit in unitItem.tBaseUnits">
+                                    <i-input v-if="unit.id == add.countUnitId" :value="unit.name" icon="search"
+                                             :disabled="isDisable" class="ht-width-md"></i-input>
+                                </div>
+
+                            </div>
+
+                        </form-item>
+                    </i-col>
+                </row>
+
+            </i-form>
+            <div style="width:100%;overflow-x: scroll">
+                <div style="width:5000px;">
+                    <div class="ht-subtitle mg-top-md">
+                        <div>子项/金料</div>
+                    </div>
+                    <table class="edit-table">
+                        <thead>
+                        <th>子项编码</th>
+                        <th>子项名称</th>
+                        <th>成色</th>
+                        <th>计重单位</th>
+                        <th>重量参考值</th>
+                        <th>重量下限</th>
+                        <th>重量上限</th>
+                        <th>金耗(%)</th>
+                        <th v-for="item in goldTableHeader">
+                            <label>{{item.name}}</label>
+                        </th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in goldBoms" :key="item.id">
+                            <td>
+                                <!-- <i-select filterable v-model="item.commodityId" :disabled="isDisable">
+                                     <i-option v-for="(option, i) in goldItemList[index]" :value="option.id" :key="option.code"
+                                               :label="option.code">
+                                         <span>{{option.code}}</span>
+                                         <span>{{option.name}}</span>
+                                     </i-option>
+                                 </i-select>
+                                 <Icon type="search" class="search-icon"></Icon>-->
+
+                                <ht-select :is-disabled="isDisable" :init-model="item.commodityCode"
+                                           :option-data="[]"></ht-select>
+
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.commodityName" :disabled="isDisable">
+                            </td>
+                            <td>
+                                <select   v-model="item.condition"  :disabled ="true">
+                                    <option v-for="unit in certificateType" :value="unit.value">{{unit.name}}
+                                    </option>
+                                </select>
+                            </td>
+
+                            <td style="padding: 0;">
+                                <div v-for="unitItem in weightUnit">
+                                    <select v-if="item.weightGroupId==unitItem.id" :disabled="isDisable" name="" id=""
+                                            v-model="item.weightUnitId">
+                                        <option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </td>
+
+                            <td style="padding: 0;">
+                                <input type="text" v-model="item.weightReference" :disabled="isDisable">
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.weightFloor" :disabled="isDisable">
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.weightUpper" :disabled="isDisable">
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.lose" :disabled="isDisable">
+                            </td>
+                            <td v-for="(data,i) in goldTableHeader" :key="i">
+                                <!--  <i-select multiple v-if="!(typeof(data.data[index]) =='undefined' || data.data[index].length === 0)"
+                                            :key="data.id"
+                                            v-model="goldAssistAttr[index][i].attrValueIds" :disabled="isDisable">
+                                      &lt;!&ndash; <i-option value="-1">所有</i-option> &ndash;&gt;
+                                      <i-option v-for="options in data.data[index]" :key="options.id" :value="options.id">
+                                          {{options.value}}
+                                      </i-option>
+                                  </i-select>-->
+                                <ht-select :is-disabled="isDisable" :init-model="item.commodityCode"
+                                           :option-data="[]"></ht-select>
+
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="ht-subtitle mg-top-md">
+                        <div>子项/石料</div>
+                    </div>
+                    <div>
+                        <table class="edit-table">
+                            <thead class="ht-title-font">
+                            <tr>
+                                <th>组成项</th>
+                                <th>商品编码</th>
+                                <th>商品名称</th>
+                                <th>计数单位</th>
+                                <th>数量</th>
+                                <th>计量方式</th>
+                                <th>计重单位</th>
+                                <th>参考值</th>
+                                <th>下限值</th>
+                                <th>上限值</th>
+                                <th v-for="item in stonesTableHeader">
+                                    <label>{{item.name}}</label>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item,index) in stonesBoms" :key="item.id">
+                                <td>
+                                    <select v-model="item.partName" :disabled="isDisable">
+                                        <option v-for="type in formType" :value="type.value">{{type.name}}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <!-- <i-select filterable v-model="item.commodityId" :disabled="isDisable">
+                                         <i-option v-for="(option, i) in stonesItemList[index]" :value="option.id" :key="option.code"
+                                                   :label="option.code">
+                                             <span>{{option.code}}</span>
+                                             <span>{{option.name}}</span>
+                                         </i-option>
+                                     </i-select>
+                                     <Icon type="search" class="search-icon"></Icon>-->
+                                    <ht-select :is-disabled="isDisable" :init-model="item.commodityCode"
+                                               :option-data="[]"></ht-select>
+                                </td>
+                                <td>
+                                    <input type="text" v-model="item.commodityName" :disabled="isDisable">
+                                </td>
+
+                                <td style="padding: 0;">
+                                    <div v-for="unitItem in weightUnit"
+                                         v-if="unitItem.isDel ===1 || unitItem.id ==item.countGroupId">
+                                        <select v-if="item.countGroupId==unitItem.id" :disabled="isDisable" name=""
+                                                v-model="item.countUnitId">
+                                            <option v-for="unit in unitItem.tBaseUnits"
+                                                    v-if="unit.isDel ===1 || unit.id ==item.countUnitId "
+                                                    :value="unit.id">{{unit.name}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </td>
+
+
+                                <td style="padding: 0;">
+                                    <input type="text" v-model="item.count" :disabled="isDisable">
+                                </td>
+
+                                <td style="padding: 0;">
+                                    <div v-for="unitItem in weightUnit"
+                                         v-if="unitItem.isDel ==1 || unitItem.id ==item.weightGroupId">
+                                        <select v-if="item.weightGroupId==unitItem.id" :disabled="isDisable" name=""
+                                                v-model="item.weightUnitId">
+                                            <option v-for="unit in unitItem.tBaseUnits"
+                                                    v-if="unit.isDel ===1 || unit.id ==item.weightUnitId"
+                                                    :value="unit.id">{{unit.name}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select v-model="item.weightWay">
+                                        <option v-for="type in weightWayArr" :value="type.value" :disabled="isDisable">
+                                            {{type.name}}
+                                        </option>
+                                    </select>
+                                </td>
+
+
+                                </td>
+                                <td style="padding: 0;">
+                                    <input type="text" v-model="item.weightReference" :disabled="isDisable">
+                                </td>
+                                <td>
+                                    <input type="text" v-model="item.weightFloor" :disabled="isDisable">
+                                </td>
+                                <td>
+                                    <input type="text" v-model="item.weightUpper" :disabled="isDisable">
+                                </td>
+
+                                <td v-for="(data,i) in stonesTableHeader" :key="i">
+                                    <i-select multiple :class="stonesAssistAttr[index][i].attrValueIds.length>1?'width-select':''"
+                                              v-if="!(typeof(data.data[index]) =='undefined' || data.data[index].length === 0)"
+                                              :key="data.id"
+                                              v-model="stonesAssistAttr[index][i].attrValueIds" :disabled="isDisable">
+                                        <!-- <i-option value="-1">所有</i-option> -->
+                                        <i-option v-for="options in data.data[index]" :key="options.id"
+                                                  :value="options.id">
+                                            {{options.value}}
+                                        </i-option>
+                                    </i-select>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <!-- 此部分为bom新增需求表格 -->
+
+                    <div class="ht-subtitle mg-top-md">
+                        <div>子项/配件</div>
+                    </div>
+                    <table class="edit-table" lay-size="md">
+                        <thead class="ht-title-font">
+                        <th>子项编码</th>
+                        <th>子项名称</th>
+                        <th>计数单位</th>
+                        <th>数量</th>
+                        <th>计重单位</th>
+                        <th>重量</th>
+                        <th v-for="item in partTableHeader">
+                            <label>{{item.name}}</label>
+                            <input type="checkbox" v-model="item.isPush">
+                        </th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in partBoms" :key="item.id">
+
+                            <td>
+                                <i-select filterable v-model="item.commodityId" :disabled="isDisable">
+                                    <i-option v-for="(option, i) in partItemList[index]" :value="option.id"
+                                              :key="option.code"
+                                              :label="option.code">
+                                        <span>{{option.code}}</span>
+                                        <span>{{option.name}}</span>
+                                    </i-option>
+                                </i-select>
+                                <Icon type="search" class="search-icon"></Icon>
+                            </td>
+                            <td>
+                                <input type="text" v-model="item.commodityName" :disabled="isDisable">
+                            </td>
+                            <td style="padding: 0;">
+                                <div v-for="unitItem in weightUnit">
+                                    <select v-if="item.countGroupId==unitItem.id" :disabled="isDisable" name=""
+                                            v-model="item.countUnitId">
+                                        <option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </td>
+
+                            <td style="padding: 0;">
+                                <input type="text" v-model="item.count" :disabled="isDisable">
+                            </td>
+
+                            <td style="padding: 0;">
+                                <div v-for="unitItem in weightUnit">
+                                    <select v-if="item.weightGroupId==unitItem.id" :disabled="isDisable" name=""
+                                            v-model="item.weightUnitId">
+                                        <option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </td>
+
+                            </td>
+                            <td style="padding: 0;">
+                                <input type="text" v-model="item.weightReference" :disabled="isDisable">
+                            </td>
+
+
+                            <td v-for="(data,i) in partTableHeader" :key="i">
+                                <i-select multiple :class="partAssistAttr[index][i].attrValueIds.length>1?'width-select':''"
+                                          v-if="!(typeof(data.data[index]) =='undefined' || data.data[index].length === 0)"
+                                          :key="data.id"
+                                          v-model="partAssistAttr[index][i].attrValueIds" :disabled="isDisable">
+                                    <!-- <i-option value="-1">所有</i-option> -->
+                                    <i-option v-for="options in data.data[index]" :key="options.id" :value="options.id">
+                                        {{options.value}}
+                                    </i-option>
+                                </i-select>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<!--<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>-->
+<!--<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>-->
+<script src="${rc.contextPath}/js/components/ht-btns.js"></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>-->
+<script src="${rc.contextPath}/js/components/date-select.js"></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>-->
+<script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>-->
+<script src="${rc.contextPath}/js/components/area-select.js"></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>-->
+<script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/ht-select.js"></script>-->
+<script src="${rc.contextPath}/js/components/ht-select.js"></script>
+<script src="${rc.contextPath}/js/basedata/bom/bomlist.js"></script>
+
+<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+<script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

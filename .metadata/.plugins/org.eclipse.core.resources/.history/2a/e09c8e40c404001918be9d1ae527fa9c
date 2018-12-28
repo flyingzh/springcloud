@@ -1,0 +1,178 @@
+package com.htrfid.test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.junit.Test;
+
+import com.google.common.base.Functions;
+
+
+public class StreamAPITest {
+
+	public static List<Employee> employees = Arrays.asList(new Employee("张四", 33, 3000), new Employee("张五", 38, 4000),
+			new Employee("张六", 41, 3000), new Employee("张三", 19, 2000), new Employee("张七", 42, 5500));
+
+	@Test
+	public void Test1() {
+		Optional<Employee> findFirst = employees.stream().findFirst();
+		System.out.println(findFirst.get());
+
+		List<Employee> collect = employees.stream().collect(Collectors.toList());
+		collect.stream().forEach(System.out::println);
+
+		employees.stream().forEach(System.out::println);
+
+//		Integer reduce = employees.stream().map(Employee::getAge).reduce(0,(a,b)->a+b);
+//		System.out.println(reduce);
+//		
+//		Integer reduce2 = employees.stream().filter((e)->e.getSalary()<4000).map(Employee::getSalary).reduce(0,(x,y)->x+y);
+//		System.out.println(reduce2);
+
+		employees.stream().forEach((x) -> System.out.print(x.getName()));
+
+//		
+//		HashSet<Employee> collect2 = employees.stream().collect(Collectors.toCollection(HashSet::new));
+//		collect2.stream().forEach((x)->System.out.println(x.getName()));
+
+		Long collect2 = employees.stream().collect(Collectors.counting());
+		System.out.println(collect2);
+
+		Optional<Employee> collect3 = employees.stream()
+				.collect(Collectors.minBy((x, y) -> Integer.compare(x.getSalary(), y.getSalary())));
+		System.out.println(collect3.get());
+
+		Optional<Integer> collect4 = employees.stream().map(Employee::getSalary)
+				.collect(Collectors.minBy(Integer::compareTo));
+		System.out.println(collect4.get());
+
+		
+//		employees.stream().collect(Collectors.toMap(Employee::getName,// 如何生成key
+//		                                     emp -> computeGPA(emp)));// 如何生成value
+		 
+	}
+
+	@Test
+	public void Test2() {
+		/*Optional<Employee> collect = employees.stream().collect(Collectors.maxBy((x, y) -> x.getAge() - y.getAge()));
+		System.out.println(collect.get());
+
+		Double collect2 = employees.stream().collect(Collectors.averagingInt((x) -> x.getAge()));
+		System.out.println(collect2);
+
+		Double collect4 = employees.stream().collect(Collectors.averagingInt(Employee::getAge));
+		System.out.println(collect4);
+
+		Map<String, List<Employee>> collect3 = employees.stream().collect(Collectors.groupingBy(Employee::getName));
+		System.out.println(collect3);
+
+		String collect5 = employees.stream().map(Employee::getName).collect(Collectors.joining(","));
+		System.out.println(collect5);
+		*/
+		
+		
+		Map<String, Employee> collect6 = employees.stream().collect(Collectors.toMap(Employee::getName,Functions.identity()));
+		System.out.println(collect6);
+
+	}
+	
+	@Test
+	public void test5(){
+	    happy(10000, (m) -> System.out.println(m));
+	} 
+
+	public void happy(double money, Consumer<Double> con){
+	    con.accept(money);
+	}
+	
+	@Test
+	public void test1(){
+	    Employee emp = new Employee("张三", 101,  18);
+	    
+	    Supplier<String> sup = () -> emp.getName();
+	    System.out.println(sup.get());
+	    
+	    System.out.println("----------------------------------");
+	    
+	    Supplier<String> sup2 = emp::getName;
+	    System.out.println(sup2.get());
+	    
+	}
+
+	@Test
+	public void test6(){
+	    List<Integer> numList = getNumList(10, () -> (int)(Math.random() * 100));
+	    
+	    for (Integer num : numList) {
+	        System.out.println(num);
+	    }
+	}
+	    
+	//需求：产生指定个数的整数，并放入集合中
+	public List<Integer> getNumList(int num, Supplier<Integer> sup){
+	    List<Integer> list = new ArrayList<>();
+	    for (int i = 0; i < num; i++) {
+	        Integer n = sup.get();
+	        list.add(n);
+	    }
+	    return list;
+	}
+	
+	
+}
+
+class Employee implements Comparable<Employee> {
+	private String name;
+	private Integer age;
+	private Integer salary;
+
+	public Employee() {
+	}
+
+	public Employee(String name, Integer age, Integer salary) {
+		this.name = name;
+		this.age = age;
+		this.salary = salary;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Integer getAge() {
+		return age;
+	}
+
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+
+	public Integer getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Integer salary) {
+		this.salary = salary;
+	}
+
+	@Override
+	public String toString() {
+		return "[name=" + name + ", age=" + age + ", salary=" + salary + "]";
+	}
+
+	@Override
+	public int compareTo(Employee o) {
+		return this.getAge() - o.getAge();
+	}
+
+}

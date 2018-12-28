@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>条码号信息查询</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/inventory-search/bar-code-information-inquiry.css'>
+    <style>
+        div.ht-menu-top {
+            padding-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" v-if="!isEdit" @click="refresh">刷新</span>
+            <span class="pd-rg-md">显示流转明细</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu ht-menu-top" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <!-- row代表行 -->
+                <row :gutter="16">
+                    <i-col span="8">
+                        <form-item label="状态">
+                            <i-select v-model="body.isInStock" style="width: 200px;" clearable ref="isInStock" @on-clear="handleClearType('isInStock')">
+                                <i-option value="1">在库</i-option>
+                                <i-option value="0">出库</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="条码号：">
+                            <i-input class="ht-width-md" v-model="body.goodsBarcode" style="width: 200px;"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品编码：">
+                            <i-input class="ht-width-md" v-model="body.goodsNo" style="width: 200px;"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品名称：">
+                            <i-input class="ht-width-md" v-model="body.goodsName" style="width: 200px;"></i-input>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div >
+        <div style="height:10px"></div>
+        <div class="ht-subtitle">
+            <div>条码信息</div>
+        </div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" v-show="isTabulationHide" :return-row-data="true"></base-data-list>
+        </div>
+    </div>
+    <!--查询组织弹框-->
+    <modal v-model="isSearchShow" mask-closable="true" title="选择组织">
+        <div class="shop-type">
+            <div>门店类型</div>
+            <div>
+                <input type="checkbox">
+                <span>自营</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>加盟</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>联营</span>
+            </div>
+            <div>
+                <input type="checkbox">
+                <span>挂牌</span>
+            </div>
+        </div>
+        <div style="margin-top: 20px;display: flex">
+            <h6>组织名称</h6>
+            <div>
+                <ul id="allorganTree" class="ztree"></ul>
+            </div>
+        </div>
+    </modal>
+    <modal v-model="isShowGoodsType">
+
+    </modal>
+    <product-detail
+            ref="modalRef"
+            :show-modal="productDetailModal.showModal"
+            :goods-main-type="goodsMainType"
+            :ids="productDetailModal.ids"
+            :over-edit="false"
+            :order-status="2"
+            :t-base-bom-entity="null"
+            :my-assist-attrs="null"
+            @ok="modalSure($event)"
+            @cancel="modalCancel($event)"
+    ></product-detail>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        "ht-tree",
+        'ht-product-detail',
+        "${rc.contextPath}/js/warehouse/inventory-search/bar-code-information-inquiry.js"
+    ])
+</script>
+#parse("modules/public/footer.html") </body>
+
+<!--<script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/components/ht-toggle.js"></script>
+<script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/components/ht-product-detail.js"></script>
+<script src="${rc.contextPath}/js/warehouse/inventory-search/bar-code-information-inquiry.js"></script>-->
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>出纳结算</title>
+    #parse("modules/public/header.html")
+    <style>
+        .filter label{
+            /* text-align: right; */
+        }
+        .w60 {
+            width: 60px;
+        }
+        .calc-right-w65{
+            width:calc(100% - 65px);
+        }
+    </style>
+</head>
+<body>
+<div id="cash-book" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="open" class="ht-btn">开始</button>
+        <button @Click="outHtml" class="ht-btn">退出</button>
+    </div>
+    <Row class="pl20 pr20 mt10">
+        <label>
+            <input type="radio" value="1" v-model="formData.settleOrReverse"> 结账
+        </label>
+        <label  style="margin-left:50px">
+            <input type="radio" value="2" v-model="formData.settleOrReverse"> 反结账
+        </label>
+    </Row>
+    <div v-if="formData.settleOrReverse==='1'" class="pl20 pr20 mt10">
+        <p>当前会计期间：{{formData.accountYearPeriod}}</p>
+        <p class="mt5">下一会计期间：{{formData.nextAccountYearPeriod}}</p>
+        <!--<label class="mt5">-->
+            <!--<input type="checkbox" v-model="formData.isCurryOver"> 结转未达账-->
+        <!--</label>-->
+        <p class="mt5">说明：执行期末结账后，当前会计期间的现金日记账、现金盘点单、银行存款日记账、银行对账单等数据将不能再进行修改。因此在结账之前应确保当前会计期间的所有业务已正确处理完毕。</p>
+    </div>
+    <div v-else class="pl20 pr20 mt10">
+        <p>当前会计期间：{{formData.accountYearPeriod}}</p>
+        <p class="mt5">上一会计期间：{{formData.lastAccountYearPeriod}}</p>
+        <!--<label class="mt5">-->
+            <!--<input type="checkbox" v-model="formData.whetherToCancel"> 取消本期所作对以前记录的勾对-->
+        <!--</label>-->
+        <p class="mt5">说明：你可以利用“反结账”工具将当前会计期间返回到已结账的期间。你应当慎重使用反结账功能。</p>
+    </div>
+</div>
+
+    <script src="${rc.contextPath}/js/finance/cashier/CashierSettlement/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

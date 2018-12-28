@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>存放地点</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w350 {
+            width: 350px;
+        }
+
+        .ht-commFloatLeft {
+            float: left
+        }
+
+        .ht-left-content {
+            width: 250px;
+        }
+
+        .ht-right-content {
+            width: calc(100% - 290px);
+        }
+
+        .ht-input-width {
+            width: 200px;
+        }
+
+        .ivu-form-item.cashier {
+            position: relative;
+        }
+
+        .ivu-form-item.cashier .star {
+            position: absolute;
+            left: -10px;
+        }
+
+        .tips {
+            color: #888
+        }
+    </style>
+</head>
+
+<body>
+    <div id="asset-class" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshLocation">刷新</button>
+            <button class="ht-btn" @click="modify('add')">新增</button>
+            <button class="ht-btn" @click="modify('edit')">修改</button>
+            <button class="ht-btn" @click="saveFun" :disabled="isDisabled">保存</button>
+            <button class="ht-btn" @click="delFun">删除</button>
+            <button class="ht-btn" @click="cancelFun">退出</button>
+        </div>
+        <div class="clearfix mt10">
+            <div class="ht-left-content ht-commFloatLeft" style="overflow: auto;">
+                <ht-structure-tree :node-data="nodes" :setting="setting" :tid="tid" :url="treeUrl"></ht-structure-tree>
+            </div>
+            <div class="ht-right-content ht-commFloatLeft ml20 mr20">
+                <i-form :model="formData" :label-width="120">
+                    <row>
+                        <form-item label="所属组织：" class="ht-star">
+                            <!-- <span class="star"></span> -->
+                            <i-select v-model="formData.sobId" class="ht-input-width" disabled>
+                                <i-option v-for="item in organizationList" :value="item.value" :key="item.value">
+                                    <slot>{{ item.label }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="代码：" class="ht-star">
+                            <!-- <span class="star"></span> -->
+                            <i-input class="ht-input-width" v-model="formData.code" :disabled="isDisabled"></i-input>
+                        </form-item>
+                        <form-item label="名称：" class="ht-star">
+                            <!-- <span class="star"></span> -->
+                            <i-input class="ht-input-width" v-model="formData.name" :disabled="isDisabled"></i-input>
+                        </form-item>
+                        <!--<form-item label="备注：" class="cashier">
+                        <i-input class="ht-input-width" v-model="formData.remark" disabled></i-input>
+                    </form-item>-->
+                    </row>
+                </i-form>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        htLoadJs([
+            /*        '${rc.contextPath}/js/finance/components/ht-tree.js',
+                    '${rc.contextPath}/js/finance/components/ht-modal-subject.js',*/
+            '${rc.contextPath}/js/finance/components/ht-structure-tree.js',
+            '${rc.contextPath}/js/finance/FixedAssets/StorageLocation/index.js'
+        ])
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

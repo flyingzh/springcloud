@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/ReceivableTimeBook/index.css">
+
+    <title>应收应付生成凭证</title>
+</head>
+
+<body>
+    <div id="receivableTimeBook" v-cloak>
+        <ht-common-confirm v-if="confirmConfig.showConfirm" :config="confirmConfig" @sure="conformSure" @cancel="conformCancel">
+        </ht-common-confirm>
+        <subject-tree v-model="subjectVisable" @close="subjectClose" @save="subjectDate"></subject-tree>
+        <div class="btn-menu">
+            <Dropdown trigger="custom" :visible="visible_filter">
+                <button class="ht-nopadding ht-btn" @click="handleOpen">
+                    过滤
+                </button>
+                <DropdownMenu slot="list">
+                    <DropdownItem>
+                        <div class="filter" style="padding: 10px;">
+                            <i-form :model="filterBody" label-width="80">
+
+                                <form-item label="日期期间:">
+                                    <date-picker type="date" v-model="filterBody.timeStart" format="yyyy-MM-dd" placeholder="Select date" class="inline-block w120"></date-picker>
+                                    <!--<date-select v-model="filterBody.timeStart" end="true"  style="width:120px;float: left;" class="inline-block"></date-select>-->
+                                    <span style="margin-left:5px;margin-right:5px;">至</span>
+                                    <!--<date-select v-model="filterBody.timeEnd" end="true"  style="width:120px;float: left;"></date-select>-->
+                                    <date-picker type="date" v-model="filterBody.timeEnd" format="yyyy-MM-dd" placeholder="Select date" class="inline-block w120"></date-picker>
+                                </form-item>
+                                <form-item label="事务类型:">
+                                    <i-select v-model="initInfo.objectTypeId" @on-change="objectTypeChange" class="ht-width-md">
+                                        <i-option v-for="item in initInfo.objectTypeList" :value="item.objectTypeId">{{item.objectType}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="具体日期:">
+                                    <i-select v-model="filterBody.dateScore" class="ht-width-md">
+                                        <i-option v-for="item in detailDate" :value="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="审核标志:">
+                                    <i-select v-model="filterBody.auditStatus" clearable class="ht-width-md">
+                                        <i-option value=''>全部</i-option>
+                                        <i-option v-for="item in auditStatusList" :value="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="记账内容:">
+                                    <i-select v-model="filterBody.isVoucher" clearable requried class="ht-width-md">
+                                        <i-option value=''>全部</i-option>
+                                        <i-option v-for="item in isVoucherList" :value="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="单据号:">
+                                    <i-input v-model="filterBody.documentNumber" class="ht-width-md"></i-input>
+                                </form-item>
+                                <form-item class="text-right">
+                                    <i-button type="primary" @click="sure(true)">确定</i-button>
+                                    <i-button type="primary" @click="sure(false)">取消</i-button>
+                                </form-item>
+                            </i-form>
+
+                        </div>
+                    </DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+            <button class="ht-btn" @click="htPrint()">打印</button>
+            <button class="ht-btn" @click="showOption">选项</button>
+            <button class="ht-btn" @click="sure(true)">刷新</button>
+            <button class="ht-btn" @click="selectRowAction('summary')" :disabled="selectRowDisabled">汇总</button>
+            <button class="ht-btn" @click="selectRowAction('according')" :disabled="selectRowDisabled">按单</button>
+            <button class="ht-btn" @click="selectRowAction('bill')" :disabled="selectRowDisabled">单据</button>
+            <button class="ht-btn" @click="selectRowAction('voucher')" :disabled="selectRowDisabled">凭证</button>
+            <button class="ht-btn" @click="closeWindow">退出</button>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <!-- <div id='gridContainer'> -->
+            <table id="list"></table>
+            <!-- </div> -->
+            <div id="pager"></div>
+        </div>
+        <Modal v-model="showOptionVisible" title="生成凭证选项" :mask-closable="false">
+            <div>
+                <template>
+                    <Tabs type="card" value="name3">
+                        <Tab-pane name="name1" label="异常处理">
+                            <p>错误处理</p>
+                            <Radio-group v-model="optionInfo.abnormalDataProcessing" vertical>
+                                <Radio label="1">
+                                    <span>中断凭证生成过程</span>
+                                </Radio>
+                                <Radio label="2">
+                                    <span>忽略错误继续处理下一张单据</span>
+                                </Radio>
+                                <Radio label="3">
+                                    <span>给出错误提示</span>
+                                </Radio>
+                            </Radio-group>
+                            <p>数据不完整或保存前处理</p>
+                            <Radio-group v-model="optionInfo.abnormalErrorHandling" vertical>
+                                <Radio label="4">
+                                    <span>保存凭证前调出凭证修改界面手工调整</span>
+                                </Radio>
+                                <Radio label="5">
+                                    <span>数据不完整时调出凭证修改界面手工调整</span>
+                                </Radio>
+                                <Radio label="6">
+                                    <span>忽略不完整数据,仅在报告中说明</span>
+                                </Radio>
+                            </Radio-group>
+                        </Tab-pane>
+                        <Tab-pane name="name2" label="默认模板">
+                            <p class="ht-tableList-title">实际成本法:</p>
+                            <i-table size="small" width="450" height="200" border :columns="columnsDataList" :data="dataList" highlight-row>
+                            </i-table>
+                        </Tab-pane>
+                        <Tab-pane name="name3" label="科目合并选择">
+                            <div style="padding: 20px;">
+                                <Checkbox v-model="optionInfo.subjectMergerDebit">借方相同科目合并</Checkbox>
+                                <br/>
+                                <Checkbox v-model="optionInfo.subjectMergerLender">贷方相同科目合并</Checkbox>
+                            </div>
+                        </Tab-pane>
+                    </Tabs>
+                </template>
+                <div class="ht-commTxtRight">
+                    <i-button @click="saveOption" style="margin-top: 20px;">确定</i-button>
+                    <i-button @click="goPathOption" style="margin-top: 20px;">模板设置</i-button>
+                    <i-button @click="closeOption" style="margin-top: 20px;">取消</i-button>
+                </div>
+            </div>
+
+            <div slot="footer"></div>
+        </Modal>
+<!--mask-closable="false" 点击旁边是否关闭弹框-->
+        <Modal v-model="showVoucherVisible" title="信息提示" @on-cancel="showVoucherVisibleClose" :mask-closable="false">
+            <div>
+                <template>
+                    {{voucherModelTxt}}
+                </template>
+                <div class="ht-commTxtRight">
+                    <i-button @click="accordingAction" style="margin-top: 20px;">{{ isContinue ? '继续' : '确定'}}</i-button>
+                    <i-button @click="showViewReport" style="margin-top: 20px;">查看报告>></i-button>
+                    <!--<i-button @click="" style="margin-top: 20px;">保存报告</i-button>-->
+                </div>
+                <div v-if="viewReportVisible" class="ht-viewReportTxt" v-html="viewReportTxt">
+                </div>
+            </div>
+
+            <div slot="footer">
+
+            </div>
+        </Modal>
+    </div>
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"> </script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"> </script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"> </script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-common-confirm.js"></script>
+
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/report/ReceivableTimeBook/index.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

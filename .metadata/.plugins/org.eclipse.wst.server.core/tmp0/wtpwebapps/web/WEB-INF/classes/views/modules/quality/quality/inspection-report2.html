@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <style>
+        *{
+            box-sizing:border-box;
+        }
+        #inner-table{
+            margin:0;
+        }
+        #outer-table,#inner-table{
+            border-collapse:collapse;
+            box-sizing:border-box;
+        }
+        #outer-table td{
+            border:1px solid #000;
+            height:40px;
+            padding-left:8px;
+        }
+        #inner-table tr td{
+            border:none;
+        }
+        #inner-table tr td:not(:last-child){
+            border-right:1px solid #000;
+
+        }
+        #inner-table tr:not(:last-child) td{
+            border-bottom:1px solid #000;
+        }
+        .bold-td{
+            font-weight: bold;
+        }
+    </style>
+    <title>新增检验报告单</title>
+</head>
+<body>
+    <div id="inspectionReport" v-cloak >
+        <modal
+                title="审核"
+                v-model="approveComment"
+                :closable="false"
+                @on-ok="getApproveInfo">
+            <div>
+                <p class="mg-bm-md">
+                    <span >当前节点：{{currentStep}}</span>
+                    <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+                </p>
+                <span>审核意见</span>
+                <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+            </div>
+        </modal>
+        <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+        <modal
+                title="驳回"
+                v-model="rejectComment"
+                :closable="false"
+                @on-ok="getRejectInfo">
+            <div>
+                <radio-group v-model="rejectement.approvalResult" class="mg-bm-md" >
+                    <radio label="0">驳回上一级</radio>
+                    <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+                </radio-group>
+                <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+                <i-input  type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+            </div>
+        </modal>
+        <div class="btn-menu">
+            <!--
+            #if($shiro.hasPermission("quality:testDocumentReport:save"))
+            <span @click="save">保存</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:admit"))
+            <span @click="commit">提交</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:approve"))
+            <span @click="approval">审核</span>
+            #end
+            #if($shiro.hasPermission("quality:testDocumentReport:reject"))
+            <span @click="reject">驳回</span>
+            #end
+            -->
+            <span class="pd-rg-sm pd-lf-sm" @click="save">保存</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="commit">提交</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="approval">审核</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="reject">驳回</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="preview">预览</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="print">打印</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="listTable">列表</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <div>
+            <div class="ht-approve-stamp" v-show="all.documentStatus === '已审核'">
+                审核
+            </div>
+            <div style="text-align: center;margin-bottom: 20px;margin-top: 20px">
+                <h1>{{currentOrgName}}</h1>
+                <h2>{{title}}</h2>
+            </div>
+            <table id="outer-table" align="center" style="width: 790px">
+                <tr>
+                    <td class="bold-td" style="width: 105px">检验单号</td>
+                    <td style="width: 145px">{{all.documentCode1}}</td>
+                    <td class="bold-td" style="width: 145px" colspan="2">检验类型</td>
+                    <td style="width: 145px">{{all.businessType}}</td>
+                    <td class="bold-td" style="width: 145px">检验日期</td>
+                    <td style="width: 105px">{{all.documentTime}}</td>
+                </tr>
+                <!--<tr>
+                    <td>源单单号</td>
+                    <td>{{all.documentCode}}</td>
+                    <td colspan="2">来源部门</td>
+                    <td>{{all.sourceDepartmentName}}</td>
+                    <td>送检人</td>
+                    <td>{{all.sendTestName}}</td>
+                </tr>-->
+                <tr>
+                    <td class="bold-td">被检组织</td>
+                    <td>{{all.testedOrganizationName}}</td>
+                    <td class="bold-td" colspan="2">质检完成时间</td>
+                    <td>{{all.testFinishTime}}</td>
+                    <td class="bold-td">商品类型</td>
+                    <td>{{all.productTypeName}}</td>
+                </tr>
+                <tr>
+                    <td class="bold-td">质检部门</td>
+                    <td>{{all.testDepartmentName}}</td>
+                    <td class="bold-td" colspan="2">检验总数量</td>
+                    <td>{{all.testTotalAmount}}</td>
+                    <td class="bold-td">合格总数</td>
+                    <td>{{all.qualifiedTotalAmount}}</td>
+                </tr>
+                <tr>
+                    <td class="bold-td">不合格总数</td>
+                    <td>{{all.unqualifiedTotalAmount}}</td>
+                    <td class="bold-td" colspan="2">合格率</td>
+                    <td>{{all.qualifiedPercent}}</td>
+                    <td class="bold-td">检验结果</td>
+                    <td>{{all.testResult1}}</td>
+                </tr>
+                <tr>
+                    <td class="bold-td">商品编码（款式)</td>
+                    <td class="bold-td">商品名称</td>
+                    <td class="bold-td" style="width:100px">不合格数</td>
+                    <td class="bold-td" style="width:45px">序号</td>
+                    <td class="bold-td" colspan="2" style="width:290px">检验项目</td>
+                    <!--<td>质量标准</td>-->
+                    <td class="bold-td">判定结果</td>
+                </tr>
+                <tr v-for="(item,index) in all.styleProductList" v-if="all.styleProductList.length > 0" :key="index">
+                    <td>{{item.productCode}}</td>
+                    <td>{{item.productName}}</td>
+                    <td>{{item.unqualifiedAmount}}</td>
+                    <td colspan="4" style="padding: 0">
+                        <table id="inner-table">
+                            <tr v-for="(tmp,i) in item.styleItemList">
+                                <td style="width:44px">{{i+1}}</td>
+                                <td style="width:290px">{{tmp.testItem}}</td>
+                                <!--<td style="width:145px">{{tmp.qualityStandard}}</td>-->
+                                <td style="width:105px">{{tmp.result | formatResult}}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr v-if="all.styleProductList.length == 0"><td colspan="7">无不合格商品编码数据</td></tr>
+                <tr>
+                    <td colspan="7">
+                        <p>检验结论</p>
+                        <p>{{all.totalTestConclusion}}</p>
+                        <p>&nbsp;&nbsp;</p>
+                        <p>&nbsp;&nbsp;</p>
+                        <p>&nbsp;&nbsp;</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7">
+                        <p>备注</p>
+                        <p>1.检验报告无“检验专用章”无效</p>
+                        <p>2.检验报告无质检员、审批人签字无效</p>
+                        <p>3.检验报告涂改无效。</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <p>质检员：{{all.inspectorName}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{curDate}}</p>
+                        <p>审批人：{{approvalUser}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{approvalTime}}</p>
+                    </td>
+                    <td colspan="4" style="height:160px;text-align: center; line-height: 160px;">
+                        <span>检测单位（章）</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+    <script src='${rc.contextPath}/js/quality/inspection-report2.js'></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

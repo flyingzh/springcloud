@@ -1,0 +1,13 @@
+#bankStatement .ht-formInfo{
+    padding: 10px 34px;
+    font-size: 14px;
+}
+
+#bankStatement .ht-formInfo span{margin-right: 20px;}
+#bankStatement .ht-paddingRight7{padding: 7px !important;}
+#bankStatement .ht-padding10{padding: 10px !important;}
+
+#bankStatement .ui-jqgrid .ui-jqgrid-caption {
+    text-align: center !important;text-align: -webkit-center !important;
+}
+.calc-right-w90{width: calc(100% - 90px)}

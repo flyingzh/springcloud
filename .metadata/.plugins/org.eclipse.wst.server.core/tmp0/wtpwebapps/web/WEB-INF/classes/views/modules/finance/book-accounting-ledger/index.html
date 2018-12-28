@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>核算项目明细表</title>
+	#parse("modules/public/header.html")
+	<!--<link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/css/main.css">-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>-->
+	<!--<link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">-->
+	<style>
+		.auxiliaryListsSelect>div>div {
+			overflow: auto;
+		}
+		.ui-jqgrid tr td a {
+			/* line-height: 32px; */
+			color: #2E3033;
+		}
+		.ui-jqgrid tr.active td[aria-describedby="my_jqGrid_voucherGroupName"] a{
+			text-decoration: underline;
+		}
+		.float-right{
+			float: right;
+		}
+		.w80{
+			float: left;
+			line-height: 32px;
+			margin-right: 5px;
+		}
+		.calc-right-w80{
+			width: calc(100% - 90px);
+		}
+		.btn-menu .ivu-input-wrapper {
+			width: 100% !important;
+		}
+		.set-mr{
+			margin-right: -75px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="app" class="ht-common-list" :class="{'js-keep-poptip': isFilterVisible == true}" v-cloak>
+		<div class="btn-menu">
+			<poptip content="content" placement="bottom-start" ref="filter" width="400" class="ht-poptip" @on-popper-show="isFilterVisible = true">
+				<button class="ht-btn">过滤</button>
+				<div class="ht-filterPoptipContent form-horizontal width-auto" style="width: 290px;" slot="content">
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">起始会计期间：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-select v-model="formData.accountingYear">
+								<i-option v-for="(ele, idx) in accountingYear" :value="ele">{{ele}}</i-option>
+							</i-select>
+							年
+							<br/>
+							<i-select v-model="formData.accountingPeriod" style="margin-top: 5px;">
+								<i-option v-for="(ele, idx) in accountingPeriod" :value="ele">{{ele}}</i-option>
+							</i-select>
+							期
+						</div>
+					</div>
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">结束会计期间：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-select v-model="formData.accountingYearEnd">
+								<i-option v-for="(ele, idx) in accountingYear" :value="ele">{{ele}}</i-option>
+							</i-select>
+							年
+							<br/>
+							<i-select v-model="formData.accountingPeriodEnd" style="margin-top: 5px;">
+								<i-option v-for="(ele, idx) in accountingPeriod" :value="ele">{{ele}}</i-option>
+							</i-select>
+							期
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">辅助类别：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-select v-model="formData.accountingLevel" @on-change="SubjectProjectById">
+								<i-option v-for="(val, key) in accountingLevels" :value="val.id" :key="key">{{val.projectAccountName}}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">辅助项目：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-select v-model="formData.auxiliaryLists" class="auxiliaryListsSelect" multiple clearable="true" ref="test">
+								<i-option v-for="item in auxiliaryLists" :value="item.itemCode" :key="item.itemId">{{ item.itemCode+"|"+item.itemName }}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb10">
+						<label class="w80 text-right">科目：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-input v-model="formData.subject" icon="ios-list-outline" readonly="true" @on-click="openModalSubject"></i-input>
+							<!-- <div class="input-group width-full">
+								<input v-model="formData.subject" type="text" class="form-control" />
+								<span class="input-group-addon pointer" @click="openModalSubject">
+									<span class="glyphicon glyphicon-search"></span>
+								</span>
+							</div> -->
+							<i-button size="mini" @click="resetting">重置科目</i-button>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<label class="w80 text-right">币别：</label>
+						<div class="calc-right-w80 inline-block">
+							<i-select v-model="formData.currency">
+								<i-option v-for="item in currencyList" :value="item.value">{{item.label}}</i-option>
+							</i-select>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm mb0">
+						<row>
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.includeVoucher"> 包括未过账凭证
+								</label>
+							</div>
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.opt1"> 余额为零不显示
+								</label>
+							</div>
+
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" v-model="formData.opt2"> 无发生额且余额为零不显示
+								</label>
+							</div>
+						</row>
+					</div>
+
+					<!-- <div class="mt10">
+                    <i-button size="small" @click="cancel" class="ht-float-right ml10">取消</i-button>
+                    <i-button type="primary" size="small" @click="submitFilter" class="ht-float-right">确定</i-button>     
+				</div> -->
+					<div class="mt10 float-right set-mr">
+						<i-button type="primary" @click="submitFilter">确定</i-button>
+						<i-button type="primary" @click="cancel">取消</i-button>
+					</div>
+				</div>
+			</poptip>
+			<button @click="refresh()" class="ht-btn">刷新</button>
+			<button @click="print" class="ht-btn">打印</button>
+			<!--<button @click="more('Preview')" class="ht-btn">预览</button>-->
+			<button @click="more('Derivation')" class="ht-btn">引出</button>
+			<button @click="closeWindow" class="ht-btn">退出</button>
+			<!--<Dropdown trigger="click" @on-click="more" placement="bottom-start">-->
+			<!--<i-button class="text">-->
+			<!--更多-->
+			<!--<Icon type="arrow-down-b"></Icon>-->
+			<!--</i-button>-->
+			<!--<Dropdown-menu slot="list">-->
+			<!--<Dropdown-item name="Print" >打印</Dropdown-item>-->
+			<!--<Dropdown-item name="Preview" >预览</Dropdown-item>-->
+			<!--<Dropdown-item name="Derivation" >引出</Dropdown-item>-->
+			<!--</Dropdown-menu>-->
+			<!--</Dropdown>-->
+			<ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+		</div>
+
+		<div class="jqGrid_wrapper ht-jqgrid pl20 pr20 mt10">
+			<table id="my_jqGrid"></table>
+			<div id="my_pager"></div>
+		</div>
+
+		<ht-modal-subject v-model="subjectVisible" url="tree-duli.json" @close="subjectClose" @save="saveSubjectData" ref="modalSubject"></ht-modal-subject>
+	</div>
+
+	<!--<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>-->
+	<!--<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>-->
+	<!--<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>-->
+	<!--<script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>-->
+	<!--<script src='${rc.contextPath}/js/vue.min.js'></script>-->
+	<!--<script src='${rc.contextPath}/js/utils.js'></script>-->
+	<!--<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>-->
+	<!--<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>-->
+	<!--<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>-->
+	<!--<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>-->
+	<!--<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>-->
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/book-accounting-ledger/ht-modal-subject.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/book-accounting-ledger/ht-tree.js"></script>
+	<script type="text/javascript" src="${rc.contextPath}/js/finance/book-accounting-ledger/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

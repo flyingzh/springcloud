@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge"> #parse("modules/public/header.html")
+    <!-- <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/GainProfit/index.css"> -->
+    <title>结转损益</title>
+</head>
+
+<body>
+    <div id="gainProfit" v-cloak>
+        <div class="pl20 pr20 mt10">
+
+            <Row class="mt5">
+                <label>凭证日期：</label>
+                <date-picker type="date" v-model="editData.datetime" placeholder="Select date" class="inline-block w120"></date-picker>
+
+                <label class="ml20">凭证字：</label>
+                <i-select v-model="editData.pzNumber" class="inline-block w120">
+                    <i-option v-for="item in pzNumberList" :value="item.id" :key="item.id">
+                        <slot>{{ item.name }}</slot>
+                    </i-option>
+                </i-select>
+
+                <label class="ml20">凭证摘要：</label>
+                    <i-input v-model="editData.remark" style="width: 200px"></i-input>
+                <!--<Auto-complete v-model="editData.remark" class="ht-remark-autoComplete inline-block w120" icon="ios-folder" filterable>-->
+                    <!--<div class="demo-auto-complete-item" v-for="item in remarklist">-->
+                        <!--<i-option :value="item.content" :key="item.content">{{ item.content }}</i-option>-->
+                    <!--</div>-->
+                <!--</Auto-complete>-->
+
+                <!--<Auto-complete v-model="editData.remark" class="ht-remark-autoComplete inline-block w120" icon="ios-folder"-->
+                    <!--filterable>-->
+                    <!--<div class="demo-auto-complete-item" v-for="item in remarklist">-->
+                        <!--<i-option :value="item.content" :key="item.content">{{ item.content }}</i-option>-->
+                    <!--</div>-->
+                <!--</Auto-complete>-->
+                <i-button @click="transfer" type="primary">完成</i-button>
+                <i-button @click="quit" type="primary">取消</i-button>
+                <!--<i-button type="text" icon="ios-folder" class="ht-remark-btn" @click.stop="clickDigest"></i-button>-->
+            </Row>
+        </div>
+        <div class="jqGrid_wrapper mt10 pl20 pr20">
+            <table id="list"></table>
+            <div id="pager"></div>
+        </div>
+
+        <Modal v-model="voucherVisible" width="400px" title="结转" class="filter vocher" :mask-closable="false">
+
+            <div>
+                <div>本期损益已经结转过，必须将上次生成的转账凭证：{{voucher}} 过账后才能重新结转</div>
+            </div>
+            <Row>
+                <label>
+                    <input type="radio" value="1" v-model="voucherStatus"> 过账已结转凭证
+                </label>
+                <label class="ml20">
+                    <input type="radio" value="2" v-model="voucherStatus"> 删除已结转凭证
+                </label>
+
+            </Row>
+
+            <div slot="footer">
+                <i-button @click="saveVoucher" type="primary">确定</i-button>
+                <i-button @click="cancelVoucher">取消</i-button>
+            </div>
+        </Modal>
+
+        <ht-remark :recmodal="remarkVisable" :remark-list="remarklist" @on-modal-change="onRemarkModalChange"
+            @on-list-change="onRemarkListChange" @on-row-dblclick="onDblclickRemarkRow"></ht-remark>
+
+
+
+    </div>
+
+    <script src="${rc.contextPath}/js/finance/components/ht-remark.js"></script>
+
+    <script src="${rc.contextPath}/js/finance/GainProfit/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>公式设置</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w350 {
+            width: 450px;
+        }
+        .w60 {width: 60px;}
+        .w124 {width: 124px;}
+        .ht-commFloatLeft {
+            float: left
+        }
+
+        .ht-left-content {
+            width: 450px;overflow: auto;padding-left: 65px;
+        }
+
+        .ht-right-content {
+            width: calc(100% - 490px);
+        }
+
+        .ht-input-width {
+            width: 200px;
+        }
+
+        .ivu-form-item.cashier {
+            position: relative;
+        }
+
+        .ivu-form-item.cashier .star {
+            position: absolute;
+            left: -10px;
+        }
+
+        .tips {
+            color: #888
+        }
+        .ht-voucherTemplates-content-menu{height: 200px;overflow: auto;width: 206px;}
+        .ht-voucherTemplates-content-menu li.ivu-menu-item{    padding: 5px 24px !important;}
+    </style>
+</head>
+
+<body>
+    <div id="formulaSetting" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshWageCategory">刷新</button>
+            <button class="ht-btn" @click="modify('add')" id="addOperation">新增</button>
+            <button class="ht-btn" @click="modify('edit')" id="modifyOperation">修改</button>
+            <button class="ht-btn" @click="delFun" id="deleteOperation">删除</button>
+            <button class="ht-btn" @click="checkFormula">公式检查</button>
+            <button class="ht-btn" @click="saveFun">保存</button>
+            <button class="ht-btn" @click="cancelFun(true)">退出</button>
+        </div>
+        <div class="mt10 pl20 pr20">
+            <i-form :model="formData" :label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="工资类别：">
+                            <i-select v-model="currentWageCategoryId" class="ht-input-width" @on-change="changeWageCategory()">
+                                <i-option v-for="item in initialWageCategorys" :value="item.id" :key="item.id">
+                                    <slot>{{ item.categoryName }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="公式名称：" class="ht-star">
+                                    <i-select ref="formulaId" v-show="!isUpdate && initialFormulaNames.length" v-model="currentFormulaId" class="ht-input-width" @on-change="changeFormula('', '')">
+                                        <i-option v-for="item in initialFormulaNames" :value="item.id" :key="item.id">
+                                            <slot>{{ item.formulaName }}</slot>
+                                        </i-option>
+                                    </i-select>
+                                <i-input ref="formulaNameObj"  v-show="isUpdate" v-model="currentFormulaName"></i-input>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div class="clearfix">
+            <div class="ht-left-content ht-commFloatLeft">
+                <div class="ht-subtitle ml0">
+                    <div>计算方法</div>
+                </div>
+                <div>
+                    <i-input ref="formulaObj" v-model="formData.currentFormulaItemName" type="textarea" :rows="15"></i-input>
+                </div>
+            </div>
+            <div class="ht-right-content ht-commFloatLeft ml20 mr20" style="padding-left: 120px;">
+                <div class="ht-subtitle ml0">
+                    <div>运算符</div>
+                </div>
+                <div>
+                    <i-button class="w60" @click="actionMth('+')">+</i-button>
+                    <i-button class="w60" @click="actionMth('-')">-</i-button>
+                    <i-button class="w60" @click="actionMth('*')">*</i-button>
+                    <i-button class="w60" @click="actionMth('/')">/</i-button>
+                </div>
+                <div class="mt10">
+                    <i-button class="w124" @click="actionMth('=')">=</i-button>
+                    <i-button class="w60" @click="actionMth('(')">(</i-button>
+                    <i-button class="w60" @click="actionMth(')')">)</i-button>
+                </div>
+                <div class="ht-subtitle mt10 ml0">
+                    <div>项目</div>
+                </div>
+                <div class="ht-voucherTemplates-content-menu">
+                    <i-menu ref="rightMenu" :active-name="selectItemCode" @on-select="itemSelect" width="200px">
+                        <Menu-item v-for="(item,idx) in initialItems" :name="item.itemCode">
+                            {{item.itemName}}
+                        </Menu-item>
+                    </i-menu>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- <script>
+        htLoadJs([
+            /*        '${rc.contextPath}/js/finance/components/ht-tree.js',
+                    '${rc.contextPath}/js/finance/components/ht-modal-subject.js',*/
+            '${rc.contextPath}/js/finance/Wages/FormulaSetting/index.js'
+        ])
+    </script> -->
+    <script src='${rc.contextPath}/js/finance/Wages/FormulaSetting/index.js'></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

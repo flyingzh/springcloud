@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>审批流设置</title>
+    #parse("modules/public/header.html")
+    <style>
+        .left{
+            display: inline-block;
+            float: left;
+            margin: 0 30px;
+        }
+        .right{
+            display: inline-block;
+        }
+        .btn{
+            float: right;
+        }
+        .del{
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="approval-flow" v-cloak>
+    <div style="height: 100%;">
+        <div class="btn-menu">
+            <span @click="save">保存</span>
+        </div>
+        <div class="left">
+            <ht-tree :node-data="tree_data" :setting="tree_setting" tid='myTree'></ht-tree>
+        </div>
+        <div class="right">
+            <i-form :label-width="140">
+                <row>
+                    <i-col>
+                        <form-item v-for="(item,index) in levelList" :label="levelMap[index] + ':'" :key="index">
+                            <i-select v-model="item.userIds" multiple style="width:260px">
+                                <i-option v-for="user in userList" :value="user.id" :key="user.id">{{ user.username }}</i-option>
+                            </i-select>
+                            <span class="del" @click="del(index)"><a>删除</a></span>
+                        </form-item>
+                        <form-item label="状态：" key="是否启用">
+                            <i-select v-model="detail.status" style="width:260px">
+                                <i-option :value="0" :key="0">禁用</i-option>
+                                <i-option :value="1" :key="0">启用</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <div class="btn">
+                        <i-button size="small" @click="add" type="ghost">新增</i-button>
+                        <!--<i-button size="small" @click="del" type="ghost">删除</i-button>-->
+                    </div>
+                </row>
+            </i-form>
+        </div>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/basedata/approval-flow/approval-flow.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>费用分配与凭证</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .filter .ivu-form-item {
+            margin-bottom: 5px;
+        }
+
+        .w45 {
+            width: 45px;
+        }
+
+        .w120 {
+            width: 120px;
+        }
+
+        .ht-none {
+            display: none;
+        }
+
+        .ht-no-tr {
+            height: 100px;
+            padding-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="cost-allot-and-vou" v-cloak>
+    <div class="btn-menu">
+        <button @click="saveData" class="ht-btn">保存</button>
+        <button @click="closeWindow" class="ht-btn">退出</button>
+    </div>
+    <div class="mt10">
+        <label class="w120 ht-star2 text-right">所属组织：</label>
+        <i-input class="w200" v-model="orgName" disabled></i-input>
+        <label class="w120 ht-star2 text-right">工资类别：</label>
+        <i-input class="w200" v-model="wageCategoryName" disabled></i-input>
+        <label class="w120 ht-star2 text-right">费用分配名称：</label>
+        <i-input class="w200" v-model="formData.costAllocatioName"></i-input>
+    </div>
+    <div class="mt10">
+        <label class="w120 ht-star2 text-right">凭证字：</label>
+        <i-select class="w200" v-model="formData.voucherWordId">
+            <i-option v-for="item in voucherWordList" :value="item.id" :label="item.name" :key="item.id"/>
+        </i-select>
+        <label class="w120 ht-star2 text-right">摘要内容：</label>
+        <i-input class="w200" v-model="formData.summary"></i-input>
+        <label class="w120 ht-star2 text-right">分配比例（%）：</label>
+        <Input-number class="w200" :max="100" :min="0" v-model="formData.allocationProportion"></Input-number>
+    </div>
+    <div class="btn-menu mt10">
+        <button class="ht-btn" @click="actionBtnMth('addNew','taxDataList')">新增行</button>
+        <button class="ht-btn" @click="actionBtnMth('delete','taxDataList')">删除行</button>
+    </div>
+    <div class="ht-receivableW-table">
+        <div class="ht-wrapper-tbl">
+            <table class="table tablediv table-bordered">
+                <thead>
+                <tr>
+                    <td class="w45" @click="click_all">
+                        <checkbox v-model="allShow"></checkbox>
+                    </td>
+                    <td class="w45">序号</td>
+                    <td>部门</td>
+                    <td>职员</td>
+                    <td>工资项目</td>
+                    <td>费用科目</td>
+                    <td>核算项目</td>
+                    <td>工资科目</td>
+                    <td>核算项目</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr lay-size="sm" v-for="(row,idx) in tableList">
+                    <td class="w45" @click="change_tr(row)">
+                        <checkbox v-model="row.show" class="mg0"></checkbox>
+                    </td>
+                    <td class="w45 ht-padding3">{{idx+1}}</td>
+                    <td class="wt100 ht-padding3" style="position: relative;">
+                        <i-input icon="search" v-model="row.tabel.planName"  @on-change="show(true,'showDepTree',idx)"
+                                 @on-click="showTrees(true,'showDepTree',idx)" clearable></i-input>
+                        <div v-show="row.showChange"
+                             style="position: absolute;top: 39px; left: 8px;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                            <ht-input-tree url="${rc.contextPath}/dept/imported"
+                                           :setting="depTreeSetting">
+                            </ht-input-tree>
+                        </div>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-select class="w200" v-model="row.tabel.defaultPlanId">
+                            <i-option v-for="item in row.employeeList" :value="item.id" :label="item.empName" :key="item.id"/>
+                        </i-select>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-select class="w200" v-model="row.tabel.wageItemsId">
+                            <i-option v-for="item in wmItemsList" :value="item.id" :label="item.itemName"
+                                      :key="item.value"/>
+                        </i-select>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-input class="inline-block ht-input-width" v-model="row.tabel.exacctSubjectName"
+                                 readonly="true" @on-click="showSubjectVisable(1,idx)" icon="ios-list-outline"
+                                 type="text"></i-input>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-input class="inline-block ht-input-width" :value="itemRelateDetailEntity(1,idx)"
+                                 readonly="true" @on-click="showProjectVisable(1,idx)" icon="ios-list-outline"
+                                 type="text"></i-input>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-input class="inline-block ht-input-width" v-model="row.tabel.wageSubjectsName"
+                                 readonly="true" @on-click="showSubjectVisable(2, idx)" icon="ios-list-outline"
+                                 type="text"></i-input>
+                    </td>
+                    <td class="wt100 ht-padding3">
+                        <i-input class="inline-block ht-input-width" v-model="itemRelateDetailEntity(2,idx)"
+                                 readonly="true" @on-click="showProjectVisable(2, idx)" icon="ios-list-outline"
+                                 type="text"></i-input>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <Modal v-model="projectVisible" width="700px" title="选择科目对应的核算项目" class="filter" :mask-closable="false">
+        <table class="table table-bordered">
+            <tr>
+                <th style="width:50px">序号</th>
+                <th style="width:40%">核算项目类别</th>
+                <th>核算项目名称</th>
+            </tr>
+            <tr v-for="(item, index) in projectTableList" :key=`${item.itemClassId}${index}`>
+                <td>{{ index+1}}</td>
+                <td>{{getItemName(item.itemClassId)}}</td>
+                <td>
+                    <i-select v-model="item.itemId" class="w200">
+                        <i-option v-for="item in detailProjectList[item.itemClassId].list" :value="item.id" :key="item.id">
+                            <slot>{{ item.code +'|'+item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </td>
+            </tr>
+            <tr v-show="projectTableList.length<1" class="ht-no-tr">
+                <td colspan="3" class="text-center">暂无数据</td>
+            </tr>
+        </table>
+        <div slot="footer">
+            <i-button @click="saveFun" type="primary">确定</i-button>
+            <i-button @click="cancelFun">取消</i-button>
+        </div>
+    </Modal>
+
+    <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData"
+                      ref="modalSubject1"></ht-modal-subject>
+</div>
+<script src='${rc.contextPath}/js/finance/components/ht-tree.js'></script>
+<script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
+<script src='${rc.contextPath}/js/finance/components/ht-modal-subject.js'></script>
+<script src="${rc.contextPath}/js/finance/Wages/costAllot/costAllotAndVou.js"></script>
+#parse("modules/public/footer.html")
+</body>
+
+</html>

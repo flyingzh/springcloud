@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <title>旧料外发单列表</title>   
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="outPutList" v-cloak>
+        <div>
+            <div class="btn-menu ht-menu-fix">
+                <i-button type="text" @click="refresh">刷新</i-button>
+                <i-button type="text" @click="add" >新增</i-button>
+                <i-button type="text" @click="del" >删除</i-button>
+                <!--<i-button type="text" @click="submit" >提交</i-button>-->
+                <!--<i-button type="text" @click="approval" >审核</i-button>-->
+                <!--<i-button type="text" @click="reject" >驳回</i-button>-->
+                <!--<i-button type="text" >预览</i-button>-->
+                <!--<i-button type="text" >打印</i-button>-->
+                <i-button type="text" @click="cancel">退出</i-button>
+            </div>
+            <div style="height: 45px"></div>
+            <div v-show="isSearchHide">
+                <i-form  :model="body" label-width="120">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="商品类型：">
+                                <cascader class="ht-width-input"
+                                          @on-change="changeCategory($event)"
+                                          :data="categoryType"
+                                          change-on-select
+                                          trigger="hover"
+                                          v-model="commodityCategoty"
+                                          placeholder="商品类型">
+                                </cascader>
+                            </form-item>
+
+                            <form-item label="客户：">
+                               <!--<i-input class="ht-width-input" v-model="body.customerName"></i-input>-->
+                                <!--<i-select v-model="body.customerId" class="ht-width-input" ref="customerList" clearable filterable transfer>-->
+                                    <!--<i-option v-for="item in customers" :value="item.id" :key="item.id">{{item.name}}</i-option>-->
+                                <!--</i-select>-->
+                                <ht-customer-list
+                                        @sure="closeCustomer"
+                                        v-model="selectCustomerObj"
+                                        ref="customerRef" is-check="no"
+                                >
+                                </ht-customer-list>
+                            </form-item>
+                            <form-item label="处理厂家：">
+                                <!--<i-input class="ht-width-input" v-model="body.supperName"></i-input>-->
+                                <!--<i-select v-model="body.supperId" class="ht-width-input" ref="supperList" clearable filterable transfer>-->
+                                    <!--<i-option v-for="item in suppliers" :value="item.id" :key="item.id">{{item.supplierName}}</i-option>-->
+                                <!--</i-select>-->
+                                <ht-selectsupplier title="处理厂家" @getinfo="closeSupplier" ref="supplier" is-check="no" ></ht-selectsupplier>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="单据编号：">
+                               <i-input class="ht-width-input" v-model="body.orderNo"></i-input>
+                            </form-item>
+                            <form-item label="处理方式：">
+                                <i-select class="ht-width-input" v-model="body.processingMode" clearable transfer>
+                                    <i-option value="jxc_clfs_rj">熔金</i-option>
+                                    <i-option value="jxc_clfs_cs">拆石</i-option>
+                                    <i-option value="jxc_clfs_qx">清洗</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="日期：">
+                                <date-picker v-model="dateArr" format="yyyy/MM/dd" type="daterange" placement="bottom-end"
+                                             placeholder="请选择日期" class="ht-width-input"></date-picker>
+                            </form-item>
+                            <form-item label="处理结果：">
+                                <i-select class="ht-width-input" v-model="body.processingResults" clearable transfer>
+                                    <i-option value="store">存料</i-option>
+                                    <i-option value="discount">折现</i-option>
+                                    <i-option value="return">返料</i-option>
+                                    <i-option value="inner">内部旧料处理</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item>
+                                <ht-btns  @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+            </div>
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+            <base-data-list :return-row-data="true" v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+
+        </div>
+    </div>
+    <script src='${rc.contextPath}/js/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-toggle.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-selectsupplier.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-customer-list.js'></script>
+    <script src='${rc.contextPath}/js/oldmaterial/output/output-list.js'></script> 
+
+#parse("modules/public/footer.html")
+</body>
+
+</html>

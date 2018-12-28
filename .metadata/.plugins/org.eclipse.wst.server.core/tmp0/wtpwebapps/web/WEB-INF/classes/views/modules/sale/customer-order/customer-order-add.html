@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> 
+    #parse("modules/public/header.html")
+
+    <style>
+        .testTableWrap {
+            /* padding-left: 20px; */
+            margin-bottom: 100px;
+            width: 100%;
+            overflow-x: scroll;
+        }
+        .ivu-tabs{
+            overflow: visible;
+        }
+    </style>
+  
+    <title>2.1客户订单</title>
+</head>
+
+<body>
+    <div id="customer-order" v-cloak>
+
+        <ht-approve-reject :trigger="modalTrigger" :modal-type="modalType" :receipt-id="addBody.saleOrderNo" :receipt-status="addBody.status"
+            :step-list.sync="stepList" :table-data.sync="approvalTableData" url-check='${rc.contextPath}/tsalecustorder/findUserOperation'
+            url-init-approve='${rc.contextPath}/tsalecustorder/queryProcessByReceiptsId' url-approve='${rc.contextPath}/tsalecustorder/submitapproval'
+            url-table-data='${rc.contextPath}/tsalecustorder/queryReceiptsById' @on-auto-approve="approvalOrRejectCallBack" @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack" ref="ar">
+        </ht-approve-reject>
+
+        <div class="btn-menu">
+
+            <i-button type="text" class="pd-rg-sm pd-rg-md" @click="save" :disabled="addBody.status !==1">保存</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md" @click="submit('formValidate')" :disabled="addBody.status !==1">提交</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md" @click="approval" :disabled="(addBody.status === 1) ||( addBody.status === 4)">审核</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md" @click="reject" :disabled="(addBody.status === 1) ||( addBody.status === 4)">驳回</i-button>
+            <i-button type="text" class="pd-rg-sm pd-lf-sm" @click="setDeposit" v-if="addBody.status===2 || addBody.status===3 || addBody.businessStatus===5">设置定金</i-button>
+            <i-button type="text" class="pd-rg-sm pd-lf-sm" @click="custMaterial" :disabled="addBody.id==''">客户来料</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md">预览</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md">打印</i-button>
+            <i-button type="text" class="pd-rg-sm pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div class="ht-approve-stamp" v-show="addBody.status===4">
+            审核
+        </div>
+        <!-- 设置定金弹窗开始 -->
+        <modal v-model="showDepositPopup" width="400" title="设置定金" :mask-closable="false" @on-cancel="cancelDeposit">
+            <i-form label-width="80">
+                <form-item label="定金方式">
+                    <i-select class="ht-width-md" v-model="addBody.depositMethod" @on-change="dealDeposit();htTestChange()">
+                        <i-option value="0">预付定金</i-option>
+                        <i-option value="1">不付定金</i-option>
+                    </i-select>
+                </form-item>
+                <form-item label="销售总金额">
+                    <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.totalRealSaleAmount"></i-input>
+                </form-item>
+                <form-item label="定金比例(%)">
+                    <input class="ht-width-md ivu-input" :disabled="addBody.depositMethod === '0' ? false: true" v-model="addBody.depositScale" @input="checkTwoDecimal('depositScale',2);htTestChange()" @blur="getReceviableDeposit()"></input>
+                </form-item>
+                <form-item label="应收定金">
+                    <i-input class="ht-width-md" :disabled="addBody.depositMethod === '0' ? false: true" v-model="addBody.receviableDeposit"></i-input>
+                </form-item>
+            </i-form>
+            <table class="edit-table">
+                <thead>
+                    <tr>
+                        <th>客来金估值</th>
+                        <th>客来石估值</th>
+                        <th>客户已收款</th>
+                        <th>合计已收款</th>
+                    </tr>  
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{custPayment.goldPrice}}</td>
+                        <td>{{custPayment.stonePrice}}</td>
+                        <td>{{custPayment.custPaid}}</td>
+                        <td>{{custPayment.totalAmount}}</td>
+                    </tr>
+                </tbody>                
+            </table>
+            <div slot="footer">
+                <i-button type="text" @click="cancelDeposit">取消</i-button>
+                <i-button type="primary" @click="sureDeposit">确定</i-button>
+            </div>
+        </modal>
+        <!-- 设置定金弹窗结束 -->
+        <!-- 客户弹框开始 -->
+       <!-- <modal class="modalContent" v-model="isShow" :mask-closable="false" width="800">
+            <p slot="header" style="color:#000;height: 50px;padding: 0 20px">
+                <i-form>
+                    <row>
+                        <i-col span="9">
+                            <form-item label="客户编码">
+                                <i-input class="ht-width-md" v-model="body.code"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="9">
+                            <form-item label="客户名称">
+                                <i-input class="ht-width-md" v-model="body.name"></i-input>
+                                <i-button type="primary" @click="searchCut">搜索</i-button>
+                                <i-button type="primary" @click="clearCut">清空</i-button>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+            </p>
+            <div class="modalCon">
+                <base-data-list :return-row-data="true" :data_config="data_user_list" :need-reload="reload" :table_id="tabId" v-model="selected"></base-data-list>
+            </div>
+            <div slot="footer">
+            </div>
+        </modal>-->
+        <!-- 客户弹框结束 -->
+        <i-form label-width="120" ref="formValidate" :model="addBody" :rules="ruleValidate">
+            <tabs value="base" :animated="false">
+                <tab-pane label="基本信息" name="base">
+                    <row>
+                        
+                        <i-col span="8">
+                            <form-item label="业务类型：" prop="businessType">
+                                <i-select v-model="addBody.businessType" class="ht-width-md" :disabled="isView" @on-change="htTestChange">
+                                    <i-option value="S_CUST_ORDER_01">普通销售</i-option>
+                                    <i-option value="S_CUST_ORDER_02">受托加工销售</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="单据编号：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="addBody.saleOrderNo" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="下单日期：" prop="orderDate">
+                                <date-picker type="date" v-model="addBody.orderDate" :disabled="isView" :readonly="isView" format="yyyy-MM-dd" class="ht-width-md"
+                                    transfer @on-change="htTestChange"></date-picker>
+                            </form-item>
+                            <form-item label="商品类型：" prop="goodsType">
+                                <cascader @on-change="changeProductType" transfer :data="productTypeList" trigger="hover" @on-visible-change="isHintShow"
+                                    v-model="typeValue" :clearable="false" class="ht-width-md inline-block" :disabled="addBody.status != 1">
+                                </cascader>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="addBody.organName" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="紧急程度：" prop="urgency">
+                                <i-select class="ht-width-md" v-model="addBody.urgency" :disabled="isView" @on-change="htTestChange">
+                                    <i-option v-for="(tmp,i) in urgencyList" :key="i" :value="tmp.value">{{tmp.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="分批发货：" prop="splitShipment">
+                                <i-select class="ht-width-md" v-model="addBody.splitShipment" :disabled="isView" @on-change="htTestChange">
+                                    <i-option :value="1">是</i-option>
+                                    <i-option :value="0">否</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="抬头：">
+                                <i-input class="ht-width-md" v-model="addBody.invoiceTitile" :disabled="isView" @input="htTestChange()"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="客户名称" class="ht-star">
+                                <!--<i-input class="ht-width-md" v-model="addBody.custName" icon="search" @on-focus="changeCustm(addBody)" @on-click="custPopup"
+                                    :disabled="isView"></i-input>
+                                <span class="star"></span>
+                                <input type="text" name="name9" required class="hidden-input" v-model="addBody.custName">-->
+                                <ht-customer-list
+                                        v-model="selectCustomerObj"
+                                        @tip="changeCustTip"
+                                        @sure="closeCustomer"
+                                        :disabled="isView"
+                                        ref="customerRef"
+                                        @on-change="htTestChange"
+                                >
+                                </ht-customer-list>
+                            </form-item>
+                            <form-item label="业务员：" prop="saleMenId">
+                                <i-select @on-change="changeEmp($event);htTestChange()" v-model="addBody.saleMenId" label-in-value class="ht-width-input" transfer filterable clearable
+                                    :disabled="isView">
+                                    <i-option v-if="item.empStatus == 1" v-for="item in employees" :value="item.id">{{item.empCode}}-{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="是否保价：" prop="insurancePrice">
+                                <i-select class="ht-width-md" v-model="addBody.insurancePrice" :disabled="isView" @on-change="htTestChange">
+                                    <i-option :value="1">是</i-option>
+                                    <i-option :value="0">否</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="保额：">
+                                <input class="ht-width-md ivu-input" v-model="addBody.insuranceMoney" :disabled="isView" @input="checkTwoDecimal('insuranceMoney',2);htTestChange()"></input>
+                            </form-item>
+
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="8">
+                            <form-item label="货源性质：" prop="sourceNature">
+                                <i-select transfer class="ht-width-md" v-model="addBody.sourceNature" :disabled="isView"@on-change="htTestChange">
+                                    <!-- <i-option :value="1">现货</i-option>-->
+                                    <i-option :value=2 key="feixianhuo">非现货</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="16">
+                            <form-item label="订单备注：">
+                                <i-input :disabled="isView" class="ht-width-md" type="textarea" v-model="addBody.remark" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="客户信息" name="customer">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="客户：" class="ht-star">
+                                <i-input class="ht-width-md" v-model="addBody.custName" :disabled="isDisable"></i-input>
+                            </form-item>
+                            <form-item label="邮箱：">
+                                <i-input class="ht-width-md" v-model="addBody.saleCustInfoEntity.email" :disabled="isView" @on-blur="checkEmail()" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="联系人：">
+                                <i-input class="ht-width-md" v-model="addBody.saleCustInfoEntity.name" :disabled="isView" @input="htTestChange"></i-input>
+                            </form-item>
+                            <form-item label="邮编：">
+                                <i-input class="ht-width-md" v-model="addBody.saleCustInfoEntity.zipCode" :disabled="isView" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="联系方式：">
+                                <i-input class="ht-width-md" v-model="addBody.saleCustInfoEntity.phone" :disabled="isView" @on-blur="checkPhone()" @input="htTestChange"></i-input>
+                            </form-item>
+                            <form-item label="微信号：">
+                                <i-input class="ht-width-md" v-model="addBody.saleCustInfoEntity.weChatNo" :disabled="isView" @on-blur="checkWeChat()" @input="htTestChange"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <form-item label="地址：">
+                            <area-select v-model="area" :init="areaInit" url="${rc.contextPath}/baseaddress/queryAddress" :disabled="isView"></area-select>
+                        </form-item>
+                    </row>
+                </tab-pane>
+                <tab-pane label="财务信息" name="finance">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="计价方式：">
+                                <i-input class="ht-width-md" :disabled="isDisable"
+                                     v-model="addBody.pricingMethod==1?'标签价折扣':addBody.pricingMethod==2?'金工石计价':'' "></i-input>
+                            </form-item>
+                            <form-item label="总销售金额：">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.totalSaleAmount"></i-input>
+                            </form-item>
+                            <form-item label="总实际销售金额：">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.totalRealSaleAmount"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="定金方式：">
+                                <i-select class="ht-width-md" v-model="addBody.depositMethod" :disabled="isView" @on-change="dealDeposit();htTestChange()">
+                                    <i-option value="0">预付定金</i-option>
+                                    <i-option value="1">不付定金</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="定金比例(%)：">
+                                <input class="ht-width-md ivu-input"  @input="checkTwoDecimal('depositScale',2);htTestChange()" :disabled="isView || addBody.depositMethod === '1'" v-model="addBody.depositScale" @blur="getReceviableDeposit()"></input>
+                            </form-item>
+                            <form-item label="应收定金：">
+                                <i-input class="ht-width-md" :disabled="isView || addBody.depositMethod === '1'" @input="htTestChange()" v-model="addBody.receviableDeposit"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="实收定金：">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.paidDeposit"></i-input>
+                            </form-item>
+                            <form-item label="定金状态：">
+                                <i-input class="ht-width-md" :disabled="isDisable"
+                                         v-model="addBody.depositStatus==1?'Y':addBody.depositStatus==2?'N':'' "></i-input>                           
+                            </form-item>
+                            <form-item label="累计收款金额：">
+                                <i-input class="ht-width-md" :disabled="isDisable" v-model="addBody.totalReceiptAmount"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="物流信息" name="logist">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="物流要求：" prop="logisticsInfo.shipMethod">
+                                <i-select class="ht-width-md" transfer v-model="addBody.logisticsInfo.shipMethod" @on-change="htTestChange()" :disabled="isView">
+                                    <i-option v-for="(tmp,i) in shipTypeList" :key="i" :value="tmp.value">{{tmp.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="收货人：">
+                                <i-input class="ht-width-md" v-model="addBody.logisticsInfo.receiptName" :disabled="isView" @input="htTestChange()"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="联系方式：">
+                                <i-input class="ht-width-md" v-model="addBody.logisticsInfo.phone" :disabled="isView" @input="htTestChange()"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="16">
+                            <form-item label="收货地址：">
+                                <area-select v-model="logicArea" :init="logicAreaInit" url="${rc.contextPath}/baseaddress/queryAddress" :disabled="isView"></area-select>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="审批信息" name="approve">
+                    <steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </steps>
+                    <!--<base-data-list :data_config="data_config_approval" table_id="approvalList" :need-reload= "needReload"></base-data-list>-->
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="item in approvalTableData">
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                </tab-pane>
+                <tab-pane label="其他" name="other">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="创建人：">
+                                <i-input class="ht-width-md" v-model="addBody.createName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="创建日期：">
+                                <i-input class="ht-width-md" v-model="addBody.createTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="最后修改人：">
+                                <i-input class="ht-width-md" v-model="addBody.updateName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="修改日期：">
+                                <i-input class="ht-width-md" v-model="addBody.updateTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="审核人：">
+                                <i-input class="ht-width-md" v-model="addBody.auditName" :disabled="otherDisable"></i-input>
+                            </form-item>
+                            <form-item label="审核日期：">
+                                <i-input class="ht-width-md" v-model="addBody.auditTime" :disabled="otherDisable"></i-input>
+                            </form-item>
+                        </i-col>
+
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件" name="name4">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+        <!-- 折叠按钮开始 -->
+        <div style="height: 25px;margin-top:20px">
+            <span class="chevron">
+                <span>
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                </span>
+            </span>
+        </div>
+        <!-- 折叠按钮结束 -->
+        <tabs :value="tableMark" :animated="false" v-show="isSearchHide" @on-click="showTab">
+            <tab-pane label="明细信息" name="detail">
+                <div class="btn-menu" v-if="!isView">
+                    <span class="pd-rg-sm pd-lf-sm" @click="addRow(goodsInfos,oneGoodsInfo)">新增行</span>
+                    <span class="pd-rg-sm pd-lf-sm" @click="delRow(goodsInfos,selectedRow)">删除行</span>
+                </div>
+                <div class="testTableWrap">
+                    <div style='width:2750px;'>
+                        <table class="edit-table">
+                            <thead>
+                                <tr>
+                                    <th class="width-xs text-center">序号</th>
+                                    <th>其他信息</th>
+                                    <th>商品图片</th>
+                                    <th>
+                                        <span class="star"></span>
+                                        商品编码
+                                    </th>
+                                    <th>商品名称</th>
+									 <th>款式类别</th>
+                                    <th>
+                                        <span class="star"></span>
+                                        商品明细
+                                </th>
+                                    <th>规格</th>
+                                    <th>
+                                        <span class="star"></span>
+                                        计数单位
+                                    </th>
+                                    <th>
+                                        <span class="star"></span>
+                                        数量
+                                    </th>
+                                    <th>
+                                        <span class="star"></span>
+                                        计重单位
+                                    </th>
+                                    <th>
+                                        <span class="star"></span>
+                                        总重
+                                    </th>
+                                    <th>金重</th>
+                                    <th>主石重</th>
+                                    <th>副石重</th>
+                                    <th>
+                                        <span class="star"></span>
+                                        交货日期
+                                    </th>
+                                    <th>
+                                        <span class="star"></span>
+                                        计价单位
+                                    </th>
+                                    <th>销售单价</th>
+                                    <th>销售金额</th>
+                                    <th>折扣率（%）</th>
+                                    <th>实际销售金额</th>
+                                    <th>是否字印</th>
+                                    <th>订单BOM编号</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item,index) in goodsInfos" :key="index" :class="index === selectedRow ? 'ht-selected':''" @click="selectedTr(index)">
+                                    <td class="width-xs text-center">{{index+1}}</td>
+                                    <td class="text-center">
+                                        <span class="ht-font-color" @click="otherInfo(index)">其他信息</span>
+                                    </td>
+                                    <td>
+                                        <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                                    </td>
+                                    <td style="position:static;">
+                                        <ht-select :is-disabled="isView"
+                                                   :init-model="item.goodsCode"
+                                                   @getitem="getSelectedItem($event,index)"
+                                                   v-model="item.goodsCode"
+                                                   @on-change="htTestChange()"
+                                                   :goods-group-path="addBody.goodsType">
+                                        </ht-select>
+                                    </td>
+                                    <td>
+                                        {{item.goodsName}}
+                                    </td>
+									<td>{{item.styleName}}</td>
+                                    <td class="text-center">
+                                        <span class="ht-font-color" v-if="item.detailMark != 2" @click="showProductDetail(index,'detail')">商品明细</span>
+                                        <span class="ht-font-color" v-if="item.detailMark == 2">商品明细</span>
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" v-model="item.goodsNorm" :disabled="isView" @input="htTestChange()">
+                                    </td>
+                                    <td>
+                                        {{item.countingUnit}}
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" maxlength="10" v-model="item.num" @input="clearNoNum(item,'num',0);htTestChange()" @blur="getSaleAmount(item,'num')" :disabled="isView || item.goodsMainType === 'attr_ranges_gold'">
+                                    </td>
+                                    <td>
+                                        {{item.weightUnit}}
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" maxlength="14" v-model="item.totalWeight" @input="clearNoNum(item,'totalWeight',3);htTestChange()" @blur="getSaleAmount(item)" :disabled=" isView">
+                                    </td>
+                                    <td>{{item.goldWeight}}</td>
+                                    <td>{{item.mainStoneWeight}}</td>
+                                    <td>{{item.viceStoneWeight}}</td>
+                                    <td>
+                                        <date-picker type="date" v-model="item.deliveryDate" @on-change="htTestChange()" :options="dateOption" placeholder="请选择日期" transfer :disabled="isView" :readonly="isView"></date-picker>
+                                    </td>
+                                    <td>
+                                        {{item.pricingUnit === 1 ? '重量':'数量'}}
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" maxlength="14" v-model="item.saleUnitPrice" @input="clearNoNum(item,'saleUnitPrice',2);htTestChange()" @blur="getSaleAmount(item)" :disabled="isView">
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" v-model="item.saleAmount" maxlength="14" @blur="getSaleUnitPrice(item)" @input="clearNoNum(item,'saleAmount',2);htTestChange()" :disabled="isView">
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" v-model="item.discountRate" maxlength="6" @input="clearNoNum(item,'discountRate',2);htTestChange()" @blur="getActualSaleAmount(item)" :disabled="isView">
+                                    </td>
+                                    <td>
+                                        <input class="ivu-input" type="text" maxlength="14" v-model="item.actualSaleAmount" :disabled="isView" @input="clearNoNum(item,'actualSaleAmount',2);htTestChange()">
+                                    </td>
+                                    <td>
+                                        <i-select v-model="item.isPrinted" :disabled="isView" transfer @on-change="htTestChange()">
+                                            <i-option :value="1">是</i-option>
+                                            <i-option :value="2">否</i-option>
+                                        </i-select>
+                                    </td>
+                                    <td>
+                                        <span class="ht-font-color" v-model="item.bomNo" @click="showProductDetail(index,'bom')">{{item.bomNo}}</span>
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model="item.remark" :disabled="isView" class="ivu-input" @input="htTestChange()">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <td>合计</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{sumGoodsNum}}</td>
+                                <td></td>
+                                <td>{{sumTotalWeight}}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{sumTotalSaleAmount}}</td>
+                                <td></td>
+                                <td>{{sumTotalRealSaleAmount}}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </tab-pane>
+            <tab-pane label="其他信息" name="other" disabled>
+                <i-form label-width="140">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="商品编码">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.goodsCode"></i-input>
+                            </form-item>
+                            <form-item label="商品名称">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.goodsName"></i-input>
+                            </form-item>
+                            <form-item label="数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.goodsNum"></i-input>
+                            </form-item>
+                            <form-item label="累计采购入库数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalPurchaseStorageNum"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="累计拣货数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalPickNum"></i-input>
+                            </form-item>
+                            <form-item label="拣货状态">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.pickStatus ===1?'Y':'N' "></i-input>
+                            </form-item>
+                            <form-item label="调拨检验数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalPickNum"></i-input>
+                            </form-item>
+                            <form-item label="调拨检验合格数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.transferCheckPassNum"></i-input>
+                            </form-item>
+                            <form-item label="调拨检验不合格数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.transferCheckFailNum"></i-input>
+                            </form-item>
+                            <form-item label="调拨检验特殊放行数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.transferCheckReleaseNum"></i-input>
+                            </form-item>
+                            <form-item label="调拨检验状态">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.transferCheckStatus===1?'Y':'N' "></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="累计调拨数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalTransferNum"></i-input>
+                            </form-item>
+                            <form-item label="发货检验数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.shipCheckNum"></i-input>
+                            </form-item>
+                            <form-item label="发货检验合格数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.shipCheckPassNum"></i-input>
+                            </form-item>
+                            <form-item label="发货检验不合格数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.shipCheckFailNum"></i-input>
+                            </form-item>
+                            <form-item label="发货检验特殊放行数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.shipCheckReleaseNum"></i-input>
+                            </form-item>
+                            <form-item label="发货检验状态">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.shipCheckStatus===1?'Y':'N'"></i-input>
+                            </form-item>
+                            <form-item label="累计出库数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalOutStockNum"></i-input>
+                            </form-item>
+                            <form-item label="累计退货数量">
+                                <i-input class="ht-width-md" :disabled="otherDisable" v-model="goodsOtherInfo.totalReturnNum"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+            </tab-pane>
+
+        </tabs>
+        <product-detail ref="modalRef" :show-modal="productDetailModal.showModal" :goods-main-type="goodsInfos[selectedIndex] && goodsInfos[selectedIndex].goodsMainType"
+            :is-order-bom="productDetailModal.isOrderBom" :ids="productDetailModal.ids" :over-edit="goodsInfos[selectedIndex] && goodsInfos[selectedIndex].overEdit"
+            :order-status="addBody.status" :t-base-bom-entity="goodsInfos[selectedIndex] && goodsInfos[selectedIndex].tBaseBomEntity"
+            :my-assist-attrs="goodsInfos[selectedIndex] && goodsInfos[selectedIndex].assistAttrs" @ok="modalSure($event)" @cancel="modalCancel($event)"></product-detail>
+        <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+    </div>
+
+    <script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-product-detail.js'></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-select.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/ht-img-magnifier.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/access/access.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-close-modal.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-customer-list.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/sale/customer-order/customer-order-add.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

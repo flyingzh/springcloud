@@ -1,0 +1,105 @@
+.overflow{
+    overflow: hidden;
+}
+.ht-common-list input{
+    width: 180px;
+}
+.ht-common-list .ivu-form-item{
+    min-width: 240px;
+    display: inline-block;
+    width: auto;
+}
+.ht-common-list .ivu-form-item-content{
+    display: inline-block;
+    width: auto;
+    margin-left: 0 !important;
+}
+.ht-common-list .ivu-form-item-content .ivu-input-wrapper{
+    width: auto;
+}
+.ht-common-list .date-select{
+    display: inline-block;
+}
+.ht-common-list .date-picker div{
+    display: inline-block;
+}
+.ht-common-list .ht-search-btn{
+    display: inline-block;
+}
+.ht-common-list .jqGrid_wrapper{
+
+}
+.ht-common-list .jqGrid_wrapper .ui-jqgrid-htable{
+
+}
+.ht-common-list .jqGrid_wrapper .ui-jqgrid-htable th{
+    text-align: center;
+}
+.ht-common-list .jqGrid_wrapper input[role="checkbox"]{
+    width: 14px;
+    height: 14px;
+    display: inline;
+}
+.ht-common-list .jqGrid_wrapper .ivu-btn-primary{
+    width: 40px;
+    height: 20px;
+    padding: 0;
+    opacity: 0.8;
+}
+.ht-common-list .ui-jqgrid .ui-jqgrid-btable tbody tr.jqgrow td{
+    white-space: nowrap;
+}
+.ht-common-confirm-wrap{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: rgba(0,0,0,0.6);
+}
+.ht-common-confirm-wrap .ht-common-confirm-container{
+    border: 1px solid red;
+    width: 100%;
+    height: 100%;
+}
+.ht-common-confirm-wrap .ht-common-confirm-container:after{
+    display: block;
+    content: '';
+    clear: both;
+}
+.ht-common-confirm-wrap .ht-common-confirm{
+    width: 300px;
+    position: fixed;
+    top: calc(50% - 150px);
+    left: calc(50% - 150px);
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.ht-common-confirm-wrap .confirm-head{
+    text-align: center;
+    font-size: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+}
+.ht-common-confirm-wrap .confirm-content{
+    text-align: center;
+    font-size: 14px;
+    padding: 20px 8px;
+    word-wrap: break-word;
+    border-bottom: 1px solid #ccc;
+}
+.ht-common-confirm-wrap .confirm-btns div{
+    display: inline-block;
+    width: 49%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.ht-common-confirm-wrap .confirm-btns .sure{
+    border-right: 1px solid #ccc;
+    height: 30px;
+    line-height: 30px;
+}
+.ht-common-confirm-wrap .confirm-btns .sure.onlySure{
+    width: 100%;
+}

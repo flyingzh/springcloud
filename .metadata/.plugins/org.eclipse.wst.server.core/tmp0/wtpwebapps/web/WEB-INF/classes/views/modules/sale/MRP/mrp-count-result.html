@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>MRP运算结果</title>
+  #parse("modules/public/header.html")
+    <style>
+        .contentBox{
+            margin-left: 38px;
+            height: 500px;
+            border: 1px solid #ccc;
+            width: 260px;
+        }
+        .tablist td,th{
+            border: 1px solid #000;
+            text-align: center;
+            height: 30px;
+        }
+        .tr-back{
+            background:#dff0d8 /*#5599FF#CCEEFF#55acee*/;
+        }
+        #mrp-count-result{
+            padding: 30px 0 0 0px;
+        }
+    </style>
+</head>
+<body>
+    <div id="mrp-count-result" v-cloak>
+        <i-form label-width="100">
+            <row>
+                <i-col span="7">
+                    <form-item label="计算编号">
+                        <i-select v-model="countOrder" style="width:200px" clearable @on-change="modify">
+                            <i-option v-for="(option,index) in orderList" :value="option.countNo" :key="index">{{option.countNo}}({{option.countTime}})</i-option>
+                        </i-select>
+                    </form-item>
+                    <div class="contentBox" v-if="treeShow">
+                        <ht-tree  :datainfo="countNum" :url="ztreeUrl"  :setting="treeSetting"></ht-tree>
+                    </div>
+                </i-col>
+              <i-col span="16" style = "margin-top: 52px">
+                  <div style="height: 250px; border: 1px solid #ccc;overflow-y: auto;" v-show="tabShow">
+                    <table class="edit-table" v-show="tabShow" >
+                        <thead style="background-color: #ccc">
+                        <th>商品编号</th>
+                        <th>商品名称</th>
+                        <th>款式类别</th>
+                        <th>商品规格</th>
+                        <th>金料成色</th>
+                        <th>分段</th>
+                        <th>颜色</th>
+                        <th>净度</th>
+                        <th>单位</th>
+                        <th>即时库存</th>
+                        <th>已分配</th>
+                        <th>可用库存</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(info,index) in MRPCountGoodsStockEntity" @click="getGoodsNum(index)" class="tabInfo">
+                            <td>
+                                <a  @click="goodsClick(info.commodityId)"> {{info.goodsCode}}</a>
+                            </td>
+                            <td>{{info.goodsName}}</td>
+                            <td>{{info.styleName}}</td>
+                            <td>{{info.goodsNorm}}</td>
+                            <td>{{info.goldColor}}</td>
+                            <td>{{info.stoneSection}}</td>
+                            <td>{{info.color}}</td>
+                            <td>{{info.stoneClarity}}</td>
+                            <td>{{info.unit}}</td>
+                            <td>{{info.instantInventory}}</td>
+                            <td>{{info.assigned}}</td>
+                            <td>{{info.availableStock}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                  <div style="height: 250px; border: 1px solid #ccc;margin-top:1px;overflow-y: auto;" v-show="tabShow">
+                  <table class="edit-table" v-show="tabShow" width="100%" >
+                        <thead style="background-color: #ccc">
+                        <th>需求日期</th>
+                        <th>需求单据</th>
+                        <th>行号</th>
+                        <th>毛需求</th>
+                        <th>损耗率%</th>
+                        <th>净需求</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="info in tabList">
+                            <td>
+                                {{info.demandDate}}
+                            </td>
+                            <td><a  @click="detailClick(info.documentNo)">{{info.documentNo}}</a></td>
+                            <td>{{info.goodsLineNo}}</td>
+                            <td>{{info.grossDemand}}</td>
+                            <td>{{info.lossRate}}</td>
+                            <td>{{info.netDemand}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                  </div>
+                </i-col>
+            </row>
+        </i-form>
+    </div>
+#parse("modules/public/footer.html") </body>
+<script type="text/javascript" src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/sale/MRP/owner-ht-tree.js"></script>
+<script src="${rc.contextPath}/js/sale/MRP/mrp-count-result.js"></script>
+</html>

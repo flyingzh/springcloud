@@ -1,0 +1,311 @@
+package com.htrfid.financeapp.service.impl;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.htrfid.common.remote.TBaseCurrencyRemoteService;
+import com.htrfid.constant.EnumConstant;
+import com.htrfid.finance.vo.DetailAccountReqVo;
+import com.htrfid.finance.vo.DetailAccountVo;
+import com.htrfid.financeapp.common.SystemProfileConstant;
+import com.htrfid.financeapp.remote.BookInquiryRemoteService;
+import com.htrfid.financeapp.remote.SystemProfileRemoteService;
+import com.htrfid.financeapp.service.BookInquiryService;
+import com.htrfid.financeapp.service.VoucherService;
+import com.htrfid.util.JsonUtil;
+import com.htrfid.util.Result;
+
+/**
+ * @author zhengfei
+ * @version V1.0.1
+ * @className BookInquiryImpl
+ * @description 账簿
+ * @email 936864724@qq.com
+ * @date 2018-06-28 9:05
+ **/
+@Service("bookInquiryService")
+public class BookInquiryServiceImpl implements BookInquiryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BookInquiryServiceImpl.class);
+
+    @Autowired
+    private BookInquiryRemoteService bookInquiryRemoteService;
+    @Autowired
+    private SystemProfileRemoteService systemProfileRemoteService;
+    @Autowired
+    TBaseCurrencyRemoteService tBaseCurrencyMaintainRemoteService;
+    @Autowired
+    private VoucherService voucherService;
+
+    /**
+    * @description: 明细分类账
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-06-28 9:07
+    * @param detailAccountReqVo
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Map<String,Object> detailAccount(DetailAccountReqVo detailAccountReqVo) {
+        return bookInquiryRemoteService.listDetailAccount(detailAccountReqVo);
+    }
+
+    /**
+    * @description: 导出excel
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-18 13:55
+    * @param reqVo
+    * @return void
+    */
+    @SuppressWarnings("unchecked")
+	@Override
+    public void exportExcel(DetailAccountReqVo reqVo,HttpServletResponse response) {
+        Result ret = systemProfileRemoteService.getSystemProfileValue(SystemProfileConstant.FINANCE_CURRENT_ACCOUNTING_YEAR, reqVo.getSobId().toString());
+        Integer currentYear = null;
+        if(ret != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(ret.getCode())){
+            String currentAccountYearStr = (String)ret.getData();
+            currentYear = Integer.parseInt(currentAccountYearStr);
+        }
+
+        if(reqVo.getYearStart()== null){
+            reqVo.setYearStart(currentYear);
+        }
+        if(reqVo.getYearEnd() == null){
+            reqVo.setYearEnd(currentYear);
+        }
+        Integer currentPeriod = null;
+        ret = systemProfileRemoteService.getSystemProfileValue(SystemProfileConstant.FINANCE_CURRENT_ACCOUNTING_PERIOD, reqVo.getSobId().toString());
+        if(ret != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(ret.getCode())){
+            String currentPeriodStr = (String)ret.getData();
+            currentPeriod = Integer.parseInt(currentPeriodStr);
+        }
+        if(reqVo.getSubjectPeriodStart()== null){
+            //总账当前会计期间
+            reqVo.setSubjectPeriodStart(currentPeriod);
+        }
+        if(reqVo.getSubjectPeriodEnd() == null){
+            reqVo.setSubjectPeriodEnd(currentPeriod);
+        }
+
+        //查询当前账套本位币所属币别编号
+        Result systemProfileValueResult = systemProfileRemoteService.getSystemProfileValue(SystemProfileConstant.SYS_STANDARD_MONEY_ID, reqVo.getSobId() != null ? reqVo.getSobId().toString() : null);
+        Integer valueStr = null;
+        if(systemProfileValueResult != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(systemProfileValueResult.getCode())){
+            valueStr = Integer.parseInt(systemProfileValueResult.getData().toString());
+        }
+        //标记当前选中币别是否为本位币
+        boolean isStandard = false;
+        if(valueStr.equals(reqVo.getCurrency())){
+            isStandard = true;
+        }
+
+        String fileName = reqVo.getYearStart()+"年第"+reqVo.getSubjectPeriodStart()+"期至"
+                +reqVo.getYearEnd()+"年第"+reqVo.getSubjectPeriodEnd()+"期";
+
+        //生成Excel文件
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet(fileName);
+
+        //列标题
+        String[] strArray = null;
+
+        if(reqVo.getCurrency().intValue() == -2|| isStandard){
+            //综合本位币/本位币
+            strArray = new String[]{"科目", "日期", "凭证字号", "摘要", "借方", "贷方", "方向", "余额"};
+        }else if(reqVo.getCurrency().intValue() == -1){
+            //所有币别
+            strArray = new String[]{"科目", "日期", "凭证字号", "摘要", "币别", "借方原币", "借方本位币", "贷方原币", "贷方本位币", "方向", "余额本位币"};
+        }else{
+            //外币
+            strArray = new String[]{"科目", "日期", "凭证字号", "摘要", "币别", "借方原币", "借方本位币", "贷方原币", "贷方本位币", "方向", "余额原币","余额本位币"};
+        }
+
+        for(int i = 0;i<strArray.length;i++){
+            //每一列的宽度
+            sheet.setColumnWidth(i, 30 * 180);
+        }
+
+        //合并
+        sheet.addMergedRegion(new CellRangeAddress(0,0,0,strArray.length-1));
+        sheet.addMergedRegion(new CellRangeAddress(1,1,0,strArray.length/2-1));
+        sheet.addMergedRegion(new CellRangeAddress(1,1,strArray.length/2,strArray.length-1));
+
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setWrapText(true);//强制使用POI样式
+//        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);//  居中
+        //字体大小
+        XSSFFont font = workbook.createFont();
+        font.setFontName("宋体");
+        font.setFontHeightInPoints((short) 14);
+        font.setBold(true); //是否加粗
+        cellStyle.setFont(font);
+        //创建行 （第1行）
+        XSSFRow row = sheet.createRow(0);
+        row.setHeightInPoints(20);
+        XSSFCell cell = row.createCell(0);
+        cell.setCellValue("明细分类账");
+        cell.setCellStyle(cellStyle);
+
+        //第2行
+        cellStyle = workbook.createCellStyle();
+        cellStyle.setAlignment(HorizontalAlignment.RIGHT);//  居中
+//        cellStyle.setAlignment(CellStyle.ALIGN_RIGHT);// 右靠
+        cellStyle.setWrapText(true);//强制使用POI样式
+        row = sheet.createRow(1);
+        // row.setHeightInPoints(20);
+        cell = row.createCell(0);
+        cell.setCellValue("金大祥");
+        cell = row.createCell(strArray.length/2);
+        cell.setCellValue(fileName);
+        font = workbook.createFont();
+        font.setFontName("Arial");
+        font.setFontHeightInPoints((short) 10);
+        cellStyle.setFont(font);
+        cell.setCellStyle(cellStyle);
+
+        cellStyle = workbook.createCellStyle();
+        row = sheet.createRow(2);
+        
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);//  居中
+        cellStyle.setFillBackgroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());//设置颜色
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+//        cellStyle.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index); //设置颜色
+//        cellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND); //设置颜色
+//        cellStyle.setFillBackgroundColor(HSSFColor.GREY_25_PERCENT.index); //设置颜色
+        for (int i = 0; i < strArray.length; i++) {
+            cell = row.createCell(i);
+            cell.setCellValue(strArray[i]);
+            font = workbook.createFont();
+            font.setBold(true); //是否加粗
+            font.setFontName("Courier New");
+            font.setFontHeightInPoints((short) 12);
+            cellStyle.setFont(font);
+            cell.setCellStyle(cellStyle);
+        }
+
+        Map<String, Object> map = detailAccount(reqVo);
+        Map<String, Object> entity = (Map<String, Object>) map.get("entity");
+//        List<DetailAccountVo> dataList = (List<DetailAccountVo>) map.get("list");
+        List<DetailAccountVo> dataList = JsonUtil.jsonToList(map.get("list").toString(), DetailAccountVo.class);
+        DecimalFormat df = new DecimalFormat("0.00");
+        for (int j = 0;j<dataList.size();j++){
+            row = sheet.createRow(j+3);
+
+            if(reqVo.getCurrency().intValue() == -2|| isStandard){
+                //综合本位币/本位币
+                row.createCell((short) 0).setCellValue(entity.get("subjectName").toString());
+                row.createCell((short) 1).setCellValue(dataList.get(j).getPeriodDate());
+                row.createCell((short) 2).setCellValue(dataList.get(j).getVoucherNumber());
+                row.createCell((short) 3).setCellValue(dataList.get(j).getSummary());
+                row.createCell((short) 4).setCellValue(df.format(dataList.get(j).getDebitMoney()));
+                row.createCell((short) 5).setCellValue(df.format(dataList.get(j).getCreditMoney()));
+                if("1".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 6).setCellValue("借");
+                }else if("2".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 6).setCellValue("贷");
+                }else{
+                    row.createCell((short) 6).setCellValue("平");
+                }
+                row.createCell((short) 7).setCellValue(df.format(dataList.get(j).getBalance()));
+            }else if(reqVo.getCurrency().intValue() == -1){
+                //所有币别
+                row.createCell((short) 0).setCellValue(entity.get("subjectName").toString());
+                row.createCell((short) 1).setCellValue(dataList.get(j).getPeriodDate());
+                row.createCell((short) 2).setCellValue(dataList.get(j).getVoucherNumber());
+                row.createCell((short) 3).setCellValue(dataList.get(j).getSummary());
+                row.createCell((short) 4).setCellValue(dataList.get(j).getCurrencyNameValue());
+
+                row.createCell((short) 5).setCellValue(df.format(dataList.get(j).getDebitAmountFor()));
+                row.createCell((short) 6).setCellValue(df.format(dataList.get(j).getDebitMoney()));
+                row.createCell((short) 7).setCellValue(df.format(dataList.get(j).getCreditAmountFor()));
+                row.createCell((short) 8).setCellValue(df.format(dataList.get(j).getCreditMoney()));
+                if("1".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 9).setCellValue("借");
+                }else if("2".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 9).setCellValue("贷");
+                }else{
+                    row.createCell((short) 9).setCellValue("平");
+                }
+                row.createCell((short) 10).setCellValue(df.format(dataList.get(j).getBalance()));
+
+            }else{
+                //外币
+                //所有币别
+                row.createCell((short) 0).setCellValue(entity.get("subjectName").toString());
+                row.createCell((short) 1).setCellValue(dataList.get(j).getPeriodDate());
+                row.createCell((short) 2).setCellValue(dataList.get(j).getVoucherNumber());
+                row.createCell((short) 3).setCellValue(dataList.get(j).getSummary());
+                row.createCell((short) 4).setCellValue(dataList.get(j).getCurrencyNameValue());
+
+                row.createCell((short) 5).setCellValue(df.format(dataList.get(j).getDebitAmountFor()));
+                row.createCell((short) 6).setCellValue(df.format(dataList.get(j).getDebitMoney()));
+                row.createCell((short) 7).setCellValue(df.format(dataList.get(j).getCreditAmountFor()));
+                row.createCell((short) 8).setCellValue(df.format(dataList.get(j).getCreditMoney()));
+                if("1".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 9).setCellValue("借");
+                }else if("2".equals(dataList.get(j).getDirection())){
+                    row.createCell((short) 9).setCellValue("贷");
+                }else{
+                    row.createCell((short) 9).setCellValue("平");
+                }
+                row.createCell((short) 10).setCellValue(df.format(dataList.get(j).getBalanceFor()));
+                row.createCell((short) 11).setCellValue(df.format(dataList.get(j).getBalance()));
+
+            }
+
+        }
+
+        try {
+            String name = "明细分类账_"+fileName;
+            response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" +
+                    new String(name.getBytes("GBK"), "ISO8859-1")+".xlsx");
+            workbook.write(response.getOutputStream());
+        }catch (Exception e){
+            logger.info(e.getMessage());
+        }finally {
+            if(workbook != null){
+                try {
+                    workbook.close();
+                }catch (IOException ioe){
+                    ioe.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    @Override
+    public Result initPage(Long sobId) {
+        Result currencyList = voucherService.getCurrencyList();
+        Result financeYearPeriod = voucherService.getFinanceYearPeriod(sobId);
+        Map<String,Object> map = new HashMap<>();
+        map.put("currencyList",currencyList);
+        map.put("financeYearPeriod",financeYearPeriod);
+        return Result.ok(map);
+    }
+}

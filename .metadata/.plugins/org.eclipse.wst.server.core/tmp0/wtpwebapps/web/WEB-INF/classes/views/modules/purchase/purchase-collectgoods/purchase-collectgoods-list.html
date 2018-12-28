@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <title>收货列表</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="ReceivingList" v-cloak>
+        <div>
+            <div class="btn-menu ht-menu-fix">
+                <!--<div class="btn-menu">-->
+                    <!--<span class="pd-rg-sm pd-lf-sm" @click="refresh">刷新</span>-->
+                    <i-button type="text" @click="refresh">刷新</i-button>
+                    <!--<span class="pd-rg-sm pd-lf-sm" @click="add">新增</span>-->
+                    <i-button type="text" @click="add">新增</i-button>
+                    <!--<span class="pd-rg-sm pd-lf-sm" @click="del">删除</span>-->
+                    <i-button type="text" @click="del">删除</i-button>
+                    <!--<span class="pd-rg-sm pd-lf-sm" @click="modify">修改</span>-->
+                    <i-button type="text" @click="modify">修改</i-button>
+                    <!--<span class="pd-rg-sm pd-lf-sm">预览</span>-->
+               <!--     <i-button type="text">预览</i-button>
+                    &lt;!&ndash;<span class="pd-rg-sm pd-lf-sm">打印</span>&ndash;&gt;
+                    <i-button type="text">打印</i-button>-->
+                    <!--<span class="pd-rg-sm pd-lf-sm" @click="exit">退出</span>-->
+                    <i-button type="text" @click="exit">退出</i-button>
+                <!--</div>-->
+            </div>
+            <div style="height: 45px"></div>
+            <div v-show="isSearchHide">
+                <i-form  :model="body" label-width="120" >
+                    <row>
+
+                        <i-col span="8">
+                            <form-item label="商品类型：">
+                                <cascader @on-change="changeCategory($event)"  change-on-select class="ht-width-input" :data="categoryType" v-model="commodityCategoty" clearable></cascader>
+                            </form-item>
+                            <form-item label="业务员：">
+                                <i-select  v-model="body.salesmanName"  class="ht-width-input" ref="saleName" filterable clearable>
+                                    <i-option v-if="item.empStatus == 1"  v-for="item in employees" :value="item.empName" :key="item.empName">{{item.empCode}}-{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="日期：">
+                                <date-picker clearable  v-model="dateArr"  format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-input"></date-picker>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="供应商：">
+                                <ht-selectsupplier
+                                        @getinfo="closeSupplier"
+                                        ref="supplier"
+                                        is-check="no">
+                                </ht-selectsupplier>
+                            </form-item>
+                            <form-item label="单据状态：">
+                                <i-select class="ht-width-input" v-model="body.orderStatus" clearable>
+                                    <i-option v-for="item in orderStatus" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="业务类型：">
+                                <i-select class="ht-width-input" v-model="body.businessType" clearable>
+                                    <i-option v-for="item in businessTypes" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="单据编号：">
+                                <i-input class="ht-width-input" v-model="body.orderNo"></i-input>
+                            </form-item>
+                            <form-item>
+                                <ht-btns  @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                            </form-item>
+
+                        </i-col>
+
+                    </row>
+                </i-form>
+            </div>
+            <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+            <base-data-list :return-row-data="true" v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+        </div>
+    </div>
+    <script src='${rc.contextPath}/js/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-selectsupplier.js'></script>
+    <!--<script src='${rc.contextPath}/js/components/base-data-list.js'></script>-->
+    <script src='${rc.contextPath}/js/components/ht-toggle.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-select.js'></script>
+    <script src='${rc.contextPath}/js/purchase/purchase-collectgoods/purchase-collectgoods-list.js'></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

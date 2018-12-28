@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <title>证书费用表</title>
+    <style>
+    </style>
+</head>
+
+<body>
+    <div id="certificate-fee-list" v-cloak>
+        <div class="btn-menu">
+            <span class="pd-rg-sm pd-lf-sm" @click="save">保存</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="exportTemplate">引出模板</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="importExcel">引入</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <Modal
+                v-model="showUpload"
+                title="上传文件"
+                @on-ok="modalOk"
+                @on-cancel="modalCancel">
+            <Upload
+                    ref="upload"
+                    :on-success="handleSuccess"
+                    :max-size="5120000"
+                    :on-format-error="handleFormatError"
+                    :on-exceeded-size="handleMaxSize"
+                    :before-upload="handleBeforeUpload"
+                    :format="['xlsx']"
+                    action="${rc.contextPath}/saleCertificateFeeController/importExcel">
+                <i-button type="ghost" icon="ios-cloud-upload-outline">导入</i-button>
+            </Upload>
+        </Modal>
+        <div class="mg-lf-md">
+            <p class="title-font">证书费：国检NGTC</p>
+            <table class="edit-table">
+                <thead>
+                    <tr>
+                        <th>主石分数</th>
+                        <th>价格(元/张)</th>
+                    </tr>
+                </thead>
+                <tbody >
+                    <tr v-for="item in saleCertificateFeeVo.saleCertificateDetailList">
+                        <td>
+                            {{item.stoneSectionName}}
+                        </td>
+                        <td>
+                            <input type="text" v-model="item.certificatePrice" @input="clearNum(item,'certificatePrice',6)"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="title-font">备注说明：</p>
+            <textarea style="width:300px" cols="30" rows="6" v-model="saleCertificateFeeVo.remark"></textarea>
+        </div>
+        
+    </div>
+    <script src='${rc.contextPath}/js/sale/sale-price/certificate-fee-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

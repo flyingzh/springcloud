@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/basedata/ht-list-common.css">
+    <script>
+        var rcContextPath = '${rc.contextPath}';
+    </script>
+    <style>  
+     .ht-nextstep{
+         margin:80px 10px 0px 460px;       
+     }
+     .ht-window{
+        width:600px;
+        margin:50px auto
+     }
+     .ht-previous{
+         margin:70px 10px 0 400px;
+     }
+     .ht-extext{
+         font-size: 14px;
+     }
+     .ht-indent{
+         text-indent: 24px;
+     }
+     [v-cloak]
+      { display: none } 
+    </style>
+    <title>期末结账</title>
+</head>
+
+<body>
+    <div id="profitLossTransfer" v-cloak> 
+        <div class="ht-window">
+            <div v-show="isCheckOut==0">
+                <p class="ht-extext ht-indent mg-bm-md">为了总结某一会计期间（年度或月度）的经营活动情况，必须定期进行结账，结账就是把一定时期内发生的经济业务在全部登记入账的基础上，将各种账簿记录结出【本期发生额】和【期末余额】，从而根据账簿记录编制会计报表。</p>
+                <p class="ht-extext ht-indent mg-bm-md">在结账之前，应先检查本期发生的各种经济业务是否都已经编制记账凭证并登记入账。对各种成本费用类账户，也应当在结账前对余额进行结转，并登记入账。</p>
+                <div class="ht-extext mg-bm-md">
+                    <input type="checkbox" v-model="checked">结账时检查凭证断号
+                </div>
+                <div class="ht-extext mg-bm-md">
+                    <label class="radio-inline" v-for="item in checkOutType">
+                        <input type="radio" :value="item.value" v-model="isCheckOut">{{item.label}}
+                    </label>
+                </div>
+                <p class="ht-extext mg-bm-md">按【开始】按钮开始期末结账</p>
+            </div>
+            <div v-show="isCheckOut==1">
+                <p class="ht-extext ht-indent mg-bm-md">建议谨慎使用反结账功能！</p>
+                <div class="ht-extext mg-bm-md">
+                    <input type="checkbox"  disabled="disabled">结账时检查凭证断号
+                </div>
+                <div class="ht-extext mg-bm-md">
+                    <label class="radio-inline" v-for="item in checkOutType">
+                        <input type="radio" :value="item.value" v-model="isCheckOut">{{item.label}}
+                    </label>
+                </div>
+                <p class="ht-extext mg-bm-md">按【开始】按钮开始反结账</p>
+            </div>
+
+            <!-- 完成对话框 -->
+            <Modal
+                    v-model="isPosting"
+                    title="信息提示"
+                    @on-ok="start"
+                    @on-cancel="cancel(false)">
+                <p>确认要开始本期反初始化吗？</p>
+            </Modal>
+            <div  class="ht-previous">
+                 <!--<i-button type="primary" @click="completed" :disabled="!isDisabled">完成</i-button>-->
+                 <!--<i-button type="primary" @click="cancel" :disabled="isDisabled">取消</i-button>               -->
+                <div v-show="isCheckOut==0">
+                    <i-button type="primary" @click="start">开始</i-button>
+                </div>
+                <div v-show="isCheckOut==1">
+                    <i-button type="primary" @click="cancel(true)">开始</i-button>
+                </div>
+            </div>
+          
+        </div>
+    </div>
+
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/ktc/js/app.js'></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"> </script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"> </script>
+    <script src="${rc.contextPath}/js/basedata/components/subject-tree.js"> </script>
+    <script src='${rc.contextPath}/js/finance/endterm-checkout/endterm-checkout.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

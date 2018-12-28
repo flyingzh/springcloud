@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>固定资产生成凭证</title>
+    #parse("modules/public/header.html")
+    <style>
+        .filter label {
+            /* text-align: right; */
+        }
+
+        .vocher .ivu-modal-body {
+            padding-top: 0;
+        }
+
+        .form-control {
+            height: 32px;
+        }
+
+        .ht-subjectMain {
+            height: 150px;
+            overflow: auto;
+            padding: 10px;
+        }
+         .ht-icon-ok {
+             color: #01AAED;
+             font-weight: bold;
+         }
+    </style>
+</head>
+
+<body>
+    <div id="fixedAssetsGenerationCertificate" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <button @click="open" class="ht-btn">打开</button>
+            <button @click="selectRowAction('pressTheBill')" class="ht-btn">按单生成凭证</button>
+            <button @click="selectRowAction('gather')" class="ht-btn">汇总生成凭证</button>
+            <button @click="creatVoucher" class="ht-btn">生成凭证选项</button>
+            <button @click="selectRowAction('voucher')" class="ht-btn">查看凭证</button>
+            <!--<button @click="selectRowAction('voucher')" class="ht-btn">修改凭证</button>-->
+            <button @click="selectRowAction('delete')" class="ht-btn">删除凭证</button>
+            <button @click="selectRowAction('auditing')" class="ht-btn">审核凭证</button>
+            <button @click="selectRowAction('counterAudit')" class="ht-btn">反审核凭证</button>
+            <button @click="goPathBook" class="ht-btn">序时簿</button>
+            <button @click="printV" class="ht-btn">打印</button>
+            <button @click="exportExcel" class="ht-btn">引出</button>
+            <button @click="exitPrevent" class="ht-btn">退出</button>
+        </div>
+
+        <div class="pl20 pr20 mt10">
+            <span class="mr20">事务类型：{{baseData.subjectName}}</span>
+            <span class="mr20">会计期间：{{baseData.periodDate}}</span>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <table id="grid"></table>
+            <div id="page"></div>
+        </div>
+        <!-- 打开 -->
+        <Modal v-model="filterModal" title="查询条件" class-name="ht-deleteModal" width="400" @on-ok="saveData" @on-cancel="cancelData"
+            closable="false">
+            <div class="ht-modal-center" style="position: relative;">
+                <i-form :model="filterBody" label-width="100">
+                    <form-item label="所属组织">
+                        <!--<i-select v-model="filterBody.sobId" disabled class="ht-width-md">-->
+                            <!--<i-option v-for="item in organizationList" :value="item.value">{{item.label}}</i-option>-->
+                        <!--</i-select>-->
+                        {{currentOrgName}}
+                    </form-item>
+                    <form-item label="会计期间">
+                        <i-select v-model="filterBody.accountYear" style="width:100px">
+                            <i-option v-for="item in accountYear" :value="item" :key="item">{{ item }}
+                            </i-option>
+                        </i-select>
+                        年
+                        <i-select v-model="filterBody.accountPeriod" style="width:100px">
+                            <i-option v-for="item in accountPeriod" :value="item" :key="item">{{ item }}
+                            </i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="事物类型">
+                        <i-select v-model="filterBody.changeType" class="ht-width-md">
+                            <i-option v-for="item in changeTypes" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="凭证状态">
+                        <i-select v-model="filterBody.certificateStatus" class="ht-width-md">
+                            <i-option v-for="item in certificateStatus" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <form-item label="凭证审核状态">
+                        <i-select v-model="filterBody.audited" class="ht-width-md">
+                            <i-option v-for="item in audited" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-form>
+            </div>
+        </Modal>
+        <!-- 按单生成凭证 -->
+        <Modal v-model="accordingModal" title="固定资产生成凭证-按单生成凭证" class-name="ht-deleteModal" width="600" @on-ok="saveAccordingData"
+            @on-cancel="cancelAccordingData" closable="false">
+            <div class="ht-modal-center" style="position: relative;">
+                <div>为了灵活地生成卡片新增、变动、清理业务的凭证，本模块允许您选择多张单据，组合不同业务，同时生成凭证;而且您可以按各单据分别生成凭证，也可以汇总之后生成一张凭证。</div>
+                <div>在生成凭证之前，请确保个单据所需的凭证字、科目、核算项目等要素的正确性，以保证凭证生成过程的连续，减少手工调整的工作。</div>
+                <div>建议先通过“生成凭证选项”菜单，统一设置“清理费用”和“残值收入”的对应科目；您还可以 在这里设置您希望的异常处理方式。</div>
+                <!--<Row>-->
+                    <!--<label>-->
+                        <!--<input type="checkbox" v-model="accordingCheck"> 固定资产凭证分录分开列示-->
+                    <!--</label>-->
+                <!--</Row>-->
+            </div>
+        </Modal>
+        <!-- 汇总生成凭证 -->
+        <Modal v-model="summaryModal" title="固定资产生成凭证-汇总生成凭证" class-name="ht-deleteModal" width="600" @on-ok="saveSummaryData"
+            @on-cancel="cancelSummaryData" closable="false">
+            <div class="ht-modal-center" style="position: relative;">
+                <div>为了灵活地生成卡片新增、变动、清理业务的凭证，本模块允许您选择多张单据，组合不同业务，同时生成凭证;而且您可以按各单据分别生成凭证，也可以汇总之后生成一张凭证。</div>
+                <div>在生成凭证之前，请确保个单据所需的凭证字、科目、核算项目等要素的正确性，以保证凭证生成过程的连续，减少手工调整的工作。</div>
+                <div>建议先通过“生成凭证选项”菜单，统一设置“清理费用”和“残值收入”的对应科目；您还可以 在这里设置您希望的异常处理方式。</div>
+                <!--<Row>-->
+                    <!--<label>-->
+                        <!--<input type="checkbox" v-model="summaryCheck"> 固定资产凭证分录分开列示-->
+                    <!--</label>-->
+                <!--</Row>-->
+            </div>
+        </Modal>
+
+        <!-- 凭证生成选项 -->
+        <Modal v-model="voucherVisible" width="400px" title="生成凭证选项" class="filter vocher" :mask-closable="false">
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>默认值</div>-->
+            <!--</div>-->
+            <!--<Row class="mt5">-->
+                <!--<label class="w60">凭证字</label>-->
+                <!--<i-select v-model="voucherFilter.voucherWordId" class=" inline-block inline-block calc-right-w65" filterable>-->
+                    <!--<i-option v-for="item in voucherDataLists" :value="item.id" :key="item.id">-->
+                        <!--<slot>{{ item.name }}</slot>-->
+                    <!--</i-option>-->
+                <!--</i-select>-->
+            <!--</Row>-->
+            <div class="ht-subtitle mt10 ml0">
+                <div>按单异常处理</div>
+            </div>
+            <Row>
+                <label>
+                    <input type="radio" value="1" v-model="voucherFilter.abnormalDataProcessing"> 编辑该凭证
+                </label>
+                <label class="ml20">
+                    <input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 跳过该凭证
+                </label>
+                <label class="ml20">
+                    <input type="radio" value="3" v-model="voucherFilter.abnormalDataProcessing"> 停止生成凭证
+                </label>
+            </Row>
+            <div class="ht-subtitle mt10 ml0">
+                <div>汇总生成凭证选项</div>
+            </div>
+            <Row>
+                <label>
+                    <input type="checkbox" v-model="voucherFilter.subjectMergerDebit"> 借方相同科目合并
+                </label>
+                <label class="ml20">
+                    <input type="checkbox" v-model="voucherFilter.subjectMergerLender"> 贷方相同科目合并
+                </label>
+            </Row>
+            <div class="ht-subtitle mt10 ml0">
+                <div>汇总生成凭证科目选择</div>
+            </div>
+            <Row>
+                <label>
+                        残值收入对应科目 <i-input class="inline-block calc-right-w140" v-model="residualIncomeSubjectName" readonly="true"
+                             @on-click="showSubjectVisable(1)" icon="ios-list-outline" type="text"></i-input>
+                </label>
+                <label>
+                        清理费用对应科目 <i-input class="inline-block calc-right-w140" v-model="clearingExpenseSubjectName" readonly="true"
+                                 @on-click="showSubjectVisable(2)" icon="ios-list-outline" type="text"></i-input>
+                </label>
+                <label>
+                        减值准备对应科目 <i-input class="inline-block calc-right-w140" v-model="impairmentPreparationSubjectName" readonly="true"
+                                 @on-click="showSubjectVisable(3)" icon="ios-list-outline" type="text"></i-input>
+                </label>
+            </Row>
+            <div slot="footer">
+                <i-button @click="resetting" type="primary">重置所有科目</i-button>
+                <i-button @click="save('voucher')" type="primary">确定</i-button>
+                <i-button @click="cancel('voucher')">取消</i-button>
+            </div>
+        </Modal>
+        <Modal v-model="showVoucherVisible" title="信息提示" @on-cancel="showVoucherVisibleClose" :mask-closable="false">
+            <div>
+                <template>
+                    {{voucherModelTxt}}
+                </template>
+                <div class="ht-commTxtRight">
+                    <i-button @click="accordingAction" style="margin-top: 20px;">{{ isContinue ? '继续' : '确定'}}</i-button>
+                    <i-button @click="showViewReport(true)" style="margin-top: 20px;">查看报告>></i-button>
+                    <!--<i-button @click="" style="margin-top: 20px;">保存报告</i-button>-->
+                </div>
+                <div v-if="viewReportVisible" class="ht-viewReportTxt" v-html="viewReportTxt">
+
+                </div>
+            </div>
+
+            <div slot="footer">
+
+            </div>
+        </Modal>
+        <!--<Modal v-model="voucherVisible" width="600px" title="生成凭证选项" class="filter vocher" :mask-closable="false">-->
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>异常处理</div>-->
+            <!--</div>-->
+            <!--<Row class="mt5">-->
+                <!--<label>-->
+                    <!--<input type="radio" value="1" v-model="voucherFilter.abnormalDataProcessing">发生异常时，总是给出提示-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<Row class="mt5">-->
+                <!--<label>-->
+                    <!--<input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 对不同异常分别处理-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>如果某单据已生成凭证</div>-->
+            <!--</div>-->
+            <!--<Row>-->
+                <!--<label>-->
+                    <!--<input type="radio" value="1" v-m odel="voucherFilter.abnormalDataProcessing"> 跳过该单据-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 删除凭证，重新生成-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="3" v-model="voucherFilter.abnormalDataProcessing"> 给出提示-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>数据不完整或保存失败</div>-->
+            <!--</div>-->
+            <!--<Row>-->
+                <!--<label>-->
+                    <!--<input type="radio" value="1" v-model="voucherFilter.abnormalDataProcessing"> 中止生成过程-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 调出错误凭证，手工调整-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="3" v-model="voucherFilter.abnormalDataProcessing"> 给出提示-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>如果某一张单据失败</div>-->
+            <!--</div>-->
+            <!--<Row>-->
+                <!--<label>-->
+                    <!--<input type="radio" value="1" v-model="voucherFilter.abnormalDataProcessing"> 中止处理后续单据-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 继续处理后续单据-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="3" v-model="voucherFilter.abnormalDataProcessing"> 给出提示-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<div class="ht-subtitle mt10 ml0">-->
+                <!--<div>其他异常</div>-->
+            <!--</div>-->
+            <!--<Row>-->
+                <!--<label>-->
+                    <!--<input type="radio" value="1" v-model="voucherFilter.abnormalDataProcessing"> 中止生成过程-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="2" v-model="voucherFilter.abnormalDataProcessing"> 调出错误凭证，手工调整-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="radio" value="3" v-model="voucherFilter.abnormalDataProcessing"> 给出提示-->
+                <!--</label>-->
+            <!--</Row>-->
+
+            <!--<div slot="footer">-->
+                <!--<i-button @click="save('voucher')" type="primary">确定</i-button>-->
+                <!--<i-button @click="cancel('voucher')">取消</i-button>-->
+            <!--</div>-->
+        <!--</Modal>-->
+
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject1"></ht-modal-subject>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+    <!--<script src="${rc.contextPath}/js/finance/components/ht-remark.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/cashier/CashBooks/index.js"></script>-->
+    <script>
+        htLoadJs([
+            'ht-print-choose',
+            '${rc.contextPath}/js/finance/components/ht-modal-subject.js',
+            '${rc.contextPath}/js/finance/components/ht-tree.js',
+            '${rc.contextPath}/js/finance/FixedAssets/FixedAssetsGenerationCertificate/index.js'
+        ])
+    </script>
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>出纳参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>初始参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="cashierEnabledAccountingYear.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="cashierEnabledAccountingPeriod.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="cashierCurrentAccountingYear.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计时间：</label>
+                <div class="col-sm-10">
+                    <input v-model="cashierCurrentAccountingPeriod.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">基本选项：</label>
+                <div class="col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="cashierMakeSubjectDiary.value" true-value="1" false-value="0" />
+                            自动生成对方科目日记账
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="cashierSettleAccountsRequire.value" true-value="1"
+                                false-value="0" />
+                            允许从总账引入日记账
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="cashierLedgerTransferDiary.value" true-value="1"
+                                false-value="0" />
+                            与总账对账期末余额不等时不允许结账
+                        </label>
+                    </div>
+
+                    <!--div class="checkbox">
+                    <label>
+                        <input type="checkbox" v-model="cashierDiaryInputWordSize.value" true-value="1" false-value="0"/>
+                        允许在日记账输入凭证字号
+                    </label>
+                </div-->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                cashierEnabledAccountingYear: {
+                    id: '',
+                    value: '0', //方便监听数据库值为''触发watch
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierEnabledAccountingYear_init: '',
+                cashierEnabledAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierEnabledAccountingPeriod_init: '',
+                cashierCurrentAccountingYear: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierCurrentAccountingYear_init: '',
+                cashierCurrentAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierCurrentAccountingPeriod_init: '',
+                cashierMakeSubjectDiary: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                CashierMakeSubjectDiary_init: '',
+                cashierSettleAccountsRequire: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierSettleAccountsRequire_init: '',
+                cashierLedgerTransferDiary: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierLedgerTransferDiary_init: '',
+                cashierDiaryInputWordSize: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                cashierDiaryInputWordSize_init: '',
+                canUpdateAccountPeriod: false,
+            },
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.cashierEnabledAccountingPeriod.value != vm.cashierEnabledAccountingPeriod_init) {
+                        vm.cashierEnabledAccountingPeriod.readOnly = 1;
+                        vm.cashierEnabledAccountingYear.readOnly = 1;
+                        array.push(vm.cashierEnabledAccountingYear);
+                        array.push(vm.cashierEnabledAccountingPeriod);
+                        vm.cashierCurrentAccountingYear.value = vm.cashierEnabledAccountingYear.value;
+                        vm.cashierCurrentAccountingPeriod.value = vm.cashierEnabledAccountingPeriod.value;
+                        array.push(vm.cashierCurrentAccountingYear);
+                        array.push(vm.cashierCurrentAccountingPeriod);
+                        vm.cashierEnabledAccountingPeriod_init = vm.cashierEnabledAccountingPeriod.value;
+                    }
+                    if (vm.cashierMakeSubjectDiary.value != vm.cashierMakeSubjectDiary_init) {
+                        array.push(vm.cashierMakeSubjectDiary);
+                        vm.cashierMakeSubjectDiary_init = vm.cashierMakeSubjectDiary.value;
+                    }
+                    if (vm.cashierSettleAccountsRequire.value != vm.cashierSettleAccountsRequire_init) {
+                        array.push(vm.cashierSettleAccountsRequire);
+                        vm.cashierSettleAccountsRequire_init = vm.cashierSettleAccountsRequire.value;
+                    }
+                    if (vm.cashierLedgerTransferDiary.value != vm.cashierLedgerTransferDiary_init) {
+                        array.push(vm.cashierLedgerTransferDiary);
+                        vm.cashierLedgerTransferDiary_init = vm.cashierLedgerTransferDiary.value;
+                    }
+                    if (vm.cashierDiaryInputWordSize.value != vm.cashierDiaryInputWordSize_init) {
+                        array.push(vm.cashierDiaryInputWordSize);
+                        vm.cashierDiaryInputWordSize_init = vm.cashierDiaryInputWordSize.value;
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: 'POST',
+                            contentType: 'application/json;charset=utf-8',
+                            url: '${rc.contextPath}/systemProfileController/updateBatch',
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    alert('更改成功！');
+                                } else {
+                                    alert('更改失败！');
+                                }
+                            }
+
+                        });
+                    } else {
+                        alert('暂无数据提交！');
+                    }
+                },
+            },
+            watch: {
+                'cashierEnabledAccountingYear.value': function (val) {
+                    if (val == '') {
+                        //获取会计起始年度
+                        var getAccountingYearUrl = '${rc.contextPath}/systemProfileController/getAccountYear?sobId=1';
+                        var _this = this;
+                        $.ajax({
+                            type: 'POST',
+                            url: getAccountingYearUrl,
+                            success: function (result) {
+                                _this.cashierEnabledAccountingYear.value = result.data;
+                            }
+                        });
+                    }
+                }
+            },
+            created: function () {
+                //查询系统信息参数
+                var sysUrl = '${rc.contextPath}/systemProfileController/queryByType?type=出纳参数&sobId=1'
+                $.ajax({
+                    type: 'POST',
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'cashierEnabledAccountingYear') {
+                                vm.cashierEnabledAccountingYear = dataObj[i];
+                                vm.cashierEnabledAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierEnabledAccountingPeriod') {
+                                vm.cashierEnabledAccountingPeriod = dataObj[i];
+                                vm.cashierEnabledAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierCurrentAccountingYear') {
+                                vm.cashierCurrentAccountingYear = dataObj[i];
+                                vm.cashierCurrentAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierCurrentAccountingPeriod') {
+                                vm.cashierCurrentAccountingPeriod = dataObj[i];
+                                vm.cashierCurrentAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierMakeSubjectDiary') {
+                                vm.cashierMakeSubjectDiary = dataObj[i];
+                                vm.cashierMakeSubjectDiary_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierSettleAccountsRequire') {
+                                vm.cashierSettleAccountsRequire = dataObj[i];
+                                vm.cashierSettleAccountsRequire_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierLedgerTransferDiary') {
+                                vm.cashierLedgerTransferDiary = dataObj[i];
+                                vm.cashierLedgerTransferDiary_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'cashierDiaryInputWordSize') {
+                                vm.cashierDiaryInputWordSize = dataObj[i];
+                                vm.cashierDiaryInputWordSize_init = dataObj[i].value;
+                            }
+                        }
+                    }
+                });
+
+                // 查询会计期间是否可以修改
+                var canUpdateAccountPeriodUrl = '${rc.contextPath}/systemProfileController/canUpdateAccountPeriod';
+
+                $.ajax({
+                    type: 'POST',
+                    url: canUpdateAccountPeriodUrl,
+                    data: { "serviceType": "cashierInitializedState" },
+                    success: function (result) {
+                        var canUpdateData = result.data;
+                        vm.canUpdateAccountPeriod = canUpdateData;
+                    }
+                });
+            },
+
+            mounted: function () {
+                $('form').validate();
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

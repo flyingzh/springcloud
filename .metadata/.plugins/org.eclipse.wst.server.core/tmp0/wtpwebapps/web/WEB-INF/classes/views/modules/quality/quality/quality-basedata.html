@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>质检基础数据</title>
+    #parse("modules/public/header.html")
+    <style>
+
+        .ht-data-area{
+            position: relative;
+
+         }
+         .ht-tree-area{
+             position:absolute;
+             width:180px;
+             top:0;
+             /* border:1px solid #cabcbc; */
+             height: 300px;
+         }
+         .ht-list-area{
+             position:absolute;
+             width:67%;
+             top:0;
+             left:220px;
+             margin-left:20px;
+             margin-bottom: 80px;
+         }
+         .ztree li{
+             line-height:20px;
+         }
+         .ht-border-bottom{
+             border-bottom: 1px solid #ccc;
+             font-size:14px;
+             font-weight: 600;
+             margin-bottom: 10px;
+        }
+        .ztree li{
+            line-height:20px;
+        }
+        .ht-border-bottom{
+            border-bottom: 1px solid #ccc;
+            font-size:14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .ui-jqgrid .ui-pg-selbox {
+            width:130%;
+        }       
+         .ht-list-area{
+             position: relative;
+         }
+
+        .ht-modal-center{
+            margin:10px 40px 10px 0px;
+        }
+        .ht-text-center{
+            font-size:18px;
+            text-align: center;
+            margin-left:40px;
+        }
+        .ivu-input-wrapper{
+            width:90%;
+        }
+        .ht-arrow{
+            position: absolute;
+            left:-60px;
+            top:20%;
+            width: 20px;
+            border:1px solid #cabcbc;
+            /* padding: 3px 5px; */
+            border-top-right-radius: 7px;
+            border-bottom-right-radius: 7px;            
+            font-size: 8px;
+        }
+        .ht-arrow i{
+            padding: 3px 5px;
+        }
+        .ht-arrow i:nth-child(2){
+            padding: 0px 4px;
+            color: #A6A6C4;
+        }
+        .ui-paging-info{
+            width: 100%;
+            text-align: center !important;
+        }
+        /* .ht-arrow .ivu-icon-chevron-right{
+            color:#DCDCDC;
+        } */
+        [v-cloak]
+        { display: none }
+
+    </style>
+</head>
+
+<body>
+<div id="qualityBasedata" v-cloak>
+    <div v-if="!isAdd">
+        <div class="btn-menu ">
+            <!--<span @click="refresh">刷新</span>-->
+            <i-button type="text" @click="refresh">刷新</i-button>
+            <!--<span @click="exit">退出</span>-->
+            <i-button type="text" @click="exit">退出</i-button>
+        </div>
+        <div class="mg-top-md"  v-show="isSearchHide" >
+            <i-form  label-width="110">
+                <row>
+                    <i-col span="8">
+                        <form-item label="类型名称：">
+                            <i-input v-model="body.datatypeName" placeholder="可模糊搜索" class="ht-width-input"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="数据编码：">
+                            <i-input v-model="body.code" placeholder="可模糊搜索" class="ht-width-input"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="数据名称：">
+                            <i-input v-model="body.name" placeholder="可模糊搜索" class="ht-width-input"></i-input>
+                        </form-item>
+                        <form-item>
+                            <ht-btns  v-on:search="search" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div class="ht-data-area">
+            <div class="ht-tree-area" v-if="isShow" v-show="isTabulationHide" >
+                <ht-tree style="display: inline"  :tid='899' :node-data="nodes" :setting="setting"></ht-tree>
+            </div>
+            <div class="ht-list-area" >
+                <div >
+                    <div class="ht-arrow">
+                        <Icon type="chevron-right" @click="showTree" v-show="isRight"></Icon>
+                        <!--<Icon type="minus"></Icon>-->
+                        <Icon type="chevron-left" @click="hideTree" v-show="!isRight"></Icon>
+                    </div>
+                    <div class="ht-border-bottom" v-show="isTabulationHide">
+                        数据类型明细信息
+                    </div>
+                    <div class="btn-menu " v-show="isTabulationHide">
+                        #if($shiro.hasPermission("quality:qualityBasedata:add"))
+                        <!--<span class="pd-rg-md " @click="addNewRow">新增行</span>-->
+                        <i-button type="text" @click="addNewRow">新增行</i-button>
+                        #end
+                        #if($shiro.hasPermission("quality:qualityBasedata:add"))
+                        <!--<span class="pd-rg-md " @click="copyOneRow">复制行</span>-->
+                        <i-button type="text" @click="copyOneRow">复制行</i-button>
+                        #end
+                        #if($shiro.hasPermission("quality:qualityBasedata:update"))
+                        <!--<span class="pd-rg-md " @click="modifyOneRow">修改行</span>-->
+                        <i-button type="text" @click="modifyOneRow">修改行</i-button>
+                        #end
+                        #if($shiro.hasPermission("quality:qualityBasedata:delete"))
+                        <!--<span class="pd-rg-md " @click="deleteMultiRows">删除行</span>-->
+                        <i-button type="text" @click="deleteMultiRows">删除行</i-button>
+                        #end
+                    </div>
+
+                 
+
+
+                    <div> <!--class="btn-menu-new" v-model="isShow22" id="switch22"-->
+                        <base-data-list v-show="isTabulationHide" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--需要改成弹窗-->
+    <modal
+            v-model="openModal"
+            title="基础数据维护"
+            @on-ok="save"
+            ok-text="保存"
+            width="450"
+            :loading="loading"
+            @on-cancel="back">
+        <div class="ht-modal-center" style="position: relative;">
+            <i-form :model="addBody" label-width="100" id="addModal" ref="baseData" :rules="validate">
+                <form-item label="所属组织：" class="ht-star">
+                    <i-input v-model="addBody.organizationName" disabled icon="search" class="inline-block"></i-input>
+                    <!--<span class="star"></span>-->
+                </form-item>
+                <form-item label="数据编码：">
+                    <i-input v-model="addBody.code" placeholder="系统自动生成" disabled ></i-input>
+                </form-item>
+                <form-item label="数据名称： " prop="name">
+                    <i-input v-model="addBody.name" class="inline-block"></i-input>
+                    <!--<span class="star"></span>-->
+                </form-item>
+                <form-item label="有效状态：">
+                    <!--<i-input v-model="addBody.status"></i-input>-->
+                    <radio-group v-model="addBody.status">
+                        <radio  name="status"   v-for="item in statusList" :label="item.value">{{item.label}}</radio>
+                    </radio-group>
+                </form-item>
+                <form-item label="备注：">
+                    <i-input type="textarea" v-model="addBody.describes"></i-input>
+                </form-item>
+            </i-form>
+        </div>
+    </modal>
+
+
+</div>
+
+<script src='${rc.contextPath}/js/components/ht-toggle.js'></script>
+<script src="${rc.contextPath}/js/quality/quality-basedata.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

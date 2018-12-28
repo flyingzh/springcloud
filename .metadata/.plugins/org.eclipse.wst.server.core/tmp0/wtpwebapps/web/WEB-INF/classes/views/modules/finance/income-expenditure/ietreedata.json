@@ -1,0 +1,9 @@
+{
+    "msg": "操作成功",
+    "code": "100100",
+    "data": [
+        { "id": 1, "pId": 0, "name": "收支类别", "open": true },
+        { "id": 11, "pId": 1, "name": "收入类别", "open": true},
+        { "id": 12, "pId": 1, "name": "支出类别", "open": true }
+    ]
+}

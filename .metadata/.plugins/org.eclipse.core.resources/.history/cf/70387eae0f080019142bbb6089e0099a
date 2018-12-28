@@ -1,0 +1,199 @@
+package com.htrfid.financeapp.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.htrfid.finance.entity.WmCategoryEntity;
+import com.htrfid.finance.vo.WmTaxRateEntryFilterVo;
+import com.htrfid.finance.vo.WmTaxRateEntryResp;
+import com.htrfid.financeapp.remote.WmEmployeeIncomeTaxRemoteService;
+import com.htrfid.financeapp.service.CommonService;
+import com.htrfid.financeapp.service.WmCategoryService;
+import com.htrfid.financeapp.service.WmEmployeeIncomeTaxService;
+import com.htrfid.financeapp.service.WmIncomeItemService;
+import com.htrfid.financeapp.service.WmItemsService;
+import com.htrfid.financeapp.service.WmPersonalTaxInitService;
+import com.htrfid.financeapp.service.WmTaxRateService;
+import com.htrfid.shiro.utils.UserUtils;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.Result;
+
+@Service
+public class WmEmployeeIncomeTaxServiceImpl implements WmEmployeeIncomeTaxService {
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired
+	private WmIncomeItemService wmIncomeItemService;
+	@Autowired
+	private WmTaxRateService wmTaxRateService;
+	@Autowired
+	private WmPersonalTaxInitService wmPersonalTaxInitService;
+    @Autowired
+    private WmCategoryService wmCategoryService;
+    @Autowired
+    private WmItemsService wmItemsService;
+    @Autowired
+    private WmEmployeeIncomeTaxRemoteService wmEmployeeIncomeTaxRemoteService;
+    
+    
+	/**
+	 * 
+	 * @Title: initPage   
+	 * @Description: 页面初始化
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月11日 上午9:00:04
+	 * @return  
+	 * @throws
+	 */
+	@Override
+	public Result initPage(Long categoryId,Integer dataType){
+		Long sobId = UserUtils.getCurrentUser().getUserCurrentOrganId();
+		Map<String, Object> initMap = new HashMap<>(10);
+		if(categoryId==null||categoryId.longValue() == 0) {
+			//获取组织列表
+			Map<String, Object> orgEntity = commonService.getOrgEntity();
+			List<Map<String, Object>> orgList = new ArrayList<>();
+			orgList.add(orgEntity);
+			initMap.put("org", orgList);
+			//获取默认工资类别和工资类别列表
+			List<WmCategoryEntity> list = wmCategoryService.list(sobId);
+			initMap.put("categoryList", list);
+			for (WmCategoryEntity wmCategoryEntity : list) {
+				if(wmCategoryEntity.getSysDefault().intValue() == 1) {
+					categoryId = wmCategoryEntity.getId();
+					break;
+				}
+			}
+			
+			initMap.put("defCategoryId", categoryId);
+			
+			//获取会计年度会计期间 
+			Map<String, Integer> yearAndPeriod = commonService.getWmCurYearAndPeriod(sobId);
+			initMap.put("yearAndPeriod", yearAndPeriod);
+			
+		}
+		
+		Map<String, Object> map = wmEmployeeIncomeTaxRemoteService.initPage(sobId,categoryId);
+		initMap.put("incomeItemList", map.get("incomeItemList"));
+		initMap.put("taxRateList", map.get("taxRateList"));
+		initMap.put("taxinitList", map.get("taxinitList"));
+		initMap.put("currencyTypeList", map.get("currencyTypeList"));
+		
+		
+		/*//获取所得项计算列表
+		WmIncomeItemEntity itemEntity = new WmIncomeItemEntity();
+		itemEntity.setSobId(sobId);
+		itemEntity.setCategoryId(categoryId);
+		Result incomeItemResult = wmIncomeItemService.listIncomeItem(itemEntity);
+		initMap.put("incomeItemList", incomeItemResult.getData());
+		//获取税率列表
+		WmTaxRateEntity taxRateEntity = new WmTaxRateEntity();
+		taxRateEntity.setCategoryId(categoryId);
+		taxRateEntity.setSobId(sobId);
+		Result taxRateListResult = wmTaxRateService.listTaxRate(taxRateEntity);
+		initMap.put("taxRateList", taxRateListResult.getData());
+		//获取个人所得税初始设置
+		WmPersonalTaxEntity personalTaxEntity = new WmPersonalTaxEntity();
+		personalTaxEntity.setCategoryId(categoryId);
+		personalTaxEntity.setSobId(sobId);
+		Result taxInitListResult = wmPersonalTaxInitService.listInitTax(personalTaxEntity);
+		initMap.put("taxinitList", taxInitListResult.getData());*/
+		
+		
+		/*//获取所有的货币类型
+		WmItemsEntity wmItemsEntity = new WmItemsEntity();
+		wmItemsEntity.setCategoryId(categoryId);
+		wmItemsEntity.setSobId(sobId);
+		wmItemsEntity.setDataType(Constant.WM_DATA_TYPE_CURRENCY);
+		List<WmItemsEntity> wmItemsList = wmItemsService.list(wmItemsEntity);
+		initMap.put("currencyTypeList", wmItemsList);*/
+		
+		//发请求，设置为默认 工资类别
+		wmCategoryService.select(categoryId, sobId);
+		
+		return Result.ok(initMap);
+	}
+
+	
+	@Override
+	public Result listTaxRateEntry(WmTaxRateEntryFilterVo filterVo) {
+		//获取会计年度会计期间 
+		/*Map<String, Integer> yearAndPeriod = commonService.getWmCurYearAndPeriod(filterVo.getSobId());
+		filterVo.setYear(yearAndPeriod.get("curYear"));
+		filterVo.setPeriod(yearAndPeriod.get("curPeriod"));*/
+		return wmEmployeeIncomeTaxRemoteService.listTaxRateEntry(filterVo);
+	}
+
+
+	/**
+	 * 
+	 * @Title: saveCliTaxRate   
+	 * @Description: 保存页面录入的数据
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月13日 下午5:21:10
+	 * @param list
+	 * @return          
+	 * @throws
+	 */
+	@Override
+	public Result saveCliTaxRate(List<WmTaxRateEntryResp> list) {
+		SysUser currentUser = UserUtils.getCurrentUser();
+		for (WmTaxRateEntryResp wmTaxRateEntryResp : list) {
+			wmTaxRateEntryResp.setUpdateId(currentUser.getId());
+			wmTaxRateEntryResp.setUpdateName(currentUser.getUsername());
+			wmTaxRateEntryResp.setUpdateTime(new Date());
+		}
+		return wmEmployeeIncomeTaxRemoteService.saveCliTaxRate(list);
+	}
+
+	/**
+	 * 
+	 * @Title: cliTaxRate   
+	 * @Description: 计算工资数据或计算税率
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月13日 下午2:23:26
+	 * @param respList
+	 * @return          
+	 * @throws
+	 */
+	@Override
+	public Result cliTaxRate(List<WmTaxRateEntryResp> respList) {
+		return wmEmployeeIncomeTaxRemoteService.cliTaxRate(respList);
+	}
+
+
+	/**
+	 * 
+	 * @Title: exportExcel   
+	 * @Description: 导出
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月25日 下午2:34:46
+	 * @param filterVo
+	 * @param response  
+	 * @throws
+	 */
+	@Override
+	public void exportExcel(WmTaxRateEntryFilterVo filterVo, HttpServletResponse response) {
+		
+		
+		
+		
+	}
+
+
+
+}

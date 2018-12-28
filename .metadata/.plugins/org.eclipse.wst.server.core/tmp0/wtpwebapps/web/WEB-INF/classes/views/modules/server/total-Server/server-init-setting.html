@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器初始设置</title>
+    #parse("modules/public/header.html")
+    <style>
+        .infoBtn {
+            display: inline-block;
+            width: 5px;
+            height: 30px;
+            background-color: #D0B64C;
+        }
+        .info-font {
+            font-family: '微软雅黑 Bold', '微软雅黑';
+            font-weight: 700;
+            font-style: normal;
+            font-size: 18px;
+            color: #D8AE29;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+    <div id="server-init-setting" v-cloak>
+        <div class="btn-menu">
+            <span @click="saveGeneralServerSettings" >保存</span>
+            <span>退出</span>
+        </div>
+        <i-form label-width="120">
+            <row>
+                <i-col span="12">
+                    <div>
+                        <span class="infoBtn"></span>
+                        <p class="info-font">服务器初始设置</p>
+                    </div>
+                    <form-item label="服务器IP地址：" class="ht-star">
+                        <i-input class="ht-width-md" v-model="serverInfoEntity.serverIp" disabled="true"></i-input>
+                    </form-item>
+                    <form-item label="MAC地址：">
+                        <i-input class="ht-width-md" v-model="serverInfoEntity.serverMac" disabled="true"></i-input>
+                    </form-item>
+                    <form-item label="服务器类型：">
+                            <i-select v-model="serverInfoEntity.serverType" :disabled="serverInfoEntity.serverType!=null"  placeholder="-&#45;&#45;请选择-&#45;&#45;" class="ht-width-md">
+                                    <i-option :value="1">总报税</i-option>
+                                    <i-option :value="2">非总报税</i-option>
+                            </i-select>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+    </div>
+</body>
+<script src="${rc.contextPath}/js/server/total-Server/server-init-setting.js"></script>
+</html>

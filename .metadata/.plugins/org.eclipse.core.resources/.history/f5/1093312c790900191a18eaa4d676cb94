@@ -1,0 +1,2029 @@
+package com.htrfid.finance.service.impl;
+
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.htrfid.basedata.entity.TBaseCurrencyMaintainEntity;
+import com.htrfid.basedata.entity.TbaseAccountSubjectEntity;
+import com.htrfid.constant.EnumConstant;
+import com.htrfid.exception.MyException;
+import com.htrfid.finance.common.Constant;
+import com.htrfid.finance.common.SystemProfileConstant;
+import com.htrfid.finance.controller.AccountingController;
+import com.htrfid.finance.dao.FinanceFaDeprDao;
+import com.htrfid.finance.dao.VoucherDao;
+import com.htrfid.finance.dao.VoucherEntryDao;
+import com.htrfid.finance.entity.*;
+import com.htrfid.finance.service.*;
+import com.htrfid.finance.util.Tools;
+import com.htrfid.finance.vo.*;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.DateConverUtil;
+import com.htrfid.util.JsonUtil;
+import com.htrfid.util.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * @author lirui
+ * @version V1.0
+ * @className VoucherServiceImpl
+ * @description 存储凭证的数据信息
+ * @email lr@htrfid.com
+ * @date 2018-06-13 17:39:55
+ **/
+@Service("voucherService")
+@Transactional
+public class VoucherServiceImpl implements VoucherService {
+
+    private static final Logger logger = LoggerFactory.getLogger(VoucherServiceImpl.class);
+
+    @Autowired
+    private VoucherDao voucherDao;
+
+    @Autowired
+    private SystemProfileService systemProfileService;
+    @Autowired
+    private AccountingController accountingController;
+    @Autowired
+    private VoucherEntryDao voucherEntryDao;
+    @Autowired
+    private ItemRelateDetailService itemRelateDetailService;
+    @Autowired
+    private BalanceServiceImpl balanceService;
+    @Autowired
+    private VoucherEntryService voucherEntryService;
+    @Autowired
+    private VerificationSheetService verificationSheetService;
+    @Autowired
+    private FinancePaymentReceiptService financePaymentReceiptService;
+    @Autowired
+    private OtherPaymentReceiptService otherPaymentReceiptService;
+    @Autowired
+    private CnCashierJournalService cnCashierJournalService;
+    @Autowired
+    private BankDepositJournalService bankDepositJournalService;
+    @Autowired
+    private CommonService commonService;
+    @Autowired
+    private FinanceFaCardService financeFaCardService;
+    @Autowired
+    private FinanceFaDeprDao financeFaDeprDao;
+
+    @Override
+    public VoucherEntity queryObject(Long id) {
+        return voucherDao.getById(id);
+    }
+
+    @Override
+    public List<VoucherEntity> queryList(Map<String, Object> map) {
+        return voucherDao.queryList(map);
+    }
+
+    @Override
+    public List<VoucherEntity> queryListByBean(VoucherEntity entity) {
+        return voucherDao.queryListByBean(entity);
+    }
+
+    @Override
+    public int queryTotal(Map<String, Object> map) {
+        return voucherDao.queryTotal(map);
+    }
+
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public boolean saveBatch(List<VoucherEntity> vouchers) {
+        int i = voucherDao.saveBatch(vouchers);
+        return i > 0 ? true : false;
+    }
+
+    /**
+    * @description: 批量删除
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-09-05 13:48
+    * @param ids, sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result deleteBatch(Long[] ids,Long sobId) {
+        if(ids == null||ids.length==0){
+            return Result.error("请选择要删除的凭证");
+        }
+        int length = ids.length;
+        int sucCount = 0;
+        //失败数量
+        int failCount = 0;
+        StringBuffer buffer = new StringBuffer("开始删除<br/>");
+        for(int i = 0;i<length;i++){
+            int count = i+1;
+            buffer.append("开始删除第"+count+"张凭证...<br/>");
+            Result result = deleteById(ids[i], sobId);
+            if(result == null){
+                failCount++;
+                buffer.append("第"+count+"张凭证删除失败：");
+                buffer.append("系统异常<br/>");
+            }else{
+                if(EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())){
+                    sucCount++;
+                    buffer.append("第"+count+"张凭证删除成功！！！<br/>");
+                }else{
+                    failCount++;
+                    buffer.append("第"+count+"张凭证删除失败：");
+                    buffer.append(result.getMsg()+"<br/>");
+                }
+            }
+        }
+
+        StringBuffer resultBuffer = new StringBuffer("操作完成：成功数量"+sucCount+"，失败数量"+failCount);
+        Map<String,Object> resultMap = new HashMap<>(2);
+        resultMap.put("resultData",resultBuffer);
+        resultMap.put("detailResult",buffer);
+
+        return Result.ok(resultMap);
+    }
+
+    /**
+     * @description: 获取凭证号
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-21 9:12
+     * @param sobId 账套ID
+     * @param voucherGroupId 凭证字ID
+     * @param currentAccountYear 当前会计年度
+     * @param currentAccountPeriod 当前年度会计区间
+     * @return Integer
+     */
+    @Override
+    public Integer querySerialNum(Long sobId, Long voucherGroupId, Integer currentAccountYear, Integer currentAccountPeriod) {
+        return voucherDao.querySerialNum(sobId,voucherGroupId,currentAccountYear,currentAccountPeriod);
+    }
+
+    /**
+     * @description:查询凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 8:40
+     * @param sobId, voucherId
+     * @return com.htrfid.finance.entity.VoucherEntity
+     */
+    @Override
+    public VoucherEntity queryVoucher(Long sobId, Long voucherId) {
+        return voucherDao.queryVoucher(sobId,voucherId);
+    }
+
+    /**
+    * @description: 新增、保存
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-06-22 11:06
+    * @param voucherVo
+    * @return com.htrfid.util.Result
+    */
+    @SuppressWarnings("unchecked")
+	@Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result saveOrUpdate(VoucherVO voucherVo, SysUser currentUser) {
+        VoucherEntity voucherEntity = voucherVo.getEntity();
+        List<VoucherEntryVo> entryVoList = voucherVo.getEntryVoList();
+        //判断分录数
+        if(entryVoList == null||entryVoList.size() < Constant.PUBLIC_TWO){
+        	return Result.error("分录数必须大于1或借贷不平");
+        }
+        //判断会计期间
+        int currentAccountYear = 0;
+        int currentAccountPeriod = 0;
+        //总账当前会计年度
+        SystemProfileEntity entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_CURRENT_ACCOUNTING_YEAR, voucherEntity.getSobId().toString());
+        if(entity != null){
+            currentAccountYear = Integer.parseInt(entity.getValue());
+        }
+        //总账当前会计期间
+        entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_CURRENT_ACCOUNTING_PERIOD, voucherEntity.getSobId().toString());
+        if(entity != null){
+            currentAccountPeriod = Integer.parseInt(entity.getValue());
+        }
+        //选中时间转换为会计年度和会计期间表示
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Result ret = accountingController.getAccountingYearAndPeriod(sdf.format(voucherEntity.getVoucherDate()), voucherEntity.getSobId());
+        if(ret != null && EnumConstant.PUBLIC.CODE_YES.getValue().equals(ret.getCode())){
+            Map<String,Object> map = (Map<String,Object>)ret.getData();
+            Integer accountYear = (Integer) map.get("accountYear");
+            Integer accountPeriod = (Integer)map.get("accountPeriod");
+            if(accountYear.intValue() > currentAccountYear || (accountYear.intValue() == currentAccountYear && accountPeriod.intValue() >= currentAccountPeriod)){
+               //可以录入
+                voucherEntity.setAccountingYear(accountYear);
+                voucherEntity.setAccountingPeriod(accountPeriod);
+            }else{
+                return Result.error("当前会计期间不允许录入");
+            }
+        }else{
+            return Result.error("操作失败，请重试");
+        }
+
+        //借方总金额
+        BigDecimal debitMoney = new BigDecimal("0.00");
+        //贷方总金额
+        BigDecimal creditMoney = new BigDecimal("0.00");
+//        logger.info("entryVoList data: {}", JsonUtil.objToJson(entryVoList));
+        //判断借贷平衡
+        for (VoucherEntryVo voucherEntryVo: entryVoList){
+            VoucherEntryEntity voucher = voucherEntryVo.getVoucher();
+            BigDecimal decimal = voucher.getAmmount();
+            if(voucher.getDirection().intValue() == Constant.VOUCHER_ENTRY_DIRECTION_DEBIT.intValue()){
+                debitMoney = debitMoney.add(decimal);
+            }else{
+                creditMoney = creditMoney.add(decimal);
+            }
+        }
+        logger.info("debitMoney: {} ,creditMoney: {}",debitMoney,creditMoney);
+        if(debitMoney.compareTo(creditMoney)!=0){
+            //借贷不平
+            return Result.error("借贷不平");
+        }
+
+        //判断是否有科目关联核算项目并且具体内容不能为空
+        if (voucherEntity.getVoucherDate() == null) {
+            voucherEntity.setVoucherDate(new Date());
+        }
+        if (voucherEntity.getCreateTime() == null) {
+            voucherEntity.setCreateTime(new Date());
+            voucherEntity.setCreateId(currentUser.getId());
+            voucherEntity.setCreateName(currentUser.getUsername());
+        }
+        if (voucherEntity.getUpdateTime() == null) {
+            voucherEntity.setUpdateTime(new Date());
+            voucherEntity.setUpdateId(currentUser.getId());
+            voucherEntity.setUpdateName(currentUser.getUsername());
+        }
+
+        if(voucherEntity.getVoucherGroupId() == null){
+            return Result.error("请选择凭证字");
+        }
+
+        //录入凭证字--获取最大凭证号
+        Integer serialNum = querySerialNum(voucherEntity.getSobId(), voucherEntity.getVoucherGroupId(), voucherEntity.getAccountingYear(), voucherEntity.getAccountingPeriod());
+        if(serialNum == null){
+            serialNum = Integer.valueOf(0);
+        }
+
+        /**
+         * 根据输入的凭证号判断是否已使用
+         */
+        Integer exists = existsVoucherNumber(voucherEntity.getId(), voucherEntity.getAccountingYear(), voucherEntity.getAccountingPeriod(), voucherEntity.getVoucherGroupId(), voucherEntity.getVoucherNumber(), voucherEntity.getSobId());
+
+        Integer voucherNumber = new Integer(Constant.PUBLIC_ZERO);
+
+        /**
+         * 当输入的凭证号已被使用，如果是新增，则取最大凭证号，如果是修改，则提示该凭证号已被使用
+         */
+        if (exists > Constant.PUBLIC_ZERO) {
+            if (null != voucherEntity.getId() && voucherEntity.getId() > 0) {
+                return Result.error("当前数据已存在!");
+            } else {
+                voucherNumber = serialNum + 1;
+            }
+        } else {
+            if (null != voucherEntity.getVoucherNumber() && Constant.PUBLIC_ZERO != voucherEntity.getVoucherNumber()) {
+                voucherNumber = voucherEntity.getVoucherNumber();
+            } else {
+                voucherNumber = serialNum + 1;
+            }
+        }
+
+        voucherEntity.setEntryCount(entryVoList.size());
+        voucherEntity.setPosted(Constant.VOUCHER_ENTRY_POSTED_NO);
+        voucherEntity.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_NO);
+        voucherEntity.setDebitTotal(debitMoney);
+        voucherEntity.setCreditTotal(creditMoney);
+
+        //录入凭证
+        int result;
+        if(voucherEntity.getId() == null || voucherEntity.getId().intValue() == 0){
+            if(voucherEntity.getProfitLossSubject() == null || voucherEntity.getProfitLossSubject()==0 ){
+                voucherEntity.setProfitLossSubject(Constant.PROFIT_LOSS_SUBJECT_ZERO);
+            }
+            if(voucherEntity.getBelongSystem() == null || voucherEntity.getBelongSystem() == 0){
+                voucherEntity.setBelongSystem(Constant.ACCOUNTING_SYSTEM);
+            }
+
+            voucherEntity.setVoucherNumber(voucherNumber);
+            result = voucherDao.save(voucherEntity);
+        }else{
+            if(voucherEntity.getBelongSystem() != null && Constant.ACCOUNTING_SYSTEM.equals(voucherEntity.getBelongSystem()) ){
+                /*VoucherEntity queryVoucher = voucherDao.queryVoucher(voucherEntity.getSobId(), voucherEntity.getId());
+                if(queryVoucher.getVoucherNumber()!=null&&queryVoucher.getVoucherNumber().intValue()!=0){
+                    if(queryVoucher.getVoucherNumber().intValue() != voucherEntity.getVoucherNumber().intValue()
+                            &&voucherEntity.getVoucherNumber().intValue()<=serialNum.intValue()){
+                        voucherEntity.setVoucherNumber(serialNum+1);
+                    }
+                }else{
+                    voucherEntity.setVoucherNumber(serialNum+1);
+                }*/
+
+                voucherEntity.setVoucherNumber(voucherNumber);
+                result = voucherDao.update(voucherEntity);
+            }else{
+                return Result.error("机制凭证不允许修改");
+            }
+        }
+        if(result == 0){
+            return Result.error("凭证保存失败");
+        }
+        //录入分录信息
+        Result voucherEntryResult = voucherEntryService.saveOrUpdate(voucherVo, voucherEntity, currentUser);
+        if(voucherEntryResult!=null&&EnumConstant.PUBLIC.CODE_YES.getValue().equals(voucherEntryResult.getCode())){
+            //当凭证的所有系统为总账或工资系统时则表示生成凭证已经成功
+            if(!Constant.ACCOUNTING_SYSTEM.equals(voucherEntity.getBelongSystem()) && !Constant.SALARY_SYSTEM.equals(voucherEntity.getBelongSystem())){
+                Result rets = createMechanismVoucher(voucherVo,voucherEntity.getId());
+                if(!EnumConstant.PUBLIC.CODE_YES.getValue().equals(rets.getCode())){
+                    throw new MyException(rets.getMsg());
+                }
+            }
+            return Result.ok(voucherEntity);
+        }
+        return Result.error("凭证保存失败");
+    }
+
+    /**
+    * @description: 生成机制凭证
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-09-25 9:45
+    * @param voucherVo, voucherId
+    * @return com.htrfid.util.Result 
+    */
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    private Result createMechanismVoucher(VoucherVO voucherVo, Long voucherId) {
+        ParamVO paramVO = new ParamVO();
+        //单据id
+        paramVO.setReceiptId(voucherVo.getReceiptId());
+        //凭证id
+        paramVO.setId(voucherId);
+        paramVO.setSobId(voucherVo.getEntity().getSobId());
+        //生成凭证状态
+        paramVO.setAuditStatus(Constant.VOUCHER_STATUS);
+        //设置更新人,更新人id
+        paramVO.setUserId(voucherVo.getEntity().getUpdateId());
+        paramVO.setUsername(voucherVo.getEntity().getUpdateName());
+        //获取所属系统
+        Integer belongSystem = voucherVo.getEntity().getBelongSystem();
+        Boolean flag = false;
+        switch (belongSystem){
+            case 21:
+               flag =  verificationSheetService.updateVoucher(paramVO);
+                break;
+            case 22:
+               flag = financePaymentReceiptService.voucherUpdates(paramVO);
+                break;
+            case 23:
+                flag = otherPaymentReceiptService.updateVoucherStatus(paramVO);
+                break;
+            case 31:
+                flag = cnCashierJournalService.updateVoucher(paramVO);
+                break;
+            case 32:
+                flag = bankDepositJournalService.updateVoucher(paramVO);
+                break;
+            case 4:
+                //属于计提折旧凭证则不用调接口会写凭证id
+                if (!StringUtils.isEmpty(voucherVo.getEntity().getProfitLossSubject()) && voucherVo.getEntity().getProfitLossSubject() == 3){
+                    flag = true;
+                }else {
+                    //数据固定资产的凭证,且不属于计提折旧凭证则需要将凭证id回写到固定资产卡片中
+                    flag = financeFaCardService.updateVoucher(paramVO);
+                }
+             break;
+            default:
+                break;
+        }
+        if (flag){
+            return Result.ok();
+        }
+        return Result.error("更新凭证状态失败");
+
+    }
+
+    /**
+     * @description: 凭证审核/反审核
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 16:34
+     * @param sobId 账套id
+     * @param voucherId 凭证id
+     * @param userId
+     * @param userName
+     * @param type:1-审核  2-反审核
+     * @return Integer
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result approvalVoucher(Long sobId, Long voucherId, Long userId, String userName,Integer type) {
+        //获取凭证对象
+        VoucherEntity voucherEntity = voucherDao.queryVoucher(sobId, voucherId);
+        if(voucherEntity.getPosted().intValue() == Constant.VOUCHER_ENTRY_POSTED_YES.intValue()){
+            return Result.error("当前凭证已过账");
+        }
+        SystemProfileEntity entity ;
+        if(type.intValue() == 1){
+            //审核操作
+            if(voucherEntity.getAudited().intValue() == Constant.VOUCHER_ENTRY_APPROVAL_YES.intValue()){
+                return Result.error("当前凭证已审核");
+            }
+            //判断制单人与审核人是否为同一人
+            Integer allowSelfApproval = 0;
+            entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_AUDIT_CERTIFICATE_NO_SAME_MAN, sobId.toString());
+            if(entity != null){
+                allowSelfApproval = Integer.parseInt(entity.getValue());
+            }
+            //不能是同一人
+            if(voucherEntity.getPreparerId().equals(userId)&&allowSelfApproval.intValue() == Constant.PUBLIC_IS_DEFAULT_NO){
+                return Result.error("制单人与审核人不能为同一人");
+            }
+            //更新状态
+            voucherEntity.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_YES);
+            voucherEntity.setAuditorId(userId);
+            voucherEntity.setAuditorName(userName);
+        }else{
+            //反审核操作
+            //审核操作
+            if(!Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(voucherEntity.getAudited())){
+                return Result.error("当前凭证暂未审核无法进行反审核");
+            }
+            //固定资产凭证校验
+            //如果为固定资产凭证,假如固定资产已经结账,则不能对之前的凭证进行反审核操作
+            //校验是否固定资产设置是否勾选全部卡片生成凭证
+            //获取判断审核人与反审核人是否为同一人字段
+            /*Integer shouldCreateVoucher = 0;
+            entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_AUDIT_CERTIFICATE_POSTING, sobId.toString());
+            if(entity != null){
+            	shouldCreateVoucher = Integer.parseInt(entity.getValue());
+            }*/
+            if(voucherEntity.getBelongSystem().intValue() == Constant.CAPITAL_ASSETS) {
+            	//获取固定资产当前会计期间会计年度
+            	Integer faCurYear = commonService.getFaCurYear(sobId);
+            	Integer faCurtPeriod = commonService.getFaCurtPeriod(sobId);
+            	if(!(voucherEntity.getAccountingYear().intValue()==faCurYear.intValue()&&voucherEntity.getAccountingPeriod().intValue()==faCurtPeriod.intValue())) {
+            		return Result.error("固定资产系统已结账，无法进行反审核操作");
+            	}
+            	
+            }
+            /*//需要生成凭证
+             * if(shouldCreateVoucher.intValue() == Constant.PUBLIC_IS_DEFAULT_NO){
+            	
+            }*/
+            
+            
+            //获取判断审核人与反审核人是否为同一人字段
+            Integer allowOpposedApproval = 0;
+            entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_AUDIT_CERTIFICATE_POSTING, sobId.toString());
+            if(entity != null){
+                allowOpposedApproval = Integer.parseInt(entity.getValue());
+            }
+            if(allowOpposedApproval.intValue() == Constant.PUBLIC_IS_DEFAULT_NO){
+                if(!voucherEntity.getAuditorId().equals(userId)){
+                    //审核人与反审核人为同一人
+                    return Result.error("审核人与反审核人须为同一人");
+                }
+            }
+            voucherEntity.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_NO);
+            voucherEntity.setAuditorId(null);
+            voucherEntity.setAuditorName(null);
+        }
+
+        voucherEntity.setUpdateId(userId);
+        voucherEntity.setUpdateName(userName);
+        voucherEntity.setUpdateTime(new Date());
+        int result = voucherDao.update(voucherEntity);
+        return Result.ok(result);
+    }
+
+    /**
+     * @description: 根据凭证id和账套id删除凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-22 17:53
+     * @param voucherId, sobId
+     * @return com.htrfid.util.Result
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result deleteById(Long voucherId, Long sobId) {
+        //判断是否为机制凭证
+        VoucherEntity entity = voucherDao.queryVoucher(sobId, voucherId);
+        if(entity==null){
+            return Result.error("删除失败或凭证不存在");
+        }
+        if(!entity.getBelongSystem().equals(Constant.ACCOUNTING_SYSTEM)){
+            return Result.error("无法删除机制凭证");
+        }
+        if(Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(entity.getAudited())){
+            return Result.error("无法删除已审核凭证");
+        }
+        if(Constant.VOUCHER_ENTRY_POSTED_YES.equals(entity.getPosted())){
+            return Result.error("无法删除已过账凭证");
+        }
+        /*if(Constant.PROFIT_LOSS_SUBJECT_ONE.equals(entity.getProfitLossSubject())){
+            return Result.error("无法删除结转损益生成的凭证");
+        }
+        if(Constant.PROFIT_LOSS_SUBJECT_TWO.equals(entity.getProfitLossSubject())){
+            return Result.error("无法删除期末调汇生成的凭证");
+        }*/
+
+        voucherDao.deleteByVoucherId(voucherId,sobId);
+
+        List<VoucherEntryEntity> entryEntities = voucherEntryDao.queryEntryVoucher(voucherId, sobId);
+        if(entryEntities == null || entryEntities.isEmpty()){
+            return Result.error("删除失败，凭证分录不存在");
+        }
+        for(VoucherEntryEntity entry:entryEntities){
+            ItemRelateDetailEntity itemRelateDetailEntity = new ItemRelateDetailEntity();
+            itemRelateDetailEntity.setSobId(sobId);
+            itemRelateDetailEntity.setRelateType(Constant.ITEM_RELATE_DETAIL_TYPE_VOUCHER);
+            itemRelateDetailEntity.setRelateId(entry.getId());
+            itemRelateDetailEntity.setIsDel(Constant.IS_DEL_NO);
+            List<ItemRelateDetailEntity> entities = itemRelateDetailService.queryListByBean(itemRelateDetailEntity);
+            if(entities!=null && entities.size()>0){
+                //删除核算项目
+            	Long[] ids = new Long[entities.size()];
+                for(int i = 0;i<entities.size();i++){
+                    ids[i] = entities.get(i).getId();
+                }
+                itemRelateDetailService.deleteBatch(ids);
+            }
+        }
+
+        voucherEntryDao.deleteByVoucherId(voucherId,sobId);
+
+        return Result.ok(1);
+    }
+
+    /**
+    * @description:复制凭证实体
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-06-26 19:56
+    * @param sobId, voucherId
+    * @return com.htrfid.finance.entity.VoucherEntity
+    */
+    @Override
+    public VoucherEntity copyVoucher(Long sobId, Long voucherId) {
+        VoucherEntity voucherEntity = voucherDao.queryVoucher(sobId, voucherId);
+        Integer serialNum = querySerialNum(sobId,voucherEntity.getVoucherGroupId(),getCurrentAccountYear(sobId),getCurrentAccountPeriod(sobId));
+        voucherEntity.setId(null);
+        voucherEntity.setVoucherNumber(serialNum+1);
+        voucherEntity.setAttachmentsCount(0);
+        voucherEntity.setAttachmentsId(null);
+        voucherEntity.setPreparerId(null);
+        voucherEntity.setPreparerName(null);
+        voucherEntity.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_NO);
+        voucherEntity.setAuditorName(null);
+        voucherEntity.setAuditorId(null);
+        voucherEntity.setPosted(Constant.VOUCHER_ENTRY_POSTED_NO);
+        voucherEntity.setPosterId(null);
+        voucherEntity.setPosterName(null);
+        return voucherEntity;
+    }
+
+    /**
+    * @description: 红字冲销保存凭证实体信息
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-06-27 8:42
+    * @param sobId, voucherId
+    * @return com.htrfid.finance.entity.VoucherEntity
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public VoucherEntity writeOffVoucher(Long sobId, Long voucherId) throws MyException{
+        VoucherEntity voucherEntity = voucherDao.queryVoucher(sobId, voucherId);
+        Integer voucherNumber = voucherEntity.getVoucherNumber();
+        if(voucherEntity.getBelongSystem()!=1){
+            throw new MyException("操作失败，机制凭证无法冲销");
+        }
+        voucherEntity.setId(null);
+        Integer currentYear = getCurrentAccountYear(sobId);
+        Integer currentPeriod = getCurrentAccountPeriod(sobId);
+        Integer serialNum = querySerialNum(sobId,voucherEntity.getVoucherGroupId(),currentYear,currentPeriod);
+        if(serialNum == null){
+            serialNum = 0;
+        }
+        voucherEntity.setAccountingYear(currentYear);
+        voucherEntity.setAccountingPeriod(currentPeriod);
+        voucherEntity.setVoucherNumber(serialNum+1);
+//        String startDateStr = getAccountPeriodStartDate(sobId);
+        Map<String, Object> periodDate = getPeriodDate(currentYear, currentPeriod, sobId);
+//        Calendar startDate = Tools.getCalendar(startDateStr);
+//        startDate.add(Calendar.MONTH,currentPeriod);
+//        startDate.add(Calendar.DAY_OF_MONTH,-1);
+        Calendar startDate = (Calendar)periodDate.get("startDate");
+        voucherEntity.setVoucherDate(startDate.getTime());
+        //金额变负数
+        BigDecimal debitTotal = voucherEntity.getDebitTotal();
+        debitTotal = debitTotal.multiply(new BigDecimal(-1));
+        voucherEntity.setDebitTotal(debitTotal);
+        BigDecimal creditTotal = voucherEntity.getCreditTotal();
+        creditTotal = creditTotal.multiply(new BigDecimal(-1));
+        voucherEntity.setCreditTotal(creditTotal);
+        voucherEntity.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_NO);
+        voucherEntity.setPosted(Constant.VOUCHER_ENTRY_POSTED_NO);
+        voucherEntity.setAuditorName(null);
+        voucherEntity.setAuditorId(null);
+        voucherEntity.setPosterId(null);
+        voucherEntity.setPosterName(null);
+        logger.info("redVoucher entity is： {}",JsonUtil.objToJson(voucherEntity));
+        voucherDao.save(voucherEntity);
+        //将上一次的凭证好保存 便于生成冲销凭证的摘要信息拼接
+        voucherEntity.setVoucherNumber(voucherNumber);
+        return voucherEntity;
+    }
+
+    /**
+     * @description 凭证汇总表数据列表
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018/7/2 18:51
+     * @param
+     * @return
+     */
+    @Override
+    public List<VoucherSummaryResultVO> voucherCount(Integer subjctStartNum,
+                                             Integer subjctEndNum,
+                                             String startDate,
+                                             String endDate,
+                                             Integer startVoucherNum,
+                                             Integer endVoucherNum,
+                                             Long voucherId) {
+        List<VoucherSummaryResultVO> reList = new ArrayList<VoucherSummaryResultVO>();
+        List<VoucherSummaryResultVO> result = new ArrayList<VoucherSummaryResultVO>();
+        for (int i = subjctStartNum;i<=subjctEndNum;i++){
+            Map<String,Object> params = new HashMap<String,Object>(Constant.PUBLIC_SIX);
+            params.put("level",i);
+            params.put("voucherStartDate",startDate);
+            params.put("voucherEndDate",endDate);
+            params.put("voucherStartNumber",startVoucherNum);
+            params.put("voucherEndNumber",endVoucherNum);
+            params.put("voucherGroupId",voucherId);
+            List<VoucherSummaryResultVO>  list =  voucherDao.queryVoucherCount(params);
+            reList.addAll(list);
+        }
+        Collections.sort(reList, Comparator.comparing(VoucherSummaryResultVO::getSubjectCode));
+       // result=  buildTree(reList,110);
+       logger.info("result科目"+JsonUtil.objToJson(result));
+        return reList;
+    }
+
+   public  List<VoucherSummaryResultVO> buildTree(List<VoucherSummaryResultVO>list,int parentId){
+        List<VoucherSummaryResultVO> resultList = new ArrayList<>();
+        if(list.size()>0){
+            for (VoucherSummaryResultVO v : list) {
+               int  resId = v.getId();
+               int  pid = v.getParentId();  //父ID
+               if(pid==parentId){
+                 List<VoucherSummaryResultVO> lists=  buildTree(list,resId);
+                 v.setSetChildData(lists);
+                 resultList.add(v);
+               }
+           }
+        }
+      return  resultList;
+   }
+
+    /**
+     * @description 获取借贷款总金额
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018/7/2 18:51
+     * @param
+     * @return
+     */
+    @Override
+    public Map<String, Object> queryVoucherEnclosure(Map<String,Object> params) {
+        return voucherDao.queryVoucherEnclosure(params);
+    }
+
+
+    /**
+     * @description: 查询凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-27 16:19
+     * @param voucher
+     * @return com.htrfid.finance.entity.VoucherEntity
+     */
+    @Override
+    public Result queryVoucher(VoucherEntity voucher) {
+       VoucherEntity  voucherEntity = voucherDao.queryVoucherEntity(voucher);
+        if (voucherEntity == null) {
+            return Result.error("凭证不存在或凭证已删除");
+        }
+        //查询凭证分录
+        List<VoucherEntryEntity> voucherEntryList = voucherEntryService.queryEntryVoucher(voucherEntity.getId(), voucherEntity.getSobId());
+        //查询科目核算项目
+        List<VoucherEntryVo> vos = new ArrayList<>();
+        for (VoucherEntryEntity entity : voucherEntryList) {
+            VoucherEntryVo voucherEntryVo = new VoucherEntryVo();
+            voucherEntryVo.setVoucher(entity);
+            Map<String, Object> map = new HashMap<String, Object>(Constant.PUBLIC_THREE);
+            map.put("sobId", entity.getSobId());
+            map.put("relateType", Constant.ITEM_RELATE_DETAIL_TYPE_VOUCHER);
+            map.put("relateId", entity.getId());
+            List<ItemRelateDetailEntity> itemRelateDetailEntities = itemRelateDetailService.queryList(map);
+
+            int size = itemRelateDetailEntities == null ? 0 : itemRelateDetailEntities.size();
+            Map<String, Object> opts = new HashMap<String, Object>(size);
+
+            if (size > 0) {
+                for (ItemRelateDetailEntity relateDetailEntity : itemRelateDetailEntities) {
+                    opts.put(relateDetailEntity.getItemClassId().toString(), relateDetailEntity.getItemId());
+                }
+            }
+
+            voucherEntryVo.setOpts(opts);
+            vos.add(voucherEntryVo);
+        }
+        VoucherVO voucherVO = new VoucherVO();
+        voucherVO.setEntryVoList(vos);
+        voucherVO.setEntity(voucherEntity);
+
+        return Result.ok(voucherVO);
+    }
+
+    /**
+    * @description: 凭证批量过账
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-04 19:38
+    * @param ids, sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result voucherPassBill(Long[] ids, Long sobId,Long userId,String userName) {
+        if(ids == null||ids.length == 0){
+            return Result.error("请选择要过账的凭证");
+        }
+        Integer accountYear = commonService.getCurrentAccountYear(sobId);
+        Integer accountPeriod = commonService.getCurrentAccountPeriod(sobId);
+
+        int length = ids.length;
+        int sucCount = 0;
+        //失败数量
+        int failCount = 0;
+        StringBuffer buffer = new StringBuffer("开始过账<br/>");
+
+        for(int i = 0;i<length; i++){
+            int count = i+1;
+            buffer.append("开始过账第"+count+"张凭证...<br/>");
+
+            Long voucherId = ids[i];
+            VoucherEntity voucher = voucherDao.queryVoucher(sobId, voucherId);
+            if(voucher.getAccountingYear().intValue() == accountYear.intValue()
+                    &&voucher.getAccountingPeriod().intValue() == accountPeriod.intValue()){
+
+            }else{
+                failCount++;
+                buffer.append("第"+count+"张凭证过账失败：");
+                buffer.append("只能对"+accountYear+"年第"+accountPeriod+"期凭证进行过账操作</br>");
+                continue;
+            }
+
+            if(voucher.getPosted().intValue()==Constant.VOUCHER_ENTRY_POSTED_YES.intValue()){
+                failCount++;
+                buffer.append("第"+count+"张凭证过账失败：");
+                buffer.append("包含已过账凭证</br>");
+                continue;
+            }
+
+            if(voucher.getAudited().intValue()!=Constant.VOUCHER_ENTRY_APPROVAL_YES.intValue()){
+                failCount++;
+                buffer.append("第"+count+"张凭证过账失败：");
+                buffer.append("包含未审核凭证</br>");
+                continue;
+            }
+            //更新余额表数据
+            List<VoucherEntryEntity> voucherEntryList = voucherEntryDao.queryEntryVoucher(voucherId, sobId);
+            //查询科目核算项目
+            List<BalanceEntity> updateList = new ArrayList<>();
+            List<BalanceEntity> insertList = new ArrayList<>();
+            List<ItemRelateDetailEntity> newList = new ArrayList<>();
+            List<TBaseCurrencyMaintainEntity> currencyList = getCurrencyList();
+            for(VoucherEntryEntity entity : voucherEntryList) {
+                Map<String, Object> map = new HashMap<String, Object>(Constant.PUBLIC_THREE);
+                map.put("sobId", entity.getSobId());
+                map.put("relateType", Constant.ITEM_RELATE_DETAIL_TYPE_VOUCHER);
+                map.put("relateId", entity.getId());
+                //查询凭证分录是否有核算项目
+                List<ItemRelateDetailEntity> itemRelateDetailEntities = itemRelateDetailService.queryList(map);
+                if(itemRelateDetailEntities!= null&&itemRelateDetailEntities.size()>0){
+                    //有核算项目
+                    //查询核算项目余额 存在就更新 不存在新增
+                    String accountCode = entity.getAccountCode();
+                    List<BalanceEntity> balanceList = balanceService.queryListByCode(new String[]{accountCode}, voucher.getAccountingYear(), voucher.getAccountingPeriod(), Constant.BALANCE_TYPE_PROJECT,entity.getCurrencyId() ,voucher.getSobId());
+                    if(balanceList!=null&&!balanceList.isEmpty()){
+                        for(BalanceEntity balance:balanceList){
+                            boolean hasProject = false;
+                            for(ItemRelateDetailEntity detailEntity:itemRelateDetailEntities){
+                                //查询是否录过核算项目
+                                ItemRelateDetailEntity itemRelateDetailEntity = new ItemRelateDetailEntity();
+                                itemRelateDetailEntity.setRelateId(balance.getId());
+                                itemRelateDetailEntity.setSobId(balance.getSobId());
+                                itemRelateDetailEntity.setItemClassId(detailEntity.getItemClassId());
+                                itemRelateDetailEntity.setItemId(detailEntity.getItemId());
+                                itemRelateDetailEntity.setIsDel(detailEntity.getIsDel());
+                                itemRelateDetailEntity.setRelateType(Constant.ITEM_RELATE_DETAIL_TYPE_PROJECT);
+                                List<ItemRelateDetailEntity> detailEntities = itemRelateDetailService.queryListByBean(itemRelateDetailEntity);
+                                if(detailEntities == null || detailEntities.isEmpty()){
+                                    //没有  新增
+                                    hasProject = false;
+                                }else{
+                                    hasProject = true;
+                                }
+                            }
+                            if(hasProject){
+                                //更新核算项目余额
+                                BalanceEntity balanceEntity = updateEntity(entity, balance,userId,userName);
+                                updateList.add(balanceEntity);
+                            }else{
+                                //没有  新增
+                                BalanceEntity projectEntity = createEntity(accountCode,voucher, entity, Constant.BALANCE_TYPE_PROJECT, currencyList,userId,userName);
+                                balanceService.save(projectEntity);
+                                addProjectItemDetail(itemRelateDetailEntities,projectEntity.getId(),newList);
+                            }
+                        }
+                    }else{
+                        //不存在 新增 核算项目余额表数据
+                        BalanceEntity projectEntity = createEntity(accountCode,voucher, entity, Constant.BALANCE_TYPE_PROJECT, currencyList,userId,userName);
+                        balanceService.save(projectEntity);
+                        //插入关系表
+                        addProjectItemDetail(itemRelateDetailEntities,projectEntity.getId(),newList);
+
+                    }
+                }
+                //更新科目余额数据--不管有没有核算项目都要操作
+                String accountCode = entity.getAccountCode();
+                List<String> codeList = Tools.getCode(accountCode);
+                String[] array =new String[codeList.size()];
+                codeList.toArray(array);
+                List<BalanceEntity> balanceList = balanceService.queryListByCode(array, voucher.getAccountingYear(),voucher.getAccountingPeriod(),Constant.BALANCE_TYPE_SUBJECT ,entity.getCurrencyId(), voucher.getSobId());
+                logger.info("queryListByCode result: {}",JsonUtil.objToJson(balanceList));
+                logger.info("codeList result: {}",JsonUtil.objToJson(codeList));
+                if(balanceList!=null&&balanceList.size()>0){
+                    for(BalanceEntity balance:balanceList){
+                        //余额表中已经存在当前科目数据
+                        BalanceEntity balanceEntity = updateEntity(entity, balance,userId,userName);
+                        updateList.add(balanceEntity);
+                    }
+                }
+            }
+
+            logger.info("updateBatch param: {}",JsonUtil.objToJson(updateList));
+            logger.info("saveBatch param: {}",JsonUtil.objToJson(insertList));
+            boolean flag = false;
+            if(!updateList.isEmpty()){
+                flag = balanceService.updateBatch(updateList);
+                logger.info("updateBatch result: {}",flag);
+            }
+            if(!newList.isEmpty()){
+                flag = itemRelateDetailService.saveBatch(newList);
+            }
+
+            if(!flag){
+                failCount++;
+                buffer.append("第"+count+"张凭证过账失败：");
+                buffer.append("系统异常，操作失败</br>");
+                continue;
+            }
+            //更新表状态
+            VoucherEntity voucherEntity = new VoucherEntity();
+            voucherEntity.setSobId(sobId);
+            voucherEntity.setId(voucherId);
+            voucherEntity.setPosted(Constant.VOUCHER_ENTRY_POSTED_YES);
+            voucherEntity.setPosterId(userId);
+            voucherEntity.setPosterName(userName);
+            voucherEntity.setUpdateId(userId);
+            voucherEntity.setUpdateName(userName);
+            voucherEntity.setUpdateTime(new Date());
+            voucherEntity.setPosterId(voucher.getPosterId());
+            voucherEntity.setPosterName(voucher.getPosterName());
+            voucherDao.update(voucherEntity);
+
+            sucCount++;
+            buffer.append("第"+count+"张凭证过账成功！！！");
+            buffer.append("<br/>");
+
+        }
+
+        StringBuffer resultBuffer = new StringBuffer("操作完成：成功数量"+sucCount+"，失败数量"+failCount);
+        Map<String,Object> resultMap = new HashMap<>(2);
+        resultMap.put("resultData",resultBuffer);
+        resultMap.put("detailResult",buffer);
+
+        return Result.ok(resultMap);
+    }
+
+
+    /**
+    * @description: 组装核算项目数据
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-08-22 14:21
+    * @param itemRelateDetailEntities, projectEntityId, newList
+    * @return java.util.List<com.htrfid.finance.entity.ItemRelateDetailEntity>
+    */
+    private void addProjectItemDetail(List<ItemRelateDetailEntity> itemRelateDetailEntities,Long projectEntityId,List<ItemRelateDetailEntity> newList){
+        for(ItemRelateDetailEntity itemRelateDetailEntity:itemRelateDetailEntities){
+            ItemRelateDetailEntity itemRelate = new ItemRelateDetailEntity();
+            itemRelate.setSobId(itemRelateDetailEntity.getSobId());
+            itemRelate.setItemClassId(itemRelateDetailEntity.getItemClassId());
+            itemRelate.setItemId(itemRelateDetailEntity.getItemId());
+            itemRelate.setRelateType(Constant.ITEM_RELATE_DETAIL_TYPE_PROJECT);
+            itemRelate.setRelateId(projectEntityId);
+            itemRelate.setIsDel(Constant.IS_DEL_NO);
+            newList.add(itemRelate);
+        }
+//        return newList;
+    }
+
+    /**
+    * @description: 新增组装数据
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-06 20:23
+    * @param voucher, entity, balanceTypeSubject
+    * @param type 1 科目初始数据类型 2 核算项目初始数据
+    * @param currencyList
+     * @return com.htrfid.finance.entity.BalanceEntity
+    */
+    private BalanceEntity createEntity(String accountCode,VoucherEntity voucher, VoucherEntryEntity entity, Integer type, List<TBaseCurrencyMaintainEntity> currencyList,Long userId,String userName) {
+        BalanceEntity balanceEntity = new BalanceEntity();
+        balanceEntity.setAccountYear(voucher.getAccountingYear());
+        balanceEntity.setAccountPeriod(voucher.getAccountingPeriod());
+        TbaseAccountSubjectEntity subjectEntity = voucherDao.querySubjectByCode(accountCode);
+
+        //期末余额
+        if(entity.getDirection().intValue() == subjectEntity.getBalanceDirection().intValue()){
+            BigDecimal endBalance = new BigDecimal("0.00");
+            endBalance = endBalance.add(entity.getAmmount());
+            balanceEntity.setEndBalance(endBalance);
+            BigDecimal endBalanceFor = new BigDecimal("0.00");
+            endBalanceFor = endBalanceFor.add(entity.getAmmountFor());
+            balanceEntity.setEndBalanceFor(endBalanceFor);
+            balanceEntity.setEndCount(entity.getQuantity());
+        }else{
+            BigDecimal endBalance = new BigDecimal("0.00");
+            endBalance = endBalance.subtract(entity.getAmmount());
+            balanceEntity.setEndBalance(endBalance);
+            BigDecimal endBalanceFor = new BigDecimal("0.00");
+            endBalanceFor = endBalanceFor.subtract(entity.getAmmountFor());
+            balanceEntity.setEndBalanceFor(endBalanceFor);
+            if(entity.getQuantity()!=null){
+                balanceEntity.setEndCount(0-entity.getQuantity());
+            }
+        }
+
+        balanceEntity.setAccountName(subjectEntity.getSubjectName());
+        //科目次级设置
+        balanceEntity.setAccountCode(subjectEntity.getSubjectCode());
+        balanceEntity.setAccountId(subjectEntity.getId());
+        balanceEntity.setCurrencyId(entity.getCurrencyId());
+        balanceEntity.setCurrencyName(entity.getCurrencyName());
+        for(TBaseCurrencyMaintainEntity currency:currencyList){
+            if(entity.getCurrencyId().equals(currency.getId())){
+                balanceEntity.setCurrencyCode(currency.getCodes());
+                break;
+            }
+        }
+        balanceEntity.setBalanceType(type);
+        balanceEntity.setDirection(subjectEntity.getBalanceDirection());
+        if(entity.getDirection().intValue() == Constant.VOUCHER_ENTRY_DIRECTION_DEBIT.intValue()){
+            //借方
+            balanceEntity.setYtdDebit(entity.getAmmount());
+            balanceEntity.setYtdDebitFor(entity.getAmmountFor());
+            balanceEntity.setDebit(entity.getAmmount());
+            balanceEntity.setDebitFor(entity.getAmmountFor());
+            balanceEntity.setDebitCount(entity.getQuantity());
+        }else{
+            //贷方
+            balanceEntity.setYtdCredit(entity.getAmmount());
+            balanceEntity.setYtdCreditFor(entity.getAmmountFor());
+            balanceEntity.setCredit(entity.getAmmount());
+            balanceEntity.setCreditFor(entity.getAmmountFor());
+            balanceEntity.setCreditCount(entity.getQuantity());
+        }
+
+        balanceEntity.setCreateTime(new Date());
+        balanceEntity.setCreateId(userId);
+        balanceEntity.setCreateName(userName);
+        balanceEntity.setUpdateTime(new Date());
+        balanceEntity.setUpdateId(userId);
+        balanceEntity.setUpdateName(userName);
+        balanceEntity.setIsDel(Constant.IS_DEL_NO);
+        balanceEntity.setSobId(entity.getSobId());
+        return balanceEntity;
+    }
+
+    /**
+    * @description:组装数据
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-06 20:17
+    * @param entity, balance
+    * @return void
+    */
+    private BalanceEntity updateEntity(VoucherEntryEntity entity, BalanceEntity balance,Long userId,String userName) {
+        balance.setUpdateTime(new Date());
+        balance.setUpdateId(userId);
+        balance.setUpdateName(userName);
+        if(balance.getEndCount() == null){
+            balance.setEndCount(entity.getQuantity());
+        }else{
+            if(entity.getQuantity()!= null){
+                balance.setEndCount(balance.getEndCount()+entity.getQuantity());
+            }
+        }
+
+        if(entity.getDirection().intValue() == Constant.VOUCHER_ENTRY_DIRECTION_DEBIT.intValue()){
+            //借方
+            BigDecimal ytdDebit = balance.getYtdDebit();
+            if(ytdDebit!=null){
+                ytdDebit = ytdDebit.add(entity.getAmmount());
+            }else{
+                ytdDebit = entity.getAmmount();
+            }
+            balance.setYtdDebit(ytdDebit);
+            BigDecimal ytdDebitFor = balance.getYtdDebitFor();
+            if(ytdDebitFor!=null){
+                ytdDebitFor = ytdDebitFor.add(entity.getAmmountFor());
+            }else{
+                ytdDebitFor = entity.getAmmountFor();
+            }
+            balance.setYtdDebitFor(ytdDebitFor);
+            BigDecimal debit = balance.getDebit();
+            if(debit != null){
+                debit = debit.add(entity.getAmmount());
+            }else{
+                debit = entity.getAmmount();
+            }
+            balance.setDebit(debit);
+            BigDecimal debitFor = balance.getDebitFor();
+            if(debitFor!=null){
+                debitFor = debitFor.add(entity.getAmmountFor());
+            }else{
+                debitFor = entity.getAmmountFor();
+            }
+            balance.setDebitFor(debitFor);
+            /*if(balance.getDebitCount() == null){
+                balance.setDebitCount(entity.getQuantity());
+            }else {
+                if(balance.getDebitCount()!=null){
+                    balance.setDebitCount(balance.getDebitCount()+entity.getQuantity());
+                }
+            }*/
+        }else{
+            //贷方
+            BigDecimal ytdCredit = balance.getYtdCredit();
+            if(ytdCredit!=null){
+                ytdCredit = ytdCredit.add(entity.getAmmount());
+            }else{
+                ytdCredit = entity.getAmmount();
+            }
+            balance.setYtdCredit(ytdCredit);
+            BigDecimal ytdCreditFor = balance.getYtdCreditFor();
+            if(ytdCreditFor!=null){
+                ytdCreditFor = ytdCreditFor.add(entity.getAmmountFor());
+            }else{
+                ytdCreditFor = entity.getAmmountFor();
+            }
+            balance.setYtdCreditFor(ytdCreditFor);
+            BigDecimal credit = balance.getCredit();
+            if(credit !=null){
+                credit = credit.add(entity.getAmmount());
+            }else{
+                credit = entity.getAmmount();
+            }
+            balance.setCredit(credit);
+            BigDecimal creditFor = balance.getCreditFor();
+            if(creditFor !=null){
+                creditFor = creditFor.add(entity.getAmmountFor());
+            }else{
+                creditFor = entity.getAmmountFor();
+            }
+            balance.setCreditFor(creditFor);
+            /*if(balance.getCreditCount() == null){
+                balance.setCreditCount(entity.getQuantity());
+            }else {
+                if(balance.getCreditCount()!=null){
+                    balance.setCreditCount(balance.getCreditCount()+entity.getQuantity());
+                }
+            }*/
+        }
+
+
+        /*if(entity.getDirection().intValue() == balance.getDirection().intValue()){
+            BigDecimal endBalance = balance.getEndBalance();
+            if(endBalance!=null){
+                endBalance = endBalance.add(entity.getAmmount());
+            }else{
+                endBalance = entity.getAmmount();
+            }
+            balance.setEndBalance(endBalance);
+            BigDecimal endBalanceFor = balance.getEndBalanceFor();
+            if(endBalanceFor!=null){
+                endBalanceFor = endBalanceFor.add(entity.getAmmountFor());
+            }else{
+                endBalanceFor = entity.getAmmountFor();
+            }
+            balance.setEndBalanceFor(endBalanceFor);
+
+            if(balance.getEndCount() == null){
+                balance.setEndCount(entity.getQuantity());
+            }else{
+                if(entity.getQuantity()!=null){
+                    balance.setEndCount(balance.getEndCount()+entity.getQuantity());
+                }
+            }
+
+        }else{
+            BigDecimal endBalance = balance.getEndBalance();
+            if(endBalance!=null){
+                endBalance = endBalance.subtract(entity.getAmmount());
+            }else{
+                endBalance = entity.getAmmount();
+            }
+            balance.setEndBalance(endBalance);
+            BigDecimal endBalanceFor = balance.getEndBalanceFor();
+            if(endBalanceFor!=null){
+                endBalanceFor = endBalanceFor.subtract(entity.getAmmountFor());
+            }else{
+                endBalanceFor = entity.getAmmountFor();
+            }
+            balance.setEndBalanceFor(endBalanceFor);
+
+            if(balance.getEndCount() == null){
+                balance.setEndCount(entity.getQuantity());
+            }else{
+                if(entity.getQuantity()!=null){
+                    balance.setEndCount(balance.getEndCount()-entity.getQuantity());
+                }
+            }
+        }*/
+
+        if(Constant.VOUCHER_ENTRY_DIRECTION_DEBIT.intValue() == balance.getDirection().intValue()){
+            BigDecimal beginBalance =  balance.getBeginBalance();
+            beginBalance = beginBalance.add(balance.getDebit());
+            beginBalance = beginBalance.subtract(balance.getCredit());
+            balance.setEndBalance(beginBalance);
+
+            BigDecimal beginBalanceFor =  balance.getBeginBalanceFor();
+            beginBalanceFor = beginBalanceFor.add(balance.getDebitFor());
+            beginBalanceFor = beginBalanceFor.subtract(balance.getCreditFor());
+            balance.setEndBalanceFor(beginBalanceFor);
+
+        }else{
+            BigDecimal beginBalance = balance.getBeginBalance();
+            beginBalance = beginBalance.add(balance.getCredit());
+            beginBalance = beginBalance.subtract(balance.getDebit());
+            balance.setEndBalance(beginBalance);
+
+            BigDecimal beginBalanceFor =  balance.getBeginBalanceFor();
+            beginBalanceFor = beginBalanceFor.add(balance.getCreditFor());
+            beginBalanceFor = beginBalanceFor.subtract(balance.getDebitFor());
+            balance.setEndBalanceFor(beginBalanceFor);
+
+        }
+
+        return balance;
+    }
+
+    /**
+    * @description: 凭证整理
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-05 16:56
+    * @param
+    * @param accountYear
+     *@param accountPeriod
+     * @param sobId @return com.htrfid.util.Result
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result sortVoucher(Integer accountYear, Integer accountPeriod,Long sobId) {
+        //查询凭证列表中的数据的凭证字分类
+        List<Long> voucherGroupIdList  = voucherDao.findVoucherGroupId(accountYear,accountPeriod,sobId);
+        if(voucherGroupIdList == null||voucherGroupIdList.size() == 0){
+            return Result.error("暂无待整理凭证");
+        }
+        List<VoucherEntity>  resultList = new ArrayList<>();
+        /*List<VoucherEntity>  approvalList = new ArrayList<>();
+        List<VoucherEntity>  waitSortList = new ArrayList<>();*/
+        for(Long id:voucherGroupIdList){
+            VoucherEntity param = new VoucherEntity();
+            param.setVoucherGroupId(id);
+            param.setAccountingPeriod(accountPeriod);
+            param.setAccountingYear(accountYear);
+            param.setSobId(sobId);
+            List<VoucherEntity> voucherList = voucherDao.sortVoucherGroup(param);
+            if(voucherList == null || voucherList.size() == 0){
+                continue;
+            }
+            int size = voucherList.size();
+            for(int i = 0;i<size;i++){
+                VoucherEntity entity = voucherList.get(i);
+                entity.setVoucherNumber(i+1);
+                resultList.add(entity);
+            }
+            /*int size = voucherList.size();
+            for(int i = 0;i<size;i++){
+                VoucherEntity oldEntity = voucherList.get(i);
+                if(!Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(oldEntity.getAudited())&&!Constant.VOUCHER_ENTRY_POSTED_YES.equals(oldEntity.getPosted())){
+                    for(int j = 0;j<size;j++){
+                        VoucherEntity curEntity = voucherList.get(j);
+                        if((i+1) == curEntity.getVoucherNumber()){
+                            if(!Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(curEntity.getAudited())&&!Constant.VOUCHER_ENTRY_POSTED_YES.equals(curEntity.getPosted())){
+
+                            }
+                        }
+                    }
+                    oldEntity.setVoucherNumber(i+1);
+                }else{
+                    for(int j = 0;j<size;j++){
+                        VoucherEntity curEntity = voucherList.get(j);
+
+                    }
+                }
+            }
+
+            for(int i = 0;i<size;i++){
+                VoucherEntity curEntity = voucherList.get(i);
+                if(!Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(curEntity.getAudited())&&!Constant.VOUCHER_ENTRY_POSTED_YES.equals(curEntity.getPosted())){
+                    waitSortList.add(curEntity);
+                }else{
+                    approvalList.add(curEntity);
+                }
+            }
+            for(int i = 0;i<waitSortList.size();i++){
+                VoucherEntity entity = waitSortList.get(i);
+                entity.setVoucherNumber(i+1);
+            }
+            for(int a = 0;a<waitSortList.size();a++){
+                VoucherEntity sortEntity = waitSortList.get(a);
+                for(int k = 0;k<approvalList.size();k++){
+                    VoucherEntity approvalEntity = approvalList.get(k);
+                    if(sortEntity.getVoucherNumber().equals(approvalEntity.getVoucherNumber())){
+                        waitSortList.add(k,approvalEntity);
+                    }
+                }
+            }
+            for(int i = 0;i<waitSortList.size();i++){
+                for(int j = 0;j<voucherList.size();j++){
+                    if(voucherList.get(j).getId().equals(waitSortList.get(i).getId())){
+                        voucherList.get(j).setVoucherNumber(i+1);
+                    }
+                }
+            }
+            resultList.addAll(voucherList);*/
+        }
+        //更新
+        Integer result =  voucherDao.updateBatch(resultList);
+        return Result.ok(result);
+    }
+
+    /**
+    * @description:获取币别列表
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-05 14:19
+    * @param
+    * @return List<TBaseCurrencyMaintainEntity>
+    */
+    public List<TBaseCurrencyMaintainEntity> getCurrencyList(){
+        return voucherDao.queryCurrencyList();
+    }
+
+
+    /**
+     * @description:查询当前会计年度
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-21 11:25
+     * @return java.lang.Integer
+     */
+    public Integer getCurrentAccountYear(Long sobId){
+        //判断会计期间
+        int currentAccountYear = 0;
+        //总账当前会计年度
+        SystemProfileEntity entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_CURRENT_ACCOUNTING_YEAR, sobId.toString());
+        if(entity != null){
+            currentAccountYear = Integer.parseInt(entity.getValue());
+        }
+        return currentAccountYear;
+    }
+
+
+    public Map<String, Object> getPeriodDate(Integer accountYear, Integer accountPeriod, Long sobId) {
+        Map<String, Object> resultMap = new HashMap<>();
+        String startDate = getAccountPeriodStartDate(sobId);
+        Calendar calendar = Tools.getCalendar(startDate);
+        calendar.set(Calendar.YEAR, accountYear);
+        calendar.set(Calendar.MONTH, accountPeriod - 1);
+        resultMap.put("startDate", calendar);
+        Calendar calendar1 = Tools.getCalendar(startDate);
+        calendar1.set(Calendar.YEAR, accountYear);
+        calendar1.set(Calendar.MONTH, accountPeriod);
+        calendar1.add(Calendar.DAY_OF_MONTH, -1);
+        resultMap.put("endDate", calendar1);
+        return resultMap;
+    }
+
+    /**
+     * @description:获取会计区间
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-21 11:27
+     * @param sobId 账套id
+     * @return java.lang.Integer
+     */
+    public Integer getCurrentAccountPeriod(Long sobId){
+        int currentAccountPeriod = 0;
+        //总账当前会计期间
+        SystemProfileEntity entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_CURRENT_ACCOUNTING_PERIOD, sobId.toString());
+        if(entity != null){
+            currentAccountPeriod = Integer.parseInt(entity.getValue());
+        }
+        return currentAccountPeriod;
+    }
+
+    /**
+     * @description:获取会计期间开始日期
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-06-21 11:27
+     * @param sobId 账套id
+     * @return java.lang.Integer
+     */
+    public String getAccountPeriodStartDate(Long sobId){
+        String startDate = Calendar.getInstance().get(Calendar.YEAR)+"";
+        SystemProfileEntity entity =systemProfileService.querySysProfileByName(SystemProfileConstant.ACCOUNTING_PERIOD_START_DATE, sobId.toString());
+        logger.info("getAccountPeriodStartDate entity: {}",JsonUtil.objToJson(entity));
+        if(entity != null){
+            startDate = entity.getValue();
+        }
+        return startDate;
+    }
+
+    /**
+     * @description
+     * @author lxy 查凭证
+     * @eamil lxyyxljava@163.com
+     * @date  2018/7/4 9:56
+     * @param
+     * @return
+     */
+    @Override
+    public Map<String,Object> queryVoucherByVo(VoucherQueryVO voucherQueryVO) {
+        List<Map<String,Object>> mapList = new ArrayList<>();
+        PageHelper.startPage(voucherQueryVO.getPage(),voucherQueryVO.getRows());
+        Page<VoucherQueryResultVO> voucherList = voucherDao.queryVoucherByVo(voucherQueryVO);
+        List<VoucherQueryResultVO> voucherEntryList = new ArrayList<>();
+        for (VoucherQueryResultVO voucherVO:voucherList ) {
+                voucherQueryVO.setVoucherId(voucherVO.getId());
+                voucherEntryList = voucherDao.queryVoucherEntryByVo(voucherQueryVO);
+                int length = voucherEntryList.size();
+                String subjectName = "";
+                String explains = "";
+                String debit = "";
+                String credit = "";
+                String exchangeRate = "";
+                String currencyName = "";
+                String ammountFor = "";
+                if (!voucherEntryList.isEmpty() && length > 0) {
+                    for (VoucherQueryResultVO voucherEntryVO : voucherEntryList) {
+                        String debitVo = voucherEntryVO.getDebit()!=null&&voucherEntryVO.getDebit().compareTo(BigDecimal.ZERO)!=0?voucherEntryVO.getDebit().setScale(2,BigDecimal.ROUND_HALF_DOWN).toString():"";
+                        String creditVo = voucherEntryVO.getCredit()!=null&&voucherEntryVO.getCredit().compareTo(BigDecimal.ZERO)!=0?voucherEntryVO.getCredit().setScale(2,BigDecimal.ROUND_HALF_DOWN).toString():"" ;
+                        String ammountForVo = voucherEntryVO.getAmmountFor()!=null&&voucherEntryVO.getAmmountFor().compareTo(BigDecimal.ZERO)!=0?voucherEntryVO.getAmmountFor().setScale(2,BigDecimal.ROUND_HALF_DOWN).toString():"";
+                        String exchangeRateVo = voucherEntryVO.getExchangeRate()!=null&&voucherEntryVO.getExchangeRate().compareTo(BigDecimal.ZERO)!=0?voucherEntryVO.getExchangeRate().setScale(6,BigDecimal.ROUND_HALF_DOWN).toString():"";
+                        explains += "<p>" + voucherEntryVO.getExplains() + "</p>";
+                        subjectName += "<p>" + voucherEntryVO.getFullName() + "</p>";
+                        debit += "<p>" + debitVo+ "</p>";
+                        credit += "<p>" +creditVo+ "</p>";
+                        exchangeRate += "<p>" + exchangeRateVo  + "</p>";
+                        currencyName += "<p>" + voucherEntryVO.getCurrencyName() + "</p>";
+                        ammountFor += "<p>" + ammountForVo + "</p>";
+                    }
+                    Object[] obj = new Object[]{
+                            voucherVO.getVoucherDate(),
+                            voucherVO.getVoucherGroupName(),
+                            explains,
+                            subjectName,
+                            currencyName,
+                            exchangeRate,
+                            ammountFor,
+                            debit,
+                            credit,
+                            "",
+                            voucherVO.getPreparerName(),
+                            voucherVO.getAuditorName(),
+                            "",
+                            voucherVO.getAudited(),
+                            voucherVO.getBelongSystem()
+                    };
+                    Map<String, Object> map1 = new HashMap<String, Object>(Constant.PUBLIC_TWO);
+                    map1.put("id", voucherVO.getId());
+                    map1.put("cell", obj);
+                    mapList.add(map1);
+                }
+        }
+        Map<String,Object> map = new HashMap<>(Constant.PUBLIC_SIX);
+        map.put("voucherList",voucherList);
+        map.put("total",voucherList.getPages()!=0?voucherList.getPages():1);
+        map.put("records",voucherList.getTotal());
+        map.put("page",voucherList.getPageNum());
+        map.put("rows",mapList);
+        return map;
+    }
+
+    /**
+     * @description 查凭证 第二套
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018-10-15 14:14
+     * @param
+     * @return
+     */
+    @Override
+    public Map<String, Object> queryVoucherNew(VoucherQueryVO voucherQueryVO) {
+        PageHelper.startPage(voucherQueryVO.getPage(),voucherQueryVO.getRows());
+        Page<VoucherQueryResultVO> voucherList = voucherDao.queryVoucherNew(voucherQueryVO);
+        List<Map<String,Object>> mapList = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(voucherList)){
+            for(VoucherQueryResultVO resultVO:voucherList){
+                Object [] obj = {  //封装成数据
+                        resultVO.getAudited().equals(Constant.VOUCHER_ENTRY_APPROVAL_YES)?"√":"",
+                        resultVO.getPosted().equals(Constant.VOUCHER_ENTRY_POSTED_YES)?"√":"",
+                        DateConverUtil.getSbyDT(resultVO.getVoucherDate(),DateConverUtil.TimeType.type111.getValue()),
+                        resultVO.getVoucherGroupName(),
+                        resultVO.getExplains(),
+                        resultVO.getSubjectCode(),
+                        resultVO.getSubjectName(),
+                        resultVO.getCurrencyName(),
+                        resultVO.getExchangeRateStr(),
+                        resultVO.getAmmountForStr(),
+                        resultVO.getDebitStr(),
+                        resultVO.getCreditStr(),
+                        /*"附件",*/
+                        resultVO.getPreparerName(),
+                        resultVO.getAuditorName(),
+                        "操作"
+                };
+                Map<String, Object> params = new HashMap<>();
+                params.put("id", resultVO.getId());
+                params.put("cell", obj);
+                mapList.add(params);
+            }
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("total",voucherList.getPages()!=0?voucherList.getPages():1);
+        map.put("records",voucherList.getTotal());
+        map.put("page",voucherList.getPageNum());
+        map.put("rows",mapList);
+        return map;
+    }
+
+    /**
+     * @description 导出 凭证列表
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018-10-16 14:52 
+     * @param 
+     * @return 
+     */
+    @Override
+    public List<VoucherQueryResultVO> exportVoucher(VoucherQueryVO voucherQueryVO) {
+        return voucherDao.exportVoucher(voucherQueryVO);
+    }
+
+
+    @Override
+    public Map<String, Object> queryMechanismCertificate(VoucherQueryVO voucherQueryVO) {
+        PageHelper.startPage(voucherQueryVO.getPage(),voucherQueryVO.getRows());
+        logger.info("查询应收应付机制凭证的参数为{}"+JsonUtil.objToJson(voucherQueryVO));
+        Page<VoucherQueryResultVO> voucherList = voucherDao.queryMechanismCertificate(voucherQueryVO);
+        logger.info("查询应收应付机制凭证的结果集合为"+JsonUtil.objToJson(voucherList));
+        List<Map<String,Object>> mapList = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(voucherList)){
+            for(VoucherQueryResultVO resultVO:voucherList){
+                Object [] obj = {  //封装成数据
+                        resultVO.getAudited().equals(Constant.VOUCHER_ENTRY_APPROVAL_YES)?"√":"",
+                        resultVO.getPosted().equals(Constant.VOUCHER_ENTRY_POSTED_YES)?"√":"",
+                        DateConverUtil.getSbyDT(resultVO.getVoucherDate(),DateConverUtil.TimeType.type111.getValue()),
+                        resultVO.getVoucherGroupName(),
+                        resultVO.getExplains(),
+                        resultVO.getSubjectCode(),
+                        resultVO.getSubjectName(),
+                        resultVO.getCurrencyName(),
+                        resultVO.getExchangeRateStr(),
+                        resultVO.getAmmountForStr(),
+                        resultVO.getDebitStr(),
+                        resultVO.getCreditStr(),
+                        /*"附件",*/
+                        resultVO.getPreparerName(),
+                        resultVO.getAuditorName(),
+                        "操作"
+                };
+                Map<String, Object> params = new HashMap<>();
+                params.put("id", resultVO.getId());
+                params.put("cell", obj);
+                mapList.add(params);
+            }
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("total",voucherList.getPages()!=0?voucherList.getPages():1);
+        map.put("records",voucherList.getTotal());
+        map.put("page",voucherList.getPageNum());
+        map.put("rows",mapList);
+        return map;
+    }
+
+    /**
+     * @description
+     * @author lxy 凭证分录
+     * @eamil lxyyxljava@163.com
+     * @date  2018/7/5 19:56
+     * @param
+     * @return
+     */
+    @Override
+    public List<VoucherQueryResultVO> queryVoucherEntryByVo(VoucherQueryVO voucherQueryVO) {
+        return voucherDao.queryVoucherEntryByVo(voucherQueryVO);
+    }
+
+    /**
+     * @description
+     * @author lxy 获取会计期间
+     * @eamil lxyyxljava@163.com
+     * @date  2018/7/6 14:51
+     * @param
+     * @return
+     */
+    @Override
+    public List<Map<String,Object>> getVoucherDate(Map<String,Object> params) {
+        return voucherDao.getVoucherDate(params);
+    }
+
+    /**删除机制凭证
+    * @description: 机制凭证
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-09 16:18
+    * @param voucherId, sobId, system
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result deleteMechanismVoucher(Long voucherId, Long sobId,Long currentUserId, String username) {
+
+        VoucherEntity entity = voucherDao.queryVoucher(sobId, voucherId);
+        if(entity==null){
+            return Result.error("删除失败或凭证不存在");
+        }
+        if(Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(entity.getAudited())){
+            return Result.error("无法删除已审核凭证");
+        }
+        if(Constant.VOUCHER_ENTRY_POSTED_YES.equals(entity.getPosted())){
+            return Result.error("无法删除已过账凭证");
+        }
+
+        Integer system = entity.getBelongSystem();
+        if (StringUtils.isEmpty(system)){
+            return Result.error("删除失败或凭证不存在");
+        }
+        Boolean flag = true;
+        if (StringUtils.isEmpty(entity.getProfitLossSubject()) || entity.getProfitLossSubject() == 0) {
+            Map<String , Boolean> deleteVoucher = commonService.isDeleteVoucher(entity.getBelongSystem(), entity.getSobId(), entity.getAccountingYear(), entity.getAccountingPeriod());
+            if (entity.getBelongSystem() == 4 && !deleteVoucher.get("amount")){
+                return Result.error("删除失败,请选择固定资产当前期的凭证");
+            }
+            if (deleteVoucher.get("greaterThan")){
+                return Result.error("删除失败,请选择当前期或者当前系统期间之后的凭证");
+            }
+            if (system.intValue() != Constant.SALARY_SYSTEM.intValue()) {
+                flag = getVoucher(system, voucherId, currentUserId, username);
+            }
+        }else if(entity.getProfitLossSubject() == 3){
+            //为固定资产计提折旧凭证 , 需要调用接口删除折旧表中的数据
+            financeFaDeprDao.deleteByList(entity.getAccountingYear(),entity.getAccountingPeriod(),entity.getSobId());
+        }
+        if (!flag){
+            return Result.error("删除失败或凭证不属于该系统手工录入的凭证");
+        }
+        Map<String, Object> map = new HashMap<String, Object>(Constant.PUBLIC_ONE);
+        map.put("value",voucherId);
+        voucherDao.delete(map);
+        //删除凭证分录
+        voucherEntryService.deleteByVoucherId(voucherId,sobId);
+        return Result.ok();
+    }
+
+    /** 批量删除机制凭证
+     * @description:
+     * @author tangmi  
+     * @eamil tangmi6698@163.com
+     * @date 2018-07-10 14:43
+     * @param
+     * @return
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result deleteMechanismVoucherBatch(Long sobId, Long[] ids,Long currentUserId, String username) {
+        if(ids == null||ids.length==0){
+            return Result.error("请选择要删除的凭证");
+        }
+        int length = ids.length;
+        int sucCount = 0;
+        //失败数量
+        int failCount = 0;
+        StringBuffer buffer = new StringBuffer("开始删除<br/>");
+        for(int i = 0;i<length;i++){
+            int count = i+1;
+            if (ids[i] == 0){
+                //针对固定资产凭证删除
+                failCount++;
+                buffer.append("第"+count+"张凭证删除失败：单据未生成凭证");
+                continue;
+            }
+            buffer.append("开始删除第"+count+"张凭证...<br/>");
+            Result result = deleteMechanismVoucher(ids[i], sobId,currentUserId,username);
+            if(result == null){
+                failCount++;
+                buffer.append("第"+count+"张凭证删除失败：");
+                buffer.append("系统异常<br/>");
+            }else{
+                if(EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())){
+                    sucCount++;
+                    buffer.append("第"+count+"张凭证删除成功！！！<br/>");
+                }else{
+                    failCount++;
+                    buffer.append("第"+count+"张凭证删除失败：");
+                    buffer.append(result.getMsg()+"<br/>");
+                }
+            }
+        }
+
+        StringBuffer resultBuffer = new StringBuffer("操作完成：成功数量"+sucCount+"，失败数量"+failCount);
+        Map<String,Object> resultMap = new HashMap<>(2);
+        resultMap.put("resultData",resultBuffer);
+        resultMap.put("detailResult",buffer);
+        resultMap.put("failCount",failCount);
+
+        return Result.ok(resultMap);
+//        List <Integer> listId = Arrays.asList(ids);
+//        for (Integer id : listId){
+//            if (id == 0){
+//                return Result.error("存在未生成凭证的单据");
+//            }
+//            VoucherEntity entity = voucherDao.queryVoucher(sobId, id);
+//            if(StringUtils.isEmpty(entity)){
+//                return Result.error("删除失败或凭证不存在");
+//            }
+//            if(Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(entity.getAudited())){
+//                return Result.error("无法删除已审核凭证");
+//            }
+//            if(Constant.VOUCHER_ENTRY_POSTED_YES.equals(entity.getPosted())){
+//                return Result.error("无法删除已过账凭证");
+//            }
+//
+//            Integer system = entity.getBelongSystem();
+//            if (!getVoucher(system,id,currentUserId,username)){
+//                return Result.error("删除失败或凭证不存在");
+//            }
+//            voucherEntryDao.deleteByVoucherId(id,sobId);
+//            voucherDao.deleteByVoucherId(id,sobId);
+//        }
+//        return Result.ok();
+
+    }
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result deleteMechanismVouchere(Long sobId,Long voucherId,Integer ownershipSystem){
+        VoucherEntity entity = voucherDao.queryVoucher(sobId, voucherId);
+        if(entity==null){
+            return Result.error("删除失败或凭证不存在");
+        }
+        if(Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(entity.getAudited())){
+            return Result.error("无法删除已审核凭证");
+        }
+        if(Constant.VOUCHER_ENTRY_POSTED_YES.equals(entity.getPosted())){
+            return Result.error("无法删除已过账凭证");
+        }
+        if (entity.getBelongSystem().equals(ownershipSystem)){
+            voucherEntryDao.deleteByVoucherId(voucherId,sobId);
+            voucherDao.deleteByVoucherId(voucherId,sobId);
+        }
+        return Result.ok();
+    }
+
+    /**
+    * @description:获取会计年度区间  凭证最早年度到凭证最大最大年度
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-07-12 8:32
+    * @param sobId
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    public Result getFinanceYearPeriod(Long sobId) {
+        Map<String,Object> map  = voucherDao.getFinanceYearPeriod(sobId);
+        List<Map<String,String>> resultMap = new ArrayList<>();
+        if(map == null || map.size() == 0){
+            return Result.error("暂无数据");
+        }
+        Integer startYear = Integer.parseInt(map.get("minYear").toString());
+        Integer endYear = Integer.parseInt(map.get("maxYear").toString());
+        if(startYear.intValue() == endYear.intValue()){
+            Map<String,String> yearMap = new HashMap<String,String>(Constant.PUBLIC_TWO);
+            yearMap.put("name",startYear+"");
+            yearMap.put("value",startYear+"");
+            resultMap.add(yearMap);
+            return Result.ok(resultMap);
+        }
+        for(int i = startYear;i<=endYear.intValue();i++){
+            Map<String,String> yearMap = new HashMap<String,String>(Constant.PUBLIC_TWO);
+            yearMap.put("name",i+"");
+            yearMap.put("value",i+"");
+            resultMap.add(yearMap);
+        }
+        return Result.ok(resultMap);
+    }
+
+    private boolean getVoucher(Integer system,Long voucherId,Long currentUserId, String username){
+        boolean flag = false;
+        Integer num = 0 ;
+        if (system.equals(Constant.RECEIVABLE_AND_PAYABLE_SYSTEM_VERIFICATION)){
+            //调用核销单修改接口
+            num = verificationSheetService.deleteVoucher(voucherId,currentUserId,username);
+        }else if (system.equals(Constant.RECEIVABLE_AND_PAYABLE_SYSTEM_PAYMENT)){
+            //调用收付款单修改接口
+            num = financePaymentReceiptService.deleteVoucher(voucherId,currentUserId,username);
+        }else if (system.equals(Constant.RECEIVABLE_AND_PAYABLE_SYSTEM_OTHER)){
+            //调用其他应收付款修改接口
+           num = otherPaymentReceiptService.deleteVoucher(voucherId,currentUserId,username);
+        }else if(system.equals(Constant.CASH_JOURNAL_SYSTEM)){
+            //现金日记账修改接口
+           num = cnCashierJournalService.deleteVoucher(voucherId,currentUserId,username);
+        }else if (system.equals(Constant.BABK_DEPOSIT_JOURNAL_SYSTEM)){
+            //银行存款修改接口
+            num = bankDepositJournalService.deleteVoucher(voucherId,currentUserId,username);
+        }else if(system.equals(Constant.CAPITAL_ASSETS)){
+            //固定资产修改接口
+            num = financeFaCardService.deleteVoucher(voucherId,currentUserId,username);
+        }else {
+            flag = false;
+        }
+        if (num >= 1){
+            flag = true;
+        }
+        return flag;
+    }
+
+    @Override
+    public int checkVoucherNumberNonSequence(Map<String, Object> map) {
+        return voucherDao.checkVoucherNumberNonSequence(map);
+    }
+
+    @Override
+    public List<Long> selectIds(Long sobId) {
+        return voucherDao.selectIds(sobId);
+    }
+
+
+
+    /**
+    * @description: 批量审核反审核
+    * @author zhengfei
+    * @eamil 936864724@qq.com
+    * @date 2018-09-05 11:16
+    * @param sobId, ids, userId, userName,
+     *              type:1-审核  2-反审核
+    * @return com.htrfid.util.Result
+    */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    public Result approvalVoucherBatch(Long sobId, Long[] ids, Long userId, String userName, Integer type) {
+
+        if(ids == null || ids.length == 0){
+            return Result.error("请选择要操作的凭证");
+        }
+        int length = ids.length;
+        StringBuffer buffer = new StringBuffer("开始操作<br/>");
+        //成功数量
+        int sucCount = 0;
+        //失败数量
+        int failCount = 0;
+
+        for(int i = 0;i<length;i++){
+            int count = i+1;
+            buffer.append("开始操作第"+count+"张凭证...<br/>");
+            if(ids[i] == 0){
+                failCount++;
+                buffer.append("第"+count+"张凭证操作失败：未生成凭证<br/>");
+                continue;
+            }
+            Result result = approvalVoucher(sobId, ids[i], userId, userName, type);
+            if(result == null){
+                failCount++;
+                buffer.append("第"+count+"张凭证操作失败：");
+                buffer.append("系统异常<br/>");
+            }else{
+                if(EnumConstant.PUBLIC.CODE_YES.getValue().equals(result.getCode())){
+                    sucCount++;
+                    buffer.append("第"+count+"张凭证操作成功！！！<br/>");
+                }else{
+                    failCount++;
+                    buffer.append("第"+count+"张凭证操作失败：");
+                    buffer.append(result.getMsg()+"<br/>");
+                }
+            }
+        }
+
+        /*for(VoucherEntity voucher:list){
+            count++;
+
+            if(voucher.getPosted().intValue() == Constant.VOUCHER_ENTRY_POSTED_YES.intValue()){
+                buffer.append("第"+count+"张凭证操作失败：");
+                buffer.append("当前凭证已过账");
+                continue;
+            }
+            SystemProfileEntity entity ;
+            if(type == 1){
+                //审核操作
+                if(voucher.getAudited().intValue() == Constant.VOUCHER_ENTRY_APPROVAL_YES.intValue()){
+                    buffer.append("第"+count+"张凭证操作失败：");
+                    buffer.append("当前凭证已审核");
+                    continue;
+                }
+                //判断制单人与审核人是否为同一人
+                Integer allowSelfApproval = 0;
+                entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_AUDIT_CERTIFICATE_NO_SAME_MAN, sobId.toString());
+                if(entity != null){
+                    allowSelfApproval = Integer.parseInt(entity.getValue());
+                }
+                //不能是同一人
+                if(voucher.getPreparerId().equals(userId)&&allowSelfApproval.intValue() == Constant.PUBLIC_IS_DEFAULT_YES){
+                    buffer.append("第"+count+"张凭证操作失败：");
+                    buffer.append("制单人与审核人不能为同一人");
+                    continue;
+                }
+                //更新状态
+                voucher.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_YES);
+                voucher.setAuditorId(userId);
+                voucher.setAuditorName(userName);
+            }else{
+                //反审核操作
+                //审核操作
+                if(!Constant.VOUCHER_ENTRY_APPROVAL_YES.equals(voucher.getAudited())){
+                    buffer.append("第"+count+"张凭证操作失败：");
+                    buffer.append("当前凭证暂未审核无法进行反审核");
+                    continue;
+                }
+                //获取判断审核人与反审核人是否为同一人字段
+                Integer allowOpposedApproval = 0;
+                entity = systemProfileService.querySysProfileByName(SystemProfileConstant.FINACE_AUDIT_CERTIFICATE_POSTING, sobId.toString());
+                if(entity != null){
+                    allowOpposedApproval = Integer.parseInt(entity.getValue());
+                }
+                if(allowOpposedApproval.intValue() == Constant.PUBLIC_IS_DEFAULT_YES){
+                    if(voucher.getAuditorId().equals(userId)){
+                        //审核人与反审核人为同一人
+                        buffer.append("第"+count+"张凭证操作失败：");
+                        buffer.append("审核人与反审核人不能为同一人");
+                        continue;
+                    }
+                }
+                voucher.setAudited(Constant.VOUCHER_ENTRY_APPROVAL_NO);
+                voucher.setAuditorId(null);
+                voucher.setAuditorName(null);
+            }
+            voucher.setUpdateId(userId);
+            voucher.setUpdateName(userName);
+            voucher.setUpdateTime(new Date());
+        }
+        return Result.ok(voucherDao.updateBatch(list));*/
+
+        StringBuffer resultBuffer = new StringBuffer("操作完成：成功数量"+sucCount+"，失败数量"+failCount);
+        Map<String,Object> resultMap = new HashMap<>(2);
+        resultMap.put("resultData",resultBuffer);
+        resultMap.put("detailResult",buffer);
+
+        return Result.ok(resultMap);
+    }
+
+    @Override
+    public Result queryVoucherType(Long sobId) {
+        Integer status = 1;
+        Integer num = voucherDao.queryVoucherType(sobId,status);
+        if (num != 0){
+            return Result.error("已存在审核或过账的凭证,不能反过账");
+        }
+        return Result.ok();
+    }
+
+    /**
+     * @description: 查询是否有生成计提折旧凭证
+     * @author zhengfei
+     * @eamil 936864724@qq.com
+     * @date 2018-09-26 17:15
+     * @param entity
+     * @return com.htrfid.util.Result
+     */
+    @Override
+    public Result queryDepreciationVoucher(VoucherEntity entity) {
+        List<VoucherEntity> voucherEntity = voucherDao.queryDepreciationVoucher(entity);
+        return Result.ok(voucherEntity);
+    }
+
+    /**
+     * @description:根据凭证号，查询该凭证号是否已被使用
+     * @param id 凭证Id
+     * @param accountingYear 会计年
+     * @param accountingPeriod 会计期间
+     * @param voucherGroupId 凭证字
+     * @param voucherNumber 输入的凭证号
+     * @param sobId 组织Id
+     * @return Integer 该凭证号是否已被使用 0 未使用 1 已使用
+     */
+    @Override
+    public Integer existsVoucherNumber(Long id, Integer accountingYear, Integer accountingPeriod, Long voucherGroupId, Integer voucherNumber, Long sobId) {
+        Map<String,Object> paramMap = new HashMap<>();
+        paramMap.put("id", id);
+        paramMap.put("accountingYear", accountingYear);
+        paramMap.put("accountingPeriod", accountingPeriod);
+        paramMap.put("voucherGroupId", voucherGroupId);
+        paramMap.put("voucherNumber", voucherNumber);
+        paramMap.put("sobId", sobId);
+        Integer exists = voucherDao.existsVoucherNumber(paramMap);
+        return exists;
+    }
+
+    /**
+     * @description:查询当前期与以后期是否生成凭证
+     * @author yaoliang
+     * @eamil yaoliang1102@163.com
+     * @date 2018-10-29 14:26  
+     * @param 
+     * @return 
+     */ 
+    @Override
+    public Boolean getFaVoucherCurrenAndAfter(VoucherEntity entity) {
+        return voucherDao.getFaVoucherCurrenAndAfter(entity)>0;
+    }
+
+    /**
+     * @description 获取带有核算项目凭证ID
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018-10-19 16:10
+     * @param 
+     * @return 
+     */
+    @Override
+    public List<Long> getVoucherIdList(Map<String, Object> params) {
+        return voucherDao.getVoucherIdList(params);
+    }
+
+    @Override
+    public Result wageVoucherManagement(Map<String , Object> params) {
+        List<WageVoucherVO> wageVoucherVOList = voucherDao.wageVoucherManagement(params);
+        return Result.ok(wageVoucherVOList);
+    }
+
+	@Override
+	@Transactional(propagation=Propagation.REQUIRED,rollbackFor=Exception.class)
+	public Result saveVoucherBatch(List<VoucherVO> voucherVOs, SysUser currentUser) {
+		List<Map<String, Long>> resultList = new ArrayList<>(voucherVOs.size());
+		for(VoucherVO vo:voucherVOs) {
+			Result saveOrUpdate = saveOrUpdate(vo, currentUser);
+			if(EnumConstant.PUBLIC.CODE_YES.getValue() == saveOrUpdate.getCode()) {
+				Map<String, Long> param = new HashMap<>(2);
+				VoucherEntity voucherEntity = (VoucherEntity) saveOrUpdate.getData();
+				param.put("voucherId", voucherEntity.getId());
+				param.put("orgId", voucherEntity.getSobId());
+				resultList.add(param);
+			}else {
+				return Result.error("系统异常，生成凭证失败");
+			}
+		}
+		return Result.ok(resultList);
+	}
+}

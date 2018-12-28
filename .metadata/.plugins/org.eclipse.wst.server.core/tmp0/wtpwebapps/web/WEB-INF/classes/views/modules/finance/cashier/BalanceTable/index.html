@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>余额调节表</title>
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/cashier/BalanceTable/index.css">
+    <script type="text/javascript" src="${rc.contextPath}/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/vue.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+
+</head>
+<body>
+<div id="app" v-cloak>
+    <div>
+        <i-button type="text" @click="refresh">刷新</i-button>
+    </div>
+    <blockquote class="layui-elem-quote layui-text" style="border-left:none;">
+        <strong class="ht-cashier-title1">余额调节表</strong>
+        <label class="ht-commFloatLeft ht-cashier-title2">科目：</label>
+        <select v-model="subjectCategorySelectValue" class="form-control input-sm" @change="_cnCurrencyList()"
+                style="width:200px; float: left;">
+            <option v-for="item in subjectCategory" :value="item.accountId" :key="item.accountName">
+                {{item.accountCode }} {{ item.accountName }}
+            </option>
+        </select>
+        <label class="ht-commFloatLeft ht-cashier-title2">币别：</label>
+        <select v-model="currencySelectValue" class="form-control input-sm" @change="_queryByCurrencyId()"
+                style="width:200px">
+            <option v-for="item in currency" :value="item.currencyId" :key="item.currencyName">
+                {{ item.currencyName }}
+            </option>
+        </select>
+    </blockquote>
+
+    <div class="layui-form ht-talList1">
+        <i-table :columns="columns1" :data="dataList" border lay-size="sm"></i-table>
+    </div>
+
+</div>
+<script type="text/javascript">
+
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            subjectCategorySelectValue: '',
+            currencySelectValue: '',
+            subjectCategory: [],
+            currency: [],
+            columns1: [
+                {
+                    title: '企业未达账',
+                    align: 'center',
+                    children: [
+                        {
+                            title: '项目（摘要）',
+                            key: 'companyProject',
+                            align: 'center',
+                            width: 250
+                        },
+                        {
+                            title: '日期',
+                            key: 'companyDate',
+                            align: 'center',
+                            width: 150
+                        },
+                        {
+                            title: '金额',
+                            key: 'companyAmount',
+                            align: 'center',
+                            width: 160
+                        },
+                        {
+                            title: '备注',
+                            key: 'companyMarks',
+                            align: 'center',
+                            width: 200
+                        },
+
+                    ]
+                },
+                {
+                    title: '银行未达账',
+                    align: 'center',
+                    children: [
+                        {
+                            title: '项目（摘要）',
+                            key: 'bankProject',
+                            align: 'center',
+                            width: 170
+                        },
+                        {
+                            title: '日期',
+                            key: 'bankDate',
+                            align: 'center',
+                            width: 100
+                        },
+                        {
+                            title: '金额',
+                            key: 'bankAmount',
+                            align: 'center',
+                            width: 130
+                        },
+                        {
+                            title: '备注',
+                            key: 'bankMarks',
+                            align: 'center',
+                            width: 200
+                        },
+
+                    ]
+                }
+            ],
+            dataList: [],
+            totaltDebit: 0,
+            totaltCredit: 0
+        },
+
+        created: function () {
+            this._ajaxAccountSubjectList();
+        },
+        methods: {
+            _queryByCurrencyId(){
+                this._ajaxList();
+            },
+            _cnCurrencyList () {
+                let that = this;
+                $.ajax({
+                    type: 'post',
+                    async: false,
+                    url:'${rc.contextPath}/cashierUnfinishedAccountController/getCurrencyList',
+                    data: { accountId: that.subjectCategorySelectValue},
+                    success: function (result) {
+                        console.log(result,"币别信息_cnCurrencyList");
+                        that.currency = result.data;
+                        if (result.data.length>0) {
+                            that.currencySelectValue= that.currency[0].currencyId;
+                            that._ajaxList();
+                        }
+                    }
+                });
+            },
+            _ajaxList: function () {
+                let that = this;
+                $.ajax({
+                    type: 'post',
+                    async: true,
+                    data: {
+                        accountId: vm.subjectCategorySelectValue,
+                        currencyId: vm.currencySelectValue
+                    },
+                    url: '${rc.contextPath}/cashierBalanceController/getBalanceTableInfo',
+                    dataType: 'json',
+                    success: function (result) {
+                        that.dataList = result.data;
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            },
+            _ajaxAccountSubjectList: function () {
+                let that = this;
+                var _url = '${rc.contextPath}/cashierUnfinishedAccountController/getBankAccountSubject';
+                $.ajax({
+                    type: 'post',
+                    async: true,
+                    url: _url,
+                    dataType: 'json',
+                    success: function (result) {
+                        var data =result.data;
+                        that.subjectCategory = data;
+                        if(data.length>0){
+                            that.subjectCategorySelectValue = that.subjectCategory[0].accountId;  //查询条件
+                            that._cnCurrencyList();  //币别
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            },
+            refresh(){ //刷新
+               this._ajaxList();
+               this.$Message.info("刷新数据成功！");
+            }
+        }
+    })
+
+</script>
+#parse("modules/public/footer.html") </body>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>期末结账</title>
+    #parse("modules/public/header.html")
+    <style>
+        p.w750{
+            max-width: 750px;
+        }
+    </style>
+</head>
+<body>
+<div id="final-checkout" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="open" class="ht-btn">开始</button>
+        <button @click="outHtml" class="ht-btn">退出</button>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <div class="ht-subtitle mt10 ml0">
+            <div>操作提示</div>
+        </div>
+        <p class="w750">
+            <Icon type="android-bulb"></Icon>
+            结账的目的是肯定本期的工作成果，结转折旧费用，进入下一工作期间。在一个会计期间结束，完成折旧计提和生成凭证工作后，必须经过结账过程才能进入下一工作期间。
+        </p>
+        <p class="w750">
+            <Icon type="android-bulb"></Icon>
+            请慎用反初始化功能。
+        </p>
+        <div class="ht-subtitle mt10 ml0">
+            <div>选择操作</div>
+        </div>
+        <div>
+            <label>
+                <input type="radio" value="1" v-model="for1"> 结账
+            </label>
+            <!--<label class="ml20">-->
+                <!--<input type="radio" value="2" v-model="for1"> 反结账-->
+            <!--</label>-->
+        </div>
+    </div>
+    <Modal v-model="infoVisible" width="400px" title="信息提示" class="filter" :mask-closable="false">
+        <P >
+            <Icon type="android-bulb"></Icon>
+            确认要结账吗?结账成功后不能进行反结账操作!
+        </P>
+        <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="cancel">取消</i-button>
+        </div>
+    </Modal>
+</div>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/FinalCheckout/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

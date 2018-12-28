@@ -1,0 +1,1 @@
+"use strict";new Vue({el:"#supplier",data:{},methods:{save:function(){console.log("baocun"),$("form").valid()&&console.log(this.$data)},uploadfile:function(){layer.open({title:"上传文件",type:1,area:["420px","230px"],btn:["确认","取消"],yes:function(){console.log("点击了确定")},btn2:function(){console.log("点击了取消！")},content:$("#uploadConfirm")})}},mounted:function(){$("form").validate()}});

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/css/quality/test-document.css">
+    #parse("modules/public/header.html")
+    <title>证书商品外发单</title>
+    <style>
+        .source-list .ivu-modal-body {
+            overflow-x: scroll;
+        }
+    </style>
+</head>
+
+<body>
+<div id="returnReport" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="cerOutEntity.orderNo"
+            :receipt-status="cerOutEntity.orderStatus"
+            :step-list.sync="steplist"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/certificateOutbreaks/findUserOperation'
+            url-init-approve='${rc.contextPath}/certificateOutbreaks/queryProcessByReceiptsId'
+            url-approve='${rc.contextPath}/certificateOutbreaks/submitApproval'
+            url-table-data='${rc.contextPath}/certificateOutbreaks/queryReceiptsById'
+            @on-auto-approve="approvalOrRejectCallBack"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <i-button type="text" class="pd-rg-md" @click="saveClick" v-bind:disabled="isDisabled">保存</i-button>
+            <i-button type="text" class="pd-rg-md" @click="submit" v-bind:disabled="isDisabled">提交</i-button>
+            <i-button type="text" class="pd-rg-md" @click="approval" v-bind:disabled="isDisabledApproval">审核</i-button>
+            <i-button type="text" class="pd-rg-md" @click="reject" v-bind:disabled="isDisabledReject">驳回</i-button>
+            <i-button type="text" class="pd-rg-md">预览</i-button>
+            <i-button type="text" class="pd-rg-md">打印</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div style="height: 45px"></div>
+        <div class="ht-approve-stamp" v-show="cerOutEntity.orderStatus === 4">
+            审核
+        </div>
+
+        <source-list :show-modal="showSourceModal"
+                     @sure="closeSourceModal($event, true)"
+                     @cancel="closeSourceModal($event, false)">
+
+        </source-list>
+        <i-form label-width="120" ref="formValidate" :rules="ruleValidate" :model="cerOutEntity">
+            <tabs value="name1" v-show="isSearchHide">
+                <tab-pane label="基本信息" name="name1">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="业务类型" prop="businessType">
+                                <i-select
+                                        class="ht-width-input"
+                                        v-model="cerOutEntity.businessType"
+                                        @on-change="htTestChange"
+                                        v-bind:disabled="isDisabledBusinessType"
+                                >
+                                    <i-option value="P_CREDENTIAL_OUT_01">标配证书</i-option>
+                                    <i-option value="P_CREDENTIAL_OUT_02">特种证书</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="源单类型">
+                                <!--<span>客户订单</span>-->
+                                <i-input class="ht-width-input" disabled value="客户订单"></i-input>
+                            </form-item>
+                            <form-item label="源单编号">
+                                <i-input class="ht-width-input" @on-click="doSelectSource" disabled icon="search"
+                                         placeholder="仅手动新增时可用"></i-input>
+                            </form-item>
+                            <form-item label="单据编号">
+                                <i-input class="ht-width-input" disabled placeholder="保存时自动生成"
+                                         v-model="cerOutEntity.orderNo"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="所属组织">
+                                <i-input class="ht-width-input" icon="search" v-model="organizationName"
+                                         disabled></i-input>
+                            </form-item>
+                            <form-item label="物流方式" prop="logisticsMode">
+                                <i-select
+                                        v-model="cerOutEntity.logisticsMode"
+                                        label-in-value
+                                        class="ht-width-input"
+                                        filterable
+                                        v-bind:disabled="isDisabled"
+                                        :readonly="isDisabled"
+                                        @on-change="htTestChange"
+                                >
+                                    <i-option v-for="item in logisticsModes" :value="item.value">{{item.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="证书类型" prop="certificateType">
+                                <i-select
+                                        class="ht-width-input"
+                                        v-model="cerOutEntity.certificateType"
+                                        v-bind:disabled="isDisabled"
+                                        transfer
+                                        @on-change="htTestChange"
+                                >
+                                    <i-option value="国检NGTC">国检NGTC</i-option>
+                                    <i-option value="GIA">GIA</i-option>
+                                    <i-option value="HRD">HRD</i-option>
+                                    <i-option value="IGI">LGL</i-option>
+                                    <i-option value="ELG">ELG</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="商品类型">
+                                <!--<div class="col-xs-3 control-label">-->
+                                <cascader @on-change="changeProductType"
+                                          :disabled="isDisabledGoodsType"
+                                          :clearable="false"
+                                          v-model="typeValue"
+                                          :data="categoryType" trigger="hover"
+                                          class="ht-width-input inline-block" transfer>
+                                </cascader>
+                                <!--</div>-->
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="供应商" class="ivu-form-item-required">
+                                <!--<i-input class="ht-width-input" icon="search" v-model="cerOutEntity.supplier"-->
+                                <!--@on-click="selectSupplier" v-bind:disabled="isDisabled" readonly placeholder="点击放大镜搜索"></i-input>-->
+                                <ht-selectsupplier
+                                        @sure="closeSupplierModal"
+                                        @cancel="closeSupplierModal"
+                                        @getinfo="rcv"
+                                        :disabled="isDisabled"
+                                        ref="supplier"
+                                        @on-change="htTestChange"
+                                >
+                                </ht-selectsupplier>
+                            </form-item>
+                            <form-item label="业务员" prop="salesmanId">
+                                <i-select
+                                        @on-change="changeEmp"
+                                        v-model="cerOutEntity.salesmanId"
+                                        label-in-value
+                                        class="ht-width-input"
+                                        filterable
+                                        v-bind:disabled="isDisabled"
+                                        :readonly="isDisabled"
+                                >
+                                    <i-option v-if="item.empStatus == 1" v-for="item in employees" :value="item.id">{{item.empCode}}--{{item.empName}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="下单日期" prop="deliveryDate">
+                                <date-picker
+                                        @on-change="cerOutEntity.deliveryDate=$event"
+                                        format="yyyy-MM-dd"
+                                        type="date"
+                                        v-model="cerOutEntity.deliveryDate" :key="cerOutEntity.deliveryDate"
+                                        transfer
+                                        placement="bottom-end"
+                                        placeholder="Select date"
+                                        class="ht-width-md"
+                                        :clearable="false"
+                                        :disabled="isDisabled"
+                                        :readonly="isDisabled">
+                                </date-picker>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <!--审批信息-->
+                <tab-pane label="审批信息" name="name2">
+                    <Steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel"
+                              :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </Steps>
+
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="item in approvalTableData">
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                    <!--<base-data-list table_id="approvalInformation" :data_config="data_config_appinfo" :need-reload="reload"></base-data-list>-->
+                </tab-pane>
+                <tab-pane label="其他" name="name3">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="创建人：">
+                                    <i-input v-model="cerOutEntity.createName" disabled
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="创建日期：">
+                                    <i-input v-model="cerOutEntity.createTime" disabled
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="修改人：">
+                                    <i-input v-model="cerOutEntity.updateName" disabled
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                                <form-item label="修改日期：">
+                                    <i-input v-model="cerOutEntity.updateTime" disabled
+                                             class="ht-width-input"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="审核人：">
+                                    <i-input disabled class="ht-width-input"
+                                             v-model="cerOutEntity.auditorName"></i-input>
+                                </form-item>
+                                <form-item label="审核日期：">
+                                    <i-input disabled class="ht-width-input" v-model="cerOutEntity.auditTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件" name="name4">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+            </tabs>
+            <div style="height: 25px">
+                    <span class="chevron">
+                        <span v-show="isTabulationHide">
+                            <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                            <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                        </span>
+                        <span v-show="isHide" style="padding-right: 5px;">|</span>
+                        <span v-show="isSearchHide">
+                            <Icon type="chevron-up" @click="hidTabulation" v-show="!isTabulationHide"></Icon>
+                            <Icon type="chevron-down" @click="hidTabulation" v-show="isTabulationHide"></Icon>
+                        </span>
+                    </span>
+            </div>
+            <tabs value="tab1" v-show="isTabulationHide">
+                <tab-pane label="明细信息" name="tab1">
+                    <div class="btn-menu">
+                        <i-button type="text" @click="addOrDel('add')" v-bind:disabled="isDisabledAddRow">新增行</i-button>
+                        <i-button type="text" @click="addOrDel('del')" v-bind:disabled="isDisabledDelRow">删除行</i-button>
+                        <!--<i-button type="text">设置列</i-button>-->
+                    </div>
+                    <table class="edit-table">
+                        <thead>
+                        <th class="width-xs">序号</th>
+                        <th>源单类型</th>
+                        <th style="width:180px;">源单编号</th>
+                        <th>证书数量</th>
+                        <!--<th>发货数量</th>-->
+                        <th>发货重量</th>
+                        <th>预计到货日期</th>
+                        <th>证书费用</th>
+                        <th>备注</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item, index) in detEntityList"
+                            :key="index"
+                            @click="selectedOne(index)"
+                            :class="{'ht-selected':selectedIndex === index }">
+                            <td class="width-xs text-center">{{index + 1}}</td>
+                            <td>{{!item.sourceType ? '' : item.sourceType.indexOf('S_CUST_ORDER') > -1 ? '客户订单' :
+                                '收货单'}}
+                            </td>
+                            <td>{{item.sourceNumber}}</td>
+                            <td>
+                                <input
+                                        class="ht-width-input ivu-input"
+                                        type="text"
+                                       :disabled="isDisabledCerOutNumber"
+                                       v-model="item.certificateCount"
+                                       @input="calculateTotal(item,'certificateCount', 0);htTestChange()"
+                                />
+                            </td>
+                            <!--<td>-->
+                            <!--<input type="text" :disabled="isDisabled" v-model="item.deliverCount"-->
+                            <!--@input="calculateTotal(item,'deliverCount', 2)"/>-->
+                            <!--</td>-->
+                            <td>
+                                <input
+                                        type="text"
+                                        class="ht-width-input ivu-input"
+                                        :disabled="isDisabled"
+                                       v-model="item.deliverWeight"
+                                        @input="calculateTotal(item,'deliverWeight',2);htTestChange()"
+                                />
+                            </td>
+                            <td>
+                                <date-picker
+                                        :disabled="isDisabled"
+                                        :readonly="isDisabled"
+                                        v-model="item.expectedArrivalDate"
+                                        class="inline-block"
+                                        transfer
+                                        @on-change="htTestChange"
+                                >
+                                </date-picker>
+                            </td>
+                            <td>
+                                <input
+                                        type="text"
+                                        class="ht-width-input ivu-input"
+                                        :disabled="isDisabled"
+                                       v-model="item.certificateCost"
+                                        @input="calculateTotal(item,'certificateCost',2);htTestChange()">
+                            </td>
+                            <td>
+                                <i-input
+                                        :disabled="isDisabled"
+                                        v-model="item.remark"
+                                        @on-change="htTestChange"
+                                ></i-input>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <td class="text-center width-xs">总计</td>
+                        <td></td>
+                        <td></td>
+                        <td>{{cerOutEntity.certificateNumber}}</td>
+                        <!--<td>{{cerOutEntity.deliverGoodsNumber}}</td>-->
+                        <td>{{cerOutEntity.deliverWeight}}</td>
+                        <td></td>
+                        <td>{{cerOutEntity.certificateCost}}</td>
+                        <td></td>
+                        </tfoot>
+                    </table>
+                </tab-pane>
+            </tabs>
+        </i-form>
+    </div>
+
+
+</div>
+<script src="${rc.contextPath}/js/components/ht-selectsupplier.js"></script>
+<script src='${rc.contextPath}/js/purchase/certificateOutbreaks/source-list.js'></script>
+<script src='${rc.contextPath}/js/components/ht-approve-reject.js'></script>
+<script src='${rc.contextPath}/js/components/ht-close-modal.js'></script>
+<script src='${rc.contextPath}/js/purchase/certificateOutbreaks/certificate-add.js'></script>
+
+
+#parse("modules/public/footer.html")
+</body>
+
+</html>

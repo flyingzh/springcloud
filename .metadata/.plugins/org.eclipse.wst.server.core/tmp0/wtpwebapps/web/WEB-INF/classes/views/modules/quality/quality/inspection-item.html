@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    #parse("modules/public/header.html")
+    <style>
+     [v-cloak]
+      { display: none }
+     .ht-number-right{
+         text-align: right;
+     }
+    </style>
+    <title>检验项目</title>
+</head>
+
+<body>
+    <div id="inspection-item" v-cloak>
+        <ht-approve-reject
+                :can-reject-when-audit="canRejectWhenAudit"
+                :status-map="statusMap"
+                :trigger="modalTrigger"
+                :modal-type="modalType"
+                :receipt-id="inspectionItem.code"
+                :receipt-status="inspectionItem.testItemStatus"
+                :step-list.sync="stepList"
+                :table-data.sync="approvalTableData"
+                url-check='${rc.contextPath}/testItemController/findUserOperation'
+                url-init-approve='${rc.contextPath}/testItemController/queryProcessByReceiptsId'
+                url-approve='${rc.contextPath}/testItemController/submitApproval'
+                url-table-data='${rc.contextPath}/testItemController/queryReceiptsById'
+                @on-auto-approve="autoSubmitOrReject"
+                @on-approve="approvalOrRejectCallBack"
+                @on-reject="approvalOrRejectCallBack"
+                ref="ar">
+        </ht-approve-reject>
+        <!--&lt;!&ndash; 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 &ndash;&gt;
+        <modal
+                title="审核"
+                v-model="approveComment"
+                :closable="false"
+                @on-ok="getApproveInfo">
+            <div>
+                <p class="mg-bm-md">
+                    <span >当前节点：{{currentStep}}</span>
+                    <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+                </p>
+                <span>审核意见</span>
+                <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+            </div>
+        </modal>
+        &lt;!&ndash; 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 &ndash;&gt;
+        <modal
+                title="驳回"
+                v-model="rejectComment"
+                :closable="false"
+                @on-ok="getRejectInfo">
+            <div>
+                <radio-group v-model="rejectement.approvalResult" class="mg-bm-md" >
+                    <radio label="0">驳回上一级</radio>
+                    <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+                </radio-group>
+                <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+                <i-input  type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+            </div>
+        </modal>-->
+
+        <modal
+                v-model="showUpload"
+                title="上传文件"
+                @on-ok="modalOk"
+                @on-cancel="modalCancel">
+            <upload
+                    ref="upload"
+                    :on-success="handleSuccess"
+                    :max-size="2048"
+                    :on-format-error="handleFormatError"
+                    :on-exceeded-size="handleMaxSize"
+                    :before-upload="handleBeforeUpload"
+                    multiple
+                    action='${rc.contextPath}/testItemController/fileUploads'>
+                <i-button type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+                <span>文件上传大小限制为2M以内</span>
+            </upload>
+        </modal>
+
+        <div >
+            <div class="btn-menu ht-menu-fix">
+                <span class="pd-rg-sm pd-lf-sm" v-show="showAdd" @click="add">新增</span>
+                <span class="pd-rg-sm pd-lf-sm" v-show="showSave" @click="save">保存</span>
+                <span class="pd-rg-sm pd-lf-sm" v-show="showSubmit" @click="submititem">提交</span>
+                <span class="pd-rg-sm pd-lf-sm" v-show="showApproval" @click="approval" >审核</span>
+                <span class="pd-rg-sm pd-lf-sm" v-show="showReject" @click="reject" >驳回</span>
+                <span class="pd-rg-sm pd-lf-sm" v-show="showList" @click="list">列表</span>
+                <!--<span class="pd-rg-sm pd-lf-sm" v-show="showAttachment" @click="attachment">附件</span>-->
+                <span class="pd-rg-sm pd-lf-sm" v-show="showBack" @click="back">退出</span>
+            </div>
+            <div class="ht-approve-stamp" v-if="isStampShow">
+                审核
+            </div>
+            <div class="mg-top-md  ht-menu-top">
+                <tabs value="name1">
+                    <tab-pane label="基本信息" name="name1">
+                        <i-form :model="inspectionItem" label-width="120" ref="inspectionItem" :rules="validate">
+                                <row  class="mg-top-md">
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="所属组织：">
+                                                <input type="text" name="id"  v-model="inspectionItem.id" hidden="hidden">
+                                                <i-input v-model="inspectionItem.groupName" class="ht-width-input" icon="search" disabled></i-input>
+                                            </form-item>
+                                            <form-item label="检验项目名称：" prop="name">
+                                                <i-input v-model="inspectionItem.name" class="ht-width-input"  :disabled="changeFrame"></i-input>
+                                                <!--<input type="text" required name="code"  v-model="inspectionItem.name" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span>                                                -->
+                                            </form-item>
+                                            <form-item >
+                                                <checkbox v-model="inspectionItem.importantFlag">重点检查项目</checkbox>
+                                            </form-item>
+                                            <form-item label="检验依据：">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.testBasisId" :disabled="changeFrame">
+                                                    <i-option  v-for="item in standardList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>                                       
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="商品类型：" prop="productId">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.productId" class="inline-block" :disabled="changeFrame" >
+                                                    <i-option  v-for="item in productList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                                <!--<input type="text" required name="productId"  v-model="inspectionItem.productId" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span>-->
+                                            </form-item>
+                                            <form-item label="单位：">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.unitId" :disabled="changeFrame">
+                                                    <i-option  v-for="item in unitList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>
+                                            <form-item label="检验方法：">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.testMethodId" :disabled="changeFrame">
+                                                    <i-option  v-for="item in testMethodList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>
+                                            <form-item label="检验项目状态：">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.testItemStatus" disabled>
+                                                    <i-option  v-for="item in itemstatusList" :value="item.value" :key="item.value">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="检验项目编码：">
+                                               <i-input v-model="inspectionItem.code" class="ht-width-input" placeholder="保存时自动生成" disabled></i-input>
+                                               <!--<input type="text" required name="ssscode"  v-model="inspectionItem.code" class="inline-block hidden-input ">
+                                               <span class="star"></span>-->
+                                            </form-item>
+                                            <form-item label="缺陷等级：" prop="bugRankId">
+                                                <i-select  v-model="inspectionItem.bugRankId" class="ht-width-input" :disabled="changeFrame">
+                                                    <i-option  v-for="item in bugRankList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                                <!--<input type="text" required name="bugRank"  v-model="inspectionItem.bugRankId" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span>-->
+                                            </form-item>
+                                            <form-item label="检验仪器：">
+                                                <i-select v-model="inspectionItem.testInstrumentId" class="ht-width-input" :disabled="changeFrame">
+                                                    <i-option  v-for="item in testInstrumentList" :value="item.id">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>
+                                        </div>
+                                    </i-col>                            
+                                </row>
+                                <div class="ht-subtitle mg-top-md">
+                                    <div>质量标准</div>
+                                </div>
+                                <row  class="mg-top-md">
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="分析方法：" prop="analyseMethod">
+                                                <i-select  v-model="inspectionItem.analyseMethod" @on-change="editControl" class="ht-width-input" :disabled="changeFrame">
+                                                    <i-option  v-for="item in analyseMethodList" :value="item.value">{{ item.name }}</i-option>
+                                                </i-select>
+                                                <!--<input type="text" required name="analyseMethod"  v-model="inspectionItem.analyseMethod" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span>                                               -->
+                                            </form-item>
+                                            <form-item label="目标值：">
+                                                <input class="ivu-input ht-width-input" v-if="!isDxfx" id="goalValue" :disabled="isbet"  v-model="inspectionItem.goalValue" @blur="goalValueBlur($event)"/>
+                                                <i-select v-if="isDxfx" style="width:200px" v-model="inspectionItem.goalValue" :disabled="changeFrame">
+                                                    <i-option v-for="item in goalValueList" :value="item.id">{{item.name}}</i-option>
+                                                </i-select>
+                                                <!--<input type="text" required name="goalValue"  v-model="inspectionItem.goalValue" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span> -->
+                                            </form-item>                                           
+                                            <form-item label="上公差：">
+                                                <!--<i-input style="width:200px" id="upperCommonDifference" v-model="inspectionItem.upperCommonDifference" :disabled="upperCommDiffDisable" @on-blur="uDiffVali(inspectionItem.upperCommonDifference)" />-->
+                                                <input class="ht-width-input ivu-input"  id="upperCommonDifference" v-model="inspectionItem.upperCommonDifference" :disabled="upperCommDiffDisable" />
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="状态：" prop="qualityStandardStatus">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.qualityStandardStatus" :disabled="changeFrame">
+                                                    <i-option  v-for="item in statusList" :value="item.value">{{ item.name }}</i-option>
+                                                </i-select>
+                                                <!--<input type="text" required name="qualityStandardStatus"  v-model="inspectionItem.qualityStandardStatus" class="inline-block hidden-input ">-->
+                                                <!--<span class="star"></span>-->
+                                            </form-item>
+                                            <form-item label="上限值：">
+                                                <!--<i-input style="width:200px" id="upperLimitValue" v-model="inspectionItem.upperLimitValue" :disabled="upperLimitDisable" @on-blur="uLimitVali(inspectionItem.upperLimitValue)" />-->
+                                                <input class="ht-width-input ivu-input"  id="upperLimitValue" v-model="inspectionItem.upperLimitValue" :disabled="upperLimitDisable" />
+                                            <div>
+                                                <!--上限值：{{inspectionItem.upperLimitValue}}-->
+                                            </div>
+                                            </form-item>
+                                            <form-item label="下公差：">
+                                                <!--<i-input style="width:200px" id="lowerCommonDifferent" v-model="inspectionItem.lowerCommonDifferent" :disabled="lowerCommDiffDisable"  @on-blur="lDiffVali(inspectionItem.lowerCommonDifferent)" />-->
+                                                <input class="ht-width-input ivu-input"  id="lowerCommonDifferent" v-model="inspectionItem.lowerCommonDifferent" :disabled="lowerCommDiffDisable" />
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                         <div>
+                                            <form-item label="比较符：">
+                                                <i-select  class="ht-width-input" v-model="inspectionItem.compareSymbol"  :disabled="isQtfx" @on-change="symboleEdit">
+                                                    <i-option  v-for="item in operatorList" :value="item.value">{{ item.name }}</i-option>
+                                                </i-select>
+                                            </form-item>
+                                            <form-item label="下限值：">
+                                                <!--<i-input style="width:200px" id="lowerLimitValue" v-model="inspectionItem.lowerLimitValue" :disabled="lowerLimitDisable" @on-blur="lLimitVali(inspectionItem.lowerLimitValue)" />-->
+                                                <input class="ht-width-input ivu-input"  id="lowerLimitValue" v-model="inspectionItem.lowerLimitValue" :disabled="lowerLimitDisable" />
+                                            </form-item>
+                                        </div>
+                                    </i-col>                            
+                                </row>
+                                <div class="ht-subtitle mg-top-md">
+                                    <div>抽样方案</div>
+                                </div>
+                                <row  class="mg-top-md">
+                                    <i-col span="8">
+                                        <form-item label="抽样类型：" prop="sampleType">
+                                            <i-select  class="ht-width-input" v-model="inspectionItem.sampleType" :disabled="changeFrame">
+                                                <i-option  v-for="item in sampleTypeList" :value="item.value">{{ item.name }}</i-option>
+                                            </i-select>
+                                            <!--<input type="text" required name="sampleType"  v-model="inspectionItem.sampleType" class="inline-block hidden-input ">-->
+                                            <!--<span class="star"></span>  -->
+                                        </form-item>
+                                     </i-col>   
+                                </row>
+                        </i-form>
+                        <div  style="width:85%;padding-left:20px;">
+                            <div class="btn-menu" style="width:85%" v-if="showMenu">
+                                <span class="pd-rg-md pd-lf-sm" @click="addOneRow">新增行</span>
+                                <span class="pd-rg-md pd-lf-sm" @click="copyOneRow">复制行</span>
+                                <span class="pd-rg-md pd-lf-sm" @click="DeleteOneRow">删除行</span>
+                                <!--<span class="pd-rg-md pd-lf-sm" @click="setColumns">设置列</span>-->
+                            </div>
+                            <!-- <base-data-list :data_config="data_config_samlpling" :need-reload="reload" v-model="selected"></base-data-list>  -->
+                            <table class="edit-table" style="width:85%;margin-bottom: 250px;" >
+                                <thead>
+                                    <th style="width:5%">
+                                        <input type="checkbox" @click="checkAll"  v-model="isCheckedAll">
+                                    </th>
+                                    <th style="width:5%">序号</th>
+                                    <th>批量</th>
+                                    <th>抽检比例%(大于等于)</th>
+                                    <th>允收数</th>
+                                    <th>拒收数</th>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item,index) in inspectionItem.samplePlanEntities">
+                                        <td style="width:5%" class="text-center">
+                                            <input type="checkbox" @click="getData(index)" v-model="item.isChecked">
+                                        </td>
+                                        <td style="width:5%" class="text-center">{{index+1}}</td>
+                                        <td>
+                                            <input type="text" v-model="item.amount"  :disabled="changeFrame" class="text-center ivu-input">
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.randomTestProportion" @change="underNumber(item.randomTestProportion,index)" class="text-center ivu-input" :disabled="changeFrame">
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.allowNumber" class="text-center ivu-input" :disabled="changeFrame">
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.rejectNumber" class="text-center ivu-input" :disabled="changeFrame">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="审批信息" name="name2">
+                        <Steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                            <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                        </Steps>
+                        <table class="table edit-table" style="width: 1100px;">
+                            <tr>
+                                <th>操作类型</th>
+                                <th>开始级次</th>
+                                <th>目的级次</th>
+                                <th>审批人</th>
+                                <th>审批意见</th>
+                                <th>审批时间</th>
+                            </tr>
+                            <tr v-for="item in approvalTableData">
+                                <td>{{item.approvalResult}}</td>
+                                <td>{{item.currentLevel}}</td>
+                                <td>{{item.nextLevel}}</td>
+                                <td>{{item.createName}}</td>
+                                <td>{{item.approvalInfo}}</td>
+                                <td>{{item.createTime}}</td>
+                            </tr>
+                        </table>
+                        <!--<steps :current="steplist[1] && steplist[1].currentLevel" style="margin-bottom: 20px;">
+
+                            <step icon="checkmark-circled" v-for="item in steplist" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+
+                        </steps>
+                        <base-data-list :data_config="data_config_approval" table_id="approvalList"></base-data-list>-->
+                    </tab-pane>
+                    <tab-pane label="其他" name="name3">
+                        <i-form :model="inspectionItem" label-width="120"  style="width:85%">
+                            <row class="mg-top-md">
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="创建人：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.createName"></i-input>
+                                        </form-item>
+                                        <form-item label="创建日期：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.createTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="修改人：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.updateName"></i-input>
+                                        </form-item>
+                                        <form-item label="修改日期：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.updateTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="审核人：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.examineVerifyName"></i-input>
+                                        </form-item>
+                                        <form-item label="审核日期：">
+                                                <i-input disabled style="width:200px" v-model="inspectionItem.examineVerifyTime"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </tab-pane>
+                    <tab-pane label="变更记录" name="name4">
+                        <common-record-list :record_config="data_config_changeLog" ref="my_log" class="mg-top-md" :url="record_url"  style="width:80%" ></common-record-list>
+                    </tab-pane>
+                    <tab-pane label="附件" name="name5">
+                        <i-button type="primary" v-show="uploadBtn" @click="uploadfile">上传文件</i-button>
+                        <form action="">
+                            <table class="edit-table">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>文件名</th>
+                                    <th>文件大小</th>
+                                    <th>上传人</th>
+                                    <th>上传时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(item,index) in inspectionItem.sysFile.fileDetails" v-show="!item.del">
+                                    <td>{{index+1}}</td>
+                                    <td>{{item.fdName}}</td>
+                                    <td>{{item.fdSize}}</td>
+                                    <td>{{item.uploadUser}}</td>
+                                    <td>{{item.uploadTime}}</td>
+                                    <td>
+                                        <a href="" @click.prevent="download(item)" >下载</a>
+                                        <a href="" @click.prevent="delFile(item)" v-show="deleteBtn">删除</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </tab-pane>
+                </tabs>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="${rc.contextPath}/js/quality/components/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-approve-reject.js"></script>
+    <script src='${rc.contextPath}/js/quality/inspection-item.js'></script>
+#parse("modules/public/footer.html") </body>
+</html>

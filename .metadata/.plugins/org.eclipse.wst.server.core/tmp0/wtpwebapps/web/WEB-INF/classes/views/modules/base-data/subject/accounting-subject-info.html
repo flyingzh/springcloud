@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <!--<link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">-->
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <!--<link rel="stylesheet" href="${rc.contextPath}/css/main.css">-->
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <script>var contextPath = '${rc.contextPath}'; var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="${rc.contextPath}/css/basedata/add-accounting-subject.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <title>会计科目列表</title>
+    <style>
+        div.row {
+            padding: 0;
+        }
+
+        #projectTbl th .ivu-checkbox-wrapper,
+        #projectModal th .ivu-checkbox-wrapper {
+            display: none;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        .layui-tab-brief>.layui-tab-title .layui-this {
+            color: #D8AE29;
+        }
+
+        .layui-tab-brief>.layui-tab-more li.layui-this:after,
+        .layui-tab-brief>.layui-tab-title .layui-this:after {
+            border-bottom-color: #D8AE29;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="accounting-info" v-cloak style="height: 100%">
+        <div v-if="!isShow">
+            <div class="btn-menu" style="margin-bottom: 20px">
+                #if($shiro.hasPermission("basedata:accountSubject:add"))
+                <span @click="add">新增</span>
+                #end #if($shiro.hasPermission("basedata:accountSubject:update"))
+                <span @click="modify">修改</span>
+                #end #if($shiro.hasPermission("basedata:accountSubject:delete"))
+                <span @click="del">删除</span>
+                #end
+                <!--#if($shiro.hasPermission("basedata:accountSubject:view"))-->
+                <!--<span @click="view" >查看</span>-->
+                <!--#end-->
+            </div>
+            <i-form label-width="120" v-show="isSearchHide">
+                <row>
+                    <i-col span="8">
+                        <form-item label="科目代码：">
+                            <i-input v-model="body.subjectCode" class="ht-width-md" placeholder="可模糊搜索"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="科目名称：">
+                            <i-input v-model="body.subjectName" class="ht-width-md" placeholder="可模糊搜索"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="余额方向：">
+                            <i-select v-model="body.balanceDirection" ref="balanceDirection" class="ht-width-md" clearable @on-clear="clearItem('balanceDirection', 'balanceDirection')">
+                                <!-- <option value="">所有</option> -->
+                                <i-option v-for="item in direction" :value="item.balanceDirection">{{item.label}}</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="6" offset="18">
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                        <i-button @click='ImportTemplate' type="primary">导入科目模板</i-button>
+                    </i-col>
+                </row>
+            </i-form>
+            <!-- 页面的折叠和展开-->
+            <div style="height: 25px;margin-top:20px">
+                <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </span>
+            </div>
+        </div>
+        <div v-if="!isShow" style="height: 100%">
+            <!-- 树状结构 -->
+            <div class="copyright_content">
+                <div class="row" style="height: 100%">
+                    <div class="col-xs-2 bg-tree" style="height: 100%">
+                        <p class="title-font">会计科目</p>
+                        <ht-tree url="${rc.contextPath}/tbaseAccountSubject/accountSubjectTree" :setting="subjectSetting" :tid='114534'></ht-tree>
+                    </div>
+                    <div class="col-xs-10">
+                        <p class="title-font">科目明细信息</p>
+                        <base-data-list v-show="isTabulationHide" :table_id="jgid" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+                    </div>
+                </div>
+            </div>
+            #parse("modules/public/footer.html")
+        </div>
+        <!-- 隱藏部分 -->
+        <div v-if="subjectShow" style="height: 100%">
+            <div class="copyright_content">
+                <div class="btn-menu">
+                    <button class="ht-btn" @click='save' :disabled="saveSubjectDisabled">保存</button>
+                    <button class="ht-btn" @click="cancel">退出</button>
+                </div>
+                <div class="layui-tab layui-tab-brief">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this" lay-id="1" lay-verify="value">科目设置</li>
+                        <li lay-id="2" v-if="isHaveChildren">核算项目</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                            <form action="" id="subjectForm">
+                                <table class="add-account width-lg">
+                                    <tr>
+                                        <td class="text-rg ">
+                                            <span class="star"></span>
+                                            科目代码：
+                                        </td>
+                                        <td>
+                                            <div class="inline-block  position-r">
+                                                <input :disabled="showView || updateDisAble" required class="form-control input-sm isWellSubjectCode ht-width-md" @blur="mouseBlur"
+                                                    type="text" name="subjectCode" v-model="formData.subjectCode">
+                                            </div>
+                                        </td>
+                                        <td class="text-rg ">
+                                            <span class="star"></span>
+                                            科目名称：
+                                        </td>
+                                        <td>
+                                            <div class="inline-block ">
+                                                <input required class="form-control input-sm ht-width-md" type="text" name="subjectName" v-model="formData.subjectName" :disabled="showView">
+                                            </div>
+                                        </td>
+                                        <td class="text-rg ">
+                                            <span class="star"></span>
+                                            科目类别：
+                                        </td>
+                                        <td>
+                                            <div class="inline-block ">
+                                                <select required name="subjectCategoryId" @change="selectSubject($event)" v-model="formData.subjectCategoryId" class="form-control input-sm ht-width-md"
+                                                    :disabled="showView || updateDisAble">
+                                                    <option v-for="(item,index) in subjectList" :value="item.id">{{item.subjectCategory}}</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-rg ">
+                                            <span class="star"></span>
+                                            余额方向：
+                                        </td>
+                                        <td>
+                                            <div class="inline-block ">
+                                                <select required v-model="formData.balanceDirection" name="balanceDirection" class="form-control input-sm ht-width-md" :disabled="balanceDirectionDisabled || showView || updateDisAble"
+                                                    id="directionId">
+                                                    <option v-for="item in direction" :value="item.balanceDirection">{{item.label}}</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td class="text-rg ">
+                                            <span class="star"></span>
+                                            外币核算：
+                                        </td>
+                                        <td>
+                                            <div class="inline-block">
+                                                <select required v-model="formData.foreignCurrencyId" @change="selectCurrency($event)" name="foreignCurrencyId" class="form-control input-sm ht-width-md"
+                                                    :disabled="showView || updateDisAble">
+                                                    <option v-for='item in currencyType' :value="item.id">{{item.currencyName}}</option>
+                                                </select>
+                                            </div>
+
+                                        </td>
+                                        <td class="text-rg ">期末调汇：</td>
+                                        <td>
+                                            <input type="checkbox" :disabled="isFinalRemit || showView || updateDisAble" v-model="formData.isFinalRemit">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-rg ">现金科目：</td>
+                                        <td>
+                                            <input type="checkbox" v-model="formData.isCashSubject" @click="selectIsCashSubject($event)" :disabled="showView || updateDisAble">
+                                        </td>
+                                        <td class="text-rg ">银行科目：</td>
+                                        <td>
+                                            <input v-model="formData.isBankSubject" type="checkbox" @click="selectIsBankSubject($event)" :disabled="showView || updateDisAble">
+                                        </td>
+                                        <td class="text-rg ">出日记账：</td>
+                                        <td>
+                                            <input type="checkbox" v-model="formData.isDayoutNote" :disabled="showView || updateDisAble">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-rg ">数量金额辅助核算：</td>
+                                        <td>
+                                            <input type="checkbox" v-model='formData.isAuxiliaryAccount' @click="selectIsAuxiliaryAccount($event)" :disabled="showView || updateDisAble">
+                                        </td>
+                                        <td class="text-rg ">计量单位：</td>
+                                        <td>
+                                            <select v-model="formData.measureGroupId" :disabled="(formData.isAuxiliaryAccount? false : true) || (showView) || (updateDisAble)"
+                                                class="form-control input-sm" @change="selectUnitGroup($event)">
+                                                <option v-for="item in unitGroup" :value="item.id">{{item.name}}</option>
+                                            </select>
+                                        </td>
+                                        <td colspan="2">
+                                            <select v-model="formData.measureId" :disabled="(formData.isAuxiliaryAccount? false : true) || (showView) || (updateDisAble)"
+                                                class="form-control input-sm">
+                                                <option v-for="item in defaultUint" :value="item.id">{{item.name}}</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-rg ">现金等价物：</td>
+                                        <td>
+                                            <input type="checkbox" v-model="formData.isCashEquivalent" @click="selectIsCashEquivalent($event)" :disabled="showView">
+                                        </td>
+                                        <td class="text-rg ">预设现金流量项目：</td>
+                                        <td class="position-r">
+                                            <input style="display:none" v-model="formData.mainProjectId" class="form-control input-sm" type="text">
+                                            <input v-model="mainProjectContent" @focus="focusMainContent($event)" @keyup="focusMainContent($event)" :disabled="(formData.isCashSubject || formData.isBankSubject  || formData.isCashEquivalent) ? true : false || showView"
+                                                class="form-control input-sm" type="text">
+                                            <span :disabled="showView" class="glyphicon glyphicon-search position-search" @click="openMainDetail(1)"></span>
+                                        </td>
+                                        <td class="position-r" colspan="2">
+                                            <input style="display:none" v-model="formData.clusterProjectId" class="form-control input-sm" type="text">
+                                            <input v-model="cluProjectContent" @focus="focusCluContent($event)" @keyup="focusCluContent($event)" :disabled="(formData.isCashSubject || formData.isBankSubject  || formData.isCashEquivalent) ? true : false || showView"
+                                                class="form-control input-sm" type="text">
+                                            <span :disabled="showView" class="glyphicon glyphicon-search position-search" @click="openMainDetail(2)"></span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </div>
+                        <div class="layui-tab-item ">
+                            <div class="btn-menu">
+                                <button class="ht-btn" @click="addAccountProject" :disabled="saveSubjectDisabled">新增行</button>
+                                <button class="ht-btn" @click="delAccountProject" :disabled="saveSubjectDisabled">删除行</button>
+                            </div>
+                            <i-table id="projectTbl" border :columns="colProject" :data="projectSelected" @on-selection-change="onSelectedProject"></i-table>
+                        </div>
+                    </div>
+                </div>
+                <modal title="Cl1经营活动产生的现金流量项目" v-model="openCashPopup" width="1100" @on-cancel="cancelCashItem">
+                    <div class="flex pd-sm">
+                        <div style="width:250px;padding-top: 60px">
+                            <ht-tree :setting="cashSetting" :node-data="banks" tid='swgfss1212' ref="my_tree"></ht-tree>
+                        </div>
+                        <div style="width:750px">
+                            <div>
+                                <div style="margin-bottom: 20px">
+                                    <i-form label-width="100">
+                                        <row>
+                                            <i-col span="8">
+                                                <form-item label="全名：">
+                                                    <i-input v-model='body.fullname' placeholder="可模糊搜索"></i-input>
+                                                </form-item>
+                                            </i-col>
+                                            <i-col span="8">
+                                                <form-item label="代码：">
+                                                    <i-input v-model='body.code' placeholder="可模糊搜索"></i-input>
+                                                </form-item>
+                                            </i-col>
+                                            <i-col span="8">
+                                                <form-item>
+                                                    <ht-btns @search="cashSearch" @clear='cashClear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                                                </form-item>
+                                            </i-col>
+                                        </row>
+                                    </i-form>
+                                </div>
+                                <base-data-list :data_config="cashdata_config" :need-reload="reload" v-model="cashSelected"></base-data-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div slot="footer">
+                        <i-button type="text" @click="cancelCashItem">取消</i-button>
+                        <i-button type="primary" @click="getCashItem">确定</i-button>
+                    </div>
+                </modal>
+                <!-- <div class="hide-render" style="position:absolute;left:10000px;top:0;">
+                    <div id="popup" class="flex pd-sm">
+                        <div style="width:250px;padding-top: 60px">
+                            <ht-tree :setting="cashSetting" :node-data="banks" tid='swgfss1212' ref="my_tree"></ht-tree>
+                        </div>
+                        <div style="width:750px">
+                            <p class="title-font">Cl1经营活动产生的现金流量项目</p>
+                            <div>
+                                <div style="margin-bottom: 20px">
+                                    <label>全名</label>
+                                    <input type="text" v-model='body.fullname' class="input-sm  inline-block form-control ht-width-md" placeholder="可模糊搜索">
+                                    <label>代码</label>
+                                    <input type="text" v-model="body.code" class="input-sm  inline-block form-control ht-width-md" placeholder="可模糊搜索">
+                                    <ht-btns @search="cashSearch" @clear='cashClear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                                </div>
+                                <base-data-list :data_config="cashdata_config" :need-reload="reload" v-model="cashSelected"></base-data-list>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+            #parse("modules/public/footer.html")
+        </div>
+        <!-- <div class="hide-render" style="position:absolute;left:10000px;top:0;">
+            <div id="addSubject" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">新增会计科目
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-8">
+                    <input type="text" class="form-control input-sm">
+                </div>
+            </div>
+            <div id="modifySubject" class="mg-top-md">
+                <label class="col-xs-4 text-right control-label">修改会计科目
+                    <span class="star"></span>
+                </label>
+                <div class="col-xs-8">
+                    <input v-model="tmpSubject" type="text" class="form-control input-sm">
+                </div>
+            </div>
+        </div> -->
+        <Modal id="projectModal" v-model="isShowModalProject" title="核算项目类别" width="600">
+            <i-table ref="tblProject" border :columns="colProject" :data="dataProject" @on-selection-change="onSelectProject"></i-table>
+            <div slot="footer">
+                <i-button type="primary" @click="selectProjectOK">确定</i-button>
+                <i-button @click="selectProjectClose">取消</i-button>
+            </div>
+        </Modal>
+
+        <modal v-model="excelShowModal" title="会计科目模板" ok-text="引入" @on-cancel="excelCancel">
+            <p style="font-weight: bold;margin-bottom: 5px">会计科目模板类型</p>
+            <i-select class="ht-width-md" v-model="excelNameType">
+                <!-- 调用接口获取 -->
+                <i-option :value="1">2013小企业会计准则科目</i-option>
+                <i-option :value="2">企业会计制度科目</i-option>
+                <i-option :value="3">小企业会计制度科目</i-option>
+                <i-option :value="4">新会计科目准则</i-option>
+                <i-option :value="5">新会计准则科目(含明细科目)</i-option>
+            </i-select>
+            <i-button type="primary" @click.prevent="showSubject">查看科目</i-button>
+            <div v-if="showSubjectTree">
+                <!--调用接口，生成树-->
+                <div style="height:300px;overflow-y: scroll">
+                    <ht-tree :setting="excelSetting" :node-data="excelTreeNote" tid='treeExcel' ref="my_excel_tree"></ht-tree>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button type="primary" @click="excelPullIn">引入</i-button>
+                <i-button @click="excelCancel">取消</i-button>
+            </div>
+        </modal>
+        <modal v-model="showModalTow" title="科目模板" @on-ok="submit">
+            <!-- 放入列表 -->
+            <i-table border ref="selection" height="300" size="small" @on-selection-change="excelSelected" :columns="colHeader" :data="colData"></i-table>
+        </modal>
+
+        <div v-show="excelShow" class="layui-container">
+            <div>
+                <button @click="signOut">退出</button>
+            </div>
+            <div>
+                <div class="layui-row" align="center" style="margin-top: 30px;">
+                </div>
+                <div class="layui-row" align="center" style="margin-top: 30px;">
+                    <label>批量导入会计科目：</label>
+                    <input type="text" id="result" />
+                    <button type="button" class="layui-btn" id="upload">
+                        <i class="layui-icon">&#xe67c;</i>浏览</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+    <script src='${rc.contextPath}/js/vue.min.js'></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+    <script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+    <script src='${rc.contextPath}/ktc/js/app.js'></script>
+    <script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+    <!--<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>-->
+    <!--<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"> </script>-->
+    <!--<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"> </script>-->
+    <!--<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>-->
+    <script src="${rc.contextPath}/js/components/ht-btns.js"> </script>
+    <script src="${rc.contextPath}/js/components/ht-tree.js"> </script>
+    <script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+    <script src='${rc.contextPath}/js/basedata/accounting-subject-info.js'></script>
+
+</body>
+
+</html>

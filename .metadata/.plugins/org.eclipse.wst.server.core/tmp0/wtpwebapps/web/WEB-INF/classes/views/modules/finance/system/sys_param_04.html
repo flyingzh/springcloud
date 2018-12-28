@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>应收应付参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>初始参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpEnabledAccountingYear.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpEnabledAccountingPeriod.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpCurrentAccountingYear.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计时间：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpCurrentAccountingPeriod.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">应收预警天数：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpReceivableWarnDay.value" class="form-control" type="number" min="0" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">应付预警天数：</label>
+                <div class="col-sm-10">
+                    <input v-model="rpPayableWarnDay.value" class="form-control" type="number" min="0" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">基本选项：</label>
+                <div class="col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="rpSettleAccountsRequire.value" true-value="1" false-value="0" />
+                            与总账对账期末余额不等时不允许结账
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="rpAuditSameMan.value" true-value="1" false-value="0" />
+                            审核人与制单人可为同一人
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="rpPrintSaveData.value" true-value="1" false-value="0" />
+                            打印（打印预览）前自动保存单据
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="rpUpdateSelfData.value" true-value="1" false-value="0" />
+                            只允许删改本人录入的单据
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="rpAuditReverseSameMan.value" true-value="1" false-value="0" />
+                            审核与反审核必须为同一人
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                rpEnabledAccountingYear: {
+                    id: '',
+                    value: '0', //方便监听数据库值为''触发watch
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpEnabledAccountingYear_init: '',
+                rpEnabledAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpEnabledAccountingPeriod_init: '',
+                rpCurrentAccountingYear: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpCurrentAccountingYear_init: '',
+                rpCurrentAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpCurrentAccountingPeriod_init: '',
+                rpSettleAccountsRequire: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpSettleAccountsRequire_init: '',
+                rpAuditSameMan: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpAuditSameMan_init: '',
+                rpPrintSaveData: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpPrintSaveData_init: '',
+                rpUpdateSelfData: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpUpdateSelfData_init: '',
+                rpAuditReverseSameMan: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpAuditReverseSameMan_init: '',
+                rpReceivableWarnDay: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpReceivableWarnDay_init: '',
+                rpPayableWarnDay: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                rpPayableWarnDay_init: '',
+                canUpdateAccountPeriod: false,
+            },
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.rpEnabledAccountingPeriod.value != vm.rpEnabledAccountingPeriod_init) {
+                        vm.rpEnabledAccountingPeriod.readOnly = 1;
+                        vm.rpEnabledAccountingYear.readOnly = 1;
+                        vm.rpCurrentAccountingYear.value = vm.rpEnabledAccountingYear.value;
+                        vm.rpCurrentAccountingPeriod.value = vm.rpEnabledAccountingPeriod.value;
+                        array.push(vm.rpEnabledAccountingPeriod);
+                        array.push(vm.rpEnabledAccountingYear);
+                        array.push(vm.rpCurrentAccountingYear);
+                        array.push(vm.rpCurrentAccountingPeriod);
+                        vm.rpEnabledAccountingPeriod_init = vm.rpEnabledAccountingPeriod.value;
+                    }
+                    if (vm.rpReceivableWarnDay.value != vm.rpReceivableWarnDay_init) {
+                        array.push(vm.rpReceivableWarnDay);
+                        vm.rpReceivableWarnDay_init = vm.rpReceivableWarnDay.value;
+                    }
+                    if (vm.rpPayableWarnDay.value != vm.rpPayableWarnDay_init) {
+                        array.push(vm.rpPayableWarnDay);
+                        vm.rpPayableWarnDay_init = vm.rpPayableWarnDay.value;
+                    }
+                    if (vm.rpSettleAccountsRequire.value != vm.rpSettleAccountsRequire_init) {
+                        array.push(vm.rpSettleAccountsRequire);
+                        vm.rpSettleAccountsRequire_init = vm.rpSettleAccountsRequire.value;
+                    }
+                    if (vm.rpAuditSameMan.value != vm.rpAuditSameMan_init) {
+                        array.push(vm.rpAuditSameMan);
+                        vm.rpAuditSameMan_init = vm.rpAuditSameMan.value;
+                    }
+                    if (vm.rpPrintSaveData.value != vm.rpPrintSaveData_init) {
+                        array.push(vm.rpPrintSaveData);
+                        vm.rpPrintSaveData_init = vm.rpPrintSaveData.value;
+                    }
+                    if (vm.rpUpdateSelfData.value != vm.rpUpdateSelfData_init) {
+                        array.push(vm.rpUpdateSelfData);
+                        vm.rpUpdateSelfData_init = vm.rpUpdateSelfData.value;
+                    }
+                    if (vm.rpAuditReverseSameMan.value != vm.rpAuditReverseSameMan_init) {
+                        array.push(vm.rpAuditReverseSameMan);
+                        vm.rpAuditReverseSameMan_init = vm.rpAuditReverseSameMan.value;
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: 'POST',
+                            contentType: 'application/json;charset=utf-8',
+                            url: '${rc.contextPath}/systemProfileController/updateBatch',
+                            //data: JSON.stringify(vm.data),
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    alert('更改成功！');
+                                } else {
+                                    alert('更改失败！');
+                                }
+
+                            }
+
+                        });
+                    } else {
+                        alert('暂无数据提交！');
+                    }
+                },
+            },
+            watch: {
+                'rpEnabledAccountingYear.value': function (val) {
+                    if (val == '') {
+                        //获取会计起始年度
+                        var getAccountingYearUrl = '${rc.contextPath}/systemProfileController/getAccountYear?sobId=1';
+                        $.ajax({
+                            type: 'POST',
+                            url: getAccountingYearUrl,
+                            success: function (rs) {
+                                vm.rpEnabledAccountingYear.value = rs.data;
+                            }
+                        });
+                    }
+                }
+            },
+            mounted: function () {
+                $('form').validate();
+            },
+            created: function () {
+                //查询系统信息参数
+                var sysUrl = '${rc.contextPath}/systemProfileController/queryByType?type=应收应付参数&sobId=1'
+                $.ajax({
+                    type: 'POST',
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'rpEnabledAccountingYear') {
+                                vm.rpEnabledAccountingYear = dataObj[i];
+                                vm.rpEnabledAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpEnabledAccountingPeriod') {
+                                vm.rpEnabledAccountingPeriod = dataObj[i];
+                                vm.rpEnabledAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpCurrentAccountingYear') {
+                                vm.rpCurrentAccountingYear = dataObj[i];
+                                vm.rpCurrentAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpCurrentAccountingPeriod') {
+                                vm.rpCurrentAccountingPeriod = dataObj[i];
+                                vm.rpCurrentAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpReceivableWarnDay') {
+                                vm.rpReceivableWarnDay = dataObj[i];
+                                vm.rpReceivableWarnDay_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpPayableWarnDay') {
+                                vm.rpPayableWarnDay = dataObj[i];
+                                vm.rpPayableWarnDay_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpSettleAccountsRequire') {
+                                vm.rpSettleAccountsRequire = dataObj[i];
+                                vm.rpSettleAccountsRequire_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpAuditSameMan') {
+                                vm.rpAuditSameMan = dataObj[i];
+                                vm.rpAuditSameMan_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpPrintSaveData') {
+                                vm.rpPrintSaveData = dataObj[i];
+                                vm.rpPrintSaveData_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpUpdateSelfData') {
+                                vm.rpUpdateSelfData = dataObj[i];
+                                vm.rpUpdateSelfData_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'rpAuditReverseSameMan') {
+                                vm.rpAuditReverseSameMan = dataObj[i];
+                                vm.rpAuditReverseSameMan_init = dataObj[i].value;
+                            }
+                        }
+                    }
+                });
+
+                // 查询会计期间是否可以修改
+                var canUpdateAccountPeriodUrl = '${rc.contextPath}/systemProfileController/canUpdateAccountPeriod';
+
+                $.ajax({
+                    type: 'POST',
+                    url: canUpdateAccountPeriodUrl,
+                    data: { "serviceType": "rpInitializedState" },
+                    success: function (result) {
+                        var canUpdateData = result.data;
+                        vm.canUpdateAccountPeriod = canUpdateData;
+                    }
+                });
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+/* 各个页面的打印样式，写在各页面中 */
+/* 写法参考 http://www.w3school.com.cn/tags/att_style_media.asp */
+
+
+/* 以下为全局打印样式，请勿改动 */
+
+/*body{zoom:0.6;}*/
+/* 去除最后多余的空白页 */
+/* 参考 https://stackoverflow.com/questions/7846346/how-to-avoid-extra-blank-page-at-end-while-printing */
+html, body {
+	height:100vh;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+/* 调整颜色：文字纯黑 */
+*{color:#000 !important;}
+
+/* 图章等保留红色 */
+.ht-approve-stamp{color:#f00 !important;}
+
+/* 隐藏不需要打印的元素 */
+button,
+.btn-menu,
+.chevron,
+.star,
+.tab-star
+	{display:none !important;}
+
+/* 调整 iViewUI 的 Tabs：显示所有 Tab 内容 */
+.ivu-tabs .ivu-tabs-tabpane,.ht-finance-show{
+	display: block !important;
+}
+.ivu-tabs-tabpane > * {
+	visibility: visible !important;
+}

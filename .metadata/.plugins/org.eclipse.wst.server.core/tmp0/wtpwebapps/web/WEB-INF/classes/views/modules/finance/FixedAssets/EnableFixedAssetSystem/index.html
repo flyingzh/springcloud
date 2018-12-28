@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>启用固定资产系统</title>
+    #parse("modules/public/header.html")
+</head>
+<body style="height: 100%">
+<div class="copyright_content clearfix">
+    <div id="enable-fixed-asset-system" v-cloak>
+        <div class="btn-menu">
+            <!--<button @click="refresh" class="ht-btn">刷新</button>-->
+            <button @click="open" class="ht-btn">开始</button>
+            <button @click="outHtml" class="ht-btn">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            <div class="ht-subtitle mt10 ml0">
+                <div>操作提示</div>
+            </div>
+            <p>
+                <Icon type="android-bulb"></Icon>
+                你可以利用“反初始化”功能，使本系统进入初始化状态，以修正初始化时发生的又必须修正的疏漏。
+            </p>
+            <p>
+                <Icon type="android-bulb"></Icon>
+                请慎用反初始化功能。
+            </p>
+            <div class="ht-subtitle mt10 ml0">
+                <div>选择操作</div>
+            </div>
+            <div>
+                <label>
+                    <input type="radio" value="1" v-model="for1"> 结束初始化
+                </label>
+                <label class="ml20">
+                    <input type="radio" value="0" v-model="for1"> 反初始化
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/EnableFixedAssetSystem/index.js"></script>
+#parse("modules/public/footer.html")
+</body>
+</html>

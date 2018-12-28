@@ -1,0 +1,14 @@
+package com.micro.springcloud.controller;
+
+import org.springframework.web.bind.annotation.*
+
+@RequestMapping("/test")
+@RestController
+public class RestController {
+
+	@RequestMapping("/enq")
+	public String enq(@RequestParam String enq) {
+		return "hello: "+enq;
+	}
+	
+}

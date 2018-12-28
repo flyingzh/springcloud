@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../../ktc/css/base.css">
+    <link rel="stylesheet" href="../../ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="../../ktc/css/gold.css">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/zTreeStyle/zTreeStyle.css">  
+    <link rel="stylesheet" href="../../css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="../../ktc/css/common.css">    
+    <link rel="stylesheet" href="../../css/basedata/ht-list-common.css">
+    <style> 
+    
+     [v-cloak]
+      { display: none } 
+      .department-select .ivu-modal {
+            width: 70% !important;
+        }
+
+        .department-select .ivu-form-item {
+            display: inline-block;
+        }
+
+        .department-select .my-checkbox,
+        .department-select .name,
+        .department-select .code {
+            display: inline-block;
+            text-align: center;
+            height: 30px;
+            line-height: 30px;
+        }
+        .department-select .my-checkbox{
+            width: 40px;
+            float: left;
+        }
+        .department-select .ivu-form-item{
+            margin-bottom: 0;
+        }
+
+        .department-select .name,
+        .department-select .code {
+            width: 100px;
+            border-left: 1px solid #ccc;
+        }
+
+        .department-select .item {
+            border-top: 1px solid #ccc;
+        }
+    </style>
+    <title>纠正预防单-新增</title>
+</head>
+
+<body>
+    <div id="corrective" v-cloak> 
+        <div>
+            <div class="btn-menu"> 
+                <span class="pd-rg-md" @click="add">新增</span>
+                <span class="pd-rg-md" @click="save">保存</span> 
+                <span class="pd-rg-md" @click="issueRelease">问题发布</span>
+                <span class="pd-rg-md" @click="issueAnalysis">问题分析</span>
+                <span class="pd-rg-md" @click="issuePrevent">纠正预防</span> 
+                <span class="pd-rg-md" @click="issueVerify">问题验证</span> 
+                <span class="pd-rg-md" @click="submit">提交</span>  
+                <span class="pd-rg-md ht-disabled">审核</span>  
+                <span class="pd-rg-md ht-disabled">驳回</span>                 
+                <span class="pd-rg-md" @click="showlist">列表</span>  
+                <span class="pd-rg-md" @click="addattachment">附件</span>  
+                <span class="pd-rg-md" @click="exit">退出</span>
+            </div>
+            <div class="mg-top-md">
+                <i-form label-width="100">
+                   <row>
+                        <i-col span="8">
+                            <form-item label="单据编号：">
+                                <i-input disabled style="width:200px" placeholder="保存时自动生成" v-model="corrective.documentCode"></i-input>
+                            </form-item>
+                            <form-item label="业务流向：">
+                                <i-select disabled style="width:200px" v-model="corrective.businessFlowDirection">
+                                    <i-option v-for="item in businessFlowDirectionList" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="单据日期：">
+                                <i-input disabled style="width:200px" v-model="corrective.documentDate"></i-input>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="单据状态：">                               
+                               <i-select disabled style="width:200px" v-model="corrective.documentStatus">
+                                   <i-option v-for="item in documentStatusList" :value="item.value">{{item.name}}</i-option>
+                               </i-select>
+                            </form-item>
+                        </i-col>
+                   </row>
+                   <tabs value="name1">
+                        <tab-pane label="基本信息" name="name1">
+                            <div class="ht-subtitle mg-top-md">
+                                <div>问题发布</div>
+                            </div>
+                            <row>
+                                <i-col span="8">                                    
+                                    <form-item label="源单类型：">
+                                        <i-select style="width:200px" v-model="release.sourceDocumentType" :disabled="releaseDisable">
+                                            <i-option v-for="item in DocumentTypeList" :value="item.value">{{item.name}}</i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="源单单号：">
+                                         <i-input style="width:200px" icon="search" @on-click="showTypeCode" v-model="release.sourceDocumentCode"></i-input>
+                                        <ht-sourcelist :show-modal="showSourceModal" :source-type="release.sourceDocumentType"  style="width:400px" v-model="release.sourceDocumentCode" @sure="closeSourceModal"></ht-sourcelist>
+                                    </form-item>
+                                    <form-item label="发出日期：">
+                                        <i-input style="width:200px" disabled v-model="release.issueDate"></i-input>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <department-select :show-modal="showDepartmentModal" v-model="department_selected" @sure=departmentOk @cancel=departmentOk ></department-select>
+                                    <form-item label="发出部门：" style="width: 300px;">
+                                        <i-input icon="search"
+                                                 v-model="release.issueDepartmentName"
+                                                 @on-click="showDepartmentTree('发出部门')"
+                                        ></i-input>
+                                        <div v-show="showDepartment === '发出部门'" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree url=contextPath+"/tQcCorrectPreventDocument/querydeptbyorganid" :setting="treeSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                    <form-item label="发出人：">
+                                        <i-select v-model="release.issuePerson" style="width:200px" :disabled="releaseDisable">
+                                            <i-option v-for="item in empList" :value="item" :label="item.empName" :key="item.empCode">
+                                                <slot>{{item.empCode}} | {{ item.empName }}</slot>
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="接收部门：" style="width: 300px;">
+                                        <i-input icon="search"
+                                                 v-model="release.receiveDepartmentName"
+                                                 @on-click="showDepartmentTree('接收部门')"
+                                        ></i-input>
+                                        <div v-show="showDepartment === '接收部门'" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree url=contextPath+"/tQcCorrectPreventDocument/querydeptbyorganid" :setting="receiveTreeSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                    <form-item label="要求回复时间：">
+                                        <date-select  style="width:300px" :disabled="releaseDisable" placeholder="请选择日期" v-model="release.demandReplyDate"></date-select>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                            <form-item label="问题来源：">
+                                <checkbox-group v-model="release.problemSourceId" >
+                                    <checkbox v-for="item in problemSourceList" :label="item.id" :disabled="releaseDisable">{{item.name}}</checkbox>
+                                   
+                                </checkbox-group>
+                            </form-item>
+                            <form-item label="问题描述：">
+                                <i-input type="textarea" :rows="4" style="width:85%" v-model="release.problemDescribe" :disabled="releaseDisable"></i-input>
+                            </form-item> 
+                            <row>
+                                <i-col span="8">
+                                    <form-item label="分析部门：" style="width: 300px;">
+                                        <i-input icon="search"
+                                                 v-model="release.analyseDepartmentName"
+                                                 @on-click="showDepartmentTree('分析部门')"
+                                        ></i-input>
+                                        <div v-show="showDepartment==='分析部门'" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree url=contextPath+"/tQcCorrectPreventDocument/querydeptbyorganid" :setting="analyseTreeSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                </i-col>
+                                <i-col>
+                                    <form-item label="分析人员：">
+                                        <!-- <i-select style="width:200px" v-model="release.analysePersonnelName">
+                                                <i-option>G00211 张三</i-option>
+                                        </i-select> -->
+                                        <i-select v-model="release.analysePersonnel" style="width:200px" :disabled="releaseDisable">
+                                            <i-option v-for="item in empList" :value="item" :label="item.empName" :key="item.empCode">
+                                                <slot>{{item.empCode}} | {{ item.empName }}</slot>
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                            </row> 
+
+                            <div class="ht-subtitle mg-top-md">
+                                <div>问题分析</div>
+                            </div>
+                            <row>
+                                <i-col span="8">                                  
+                                    <form-item label="分析日期：">
+                                        <i-input style="width:200px"  v-model="analyse.analyseDate" disabled></i-input>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">                                 
+                                    <form-item label="责任部门：" style="width: 300px;">
+                                        <i-input icon="search"
+                                                 v-model="analyse.dutyDepartmentName"
+                                                 @on-click="showDepartmentTree('责任部门')"
+                                        ></i-input>
+                                        <div v-show="showDepartment === '责任部门'" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree url=contextPath+"/tQcCorrectPreventDocument/querydeptbyorganid" :setting="dutyTreeSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">                                  
+                                    <form-item label="责任人：">
+                                         <!--<i-input style="width:200px" v-model="release.dutyPersonnelId"></i-input>-->
+                                        <i-select v-model="analyse.dutyPersonnel" style="width:200px" :disabled="analyseDisable">
+                                            <i-option v-for="item in empList" :value="item" :label="item.empName" :key="item.empCode">
+                                                <slot>{{item.empCode}}|{{ item.empName }}</slot>
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                               
+                            </row>
+                            <form-item label="原因分析：">
+                                <i-input type="textarea" :rows="4" style="width:85%" v-model="analyse.reasonAnalyse" :disabled="analyseDisable"></i-input>
+                            </form-item>
+                            <div class="ht-subtitle mg-top-md">
+                                <div>纠正预防</div>
+                            </div>
+                           <row>
+                               <i-col span="8">
+                                    <form-item label="日期：">
+                                        <i-input style="width:200px" disabled v-model="prevent.correctPreventDate"></i-input>
+                                    </form-item>
+                               </i-col>
+                           </row>
+                            <form-item label="纠正措施：">
+                                <i-input :disabled="correctiveDisable" type="textarea" :rows="4" style="width:85%" v-model="prevent.correctAction"></i-input>
+                            </form-item>
+                            <form-item label="预防措施：">
+                                <i-input :disabled="correctiveDisable" type="textarea" :rows="4" style="width:85%" v-model="prevent.preventAction"></i-input>
+                            </form-item>
+                            <row>
+                                <i-col span="8">
+                                    <form-item label="验证部门：" style="width: 300px;">
+                                        <i-input icon="search"
+                                                 v-model="prevent.validateDepartmentName"
+                                                 @on-click="showDepartmentTree('验证部门')"
+                                        ></i-input>
+                                        <div v-show="showDepartment === '验证部门'" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-tree url=contextPath+"/tQcCorrectPreventDocument/querydeptbyorganid" :setting="validateTreeSetting"></ht-tree>
+                                        </div>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="验证员：">
+                                        <i-select :disabled="correctiveDisable" v-model="prevent.validatePersonnel" style="width:200px">
+                                            <i-option v-for="item in empList" :value="item" :label="item.empName" :key="item.empCode">
+                                                <slot>{{item.empCode}} | {{ item.empName }}</slot>
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                            <div class="ht-subtitle mg-top-md">
+                                <div>验证结果</div>
+                            </div>
+                            <row>                               
+                                <i-col span="8">
+                                    <form-item label="验证日期：">
+                                        <i-input  :disabled="validateDisable" style="width:200px" disabled v-model="validation.validateDate"></i-input>   
+                                    </form-item>   
+                                </i-col>
+                            </row>
+                            <form-item label="验证结果描述：">
+                                <i-input  :disabled="validateDisable"  type="textarea" :rows="4" style="width:85%" v-model="validation.validateResultDescribe"></i-input>
+                            </form-item>
+                            <form-item label="验证结果：">
+                                <radio-group v-model="validation.validateResult">
+                                    <radio  :disabled="validateDisable" v-for="item in resultList" :label="item.value">{{item.name}}</radio>
+                                                                    
+                                </radio-group>
+                            </form-item>
+                            <form-item label="跟踪结论：">
+                                <radio-group v-model="validation.followConclusion">
+                                    <radio  :disabled="validateDisable" v-for="item in conclusionList" :label="item.value">{{item.name}}</radio>
+                                    <!-- <radio label="不合格"></radio>                                   -->
+                                </radio-group>
+                            </form-item>
+                        </tab-pane>
+                      
+                        <tab-pane label="审批信息" name="name2">
+                            <Steps :current="currentSteps" style="margin-bottom: 20px;">
+                                <Step title="开始"></Step>
+                                <Step title="一级审核"></Step>
+                                <Step title="二级审核"></Step>
+                                <Step title="三级审核"></Step>
+                                <Step title="结束"></Step>
+                            </Steps>
+                            <base-data-list :data_config="data_config_approval"></base-data-list>
+                        </tab-pane>
+                        <tab-pane label="其他" name="name3">
+                            <i-form :model="other" label-width="120"  style="width:85%">
+                                <row class="mg-top-md">
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="创建人：">
+                                                    <i-input disabled style="width:200px" v-model="other.createName"></i-input>
+                                            </form-item>
+                                            <form-item label="创建日期：">
+                                                    <i-input disabled style="width:200px" v-model="other.createDate"></i-input>
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="修改人：">
+                                                    <i-input disabled style="width:200px" v-model="other.updateName"></i-input>
+                                            </form-item>
+                                            <form-item label="修改日期：">
+                                                    <i-input disabled style="width:200px" v-model="other.updateDate"></i-input>
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                    <i-col span="8">
+                                        <div>
+                                            <form-item label="审核人：">
+                                                    <i-input disabled style="width:200px" v-model="other.examineVerifyName"></i-input>
+                                            </form-item>
+                                            <form-item label="审核日期：">
+                                                    <i-input disabled style="width:200px" v-model="other.examineVerifyDate"></i-input>
+                                            </form-item>
+                                        </div>
+                                    </i-col>
+                                </row> 
+                            </i-form>
+                        </tab-pane>
+                    </tabs>
+                </i-form>
+            </div>
+        </div>
+     
+    </div>
+
+    <script src="../../plugins/layui/layui.all.js"></script>
+    <script src='../../js/jquery-2.0.3.min.js'></script>
+    <script src='../../js/vue.min.js'></script>
+    <script src='../../plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src="../../plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+    <script src='../../plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src='../../plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="../../plugins/layui/layui.all.js"></script>
+    <script src='../../ktc/js/app.js'></script>
+    <script src="../../plugins/iview/iview.min.js"></script>
+    <script src="../../js/basedata/components/ht-tree.js"> </script>
+    <script src="../../js/basedata/components/date-select.js"> </script>
+    <script src="../../js/basedata/components/base-data-list.js"> </script>
+    <script src="../../js/basedata/components/subject-tree.js"> </script>
+    <script src="../../js/basedata/components/department-select.js"> </script>
+    <script src="../../js/basedata/components/ht-selectSourceList.js"> </script>
+    <script src="../../js/basedata/components/ht-btns.js"> </script>
+    <script src='../../js/quality/corrective-prevention-sheet.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

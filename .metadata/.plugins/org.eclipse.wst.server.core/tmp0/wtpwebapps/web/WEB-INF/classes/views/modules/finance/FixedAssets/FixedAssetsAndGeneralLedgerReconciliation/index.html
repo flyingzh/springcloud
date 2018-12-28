@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>固定资产与总账对账</title>
+    #parse("modules/public/header.html")
+    <style>
+        .filter label {
+            /* text-align: right; */
+        }
+
+        .vocher .ivu-modal-body {
+            padding-top: 0;
+        }
+
+        .form-control {
+            height: 32px;
+        }
+
+        .ht-subjectMain {
+            height: 150px;
+            overflow: auto;
+            padding: 10px;
+        }
+        .ht-receivableW-table .w45{
+            width: 45px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="fixedAssetsAndGeneralLedgerReconciliation" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <button @click="open" class="ht-btn">对账方案</button>
+            <button @click="printV" class="ht-btn">打印</button>
+            <button @click="exportExcel" class="ht-btn">引出</button>
+            <button @click="exitPrevent(true)" class="ht-btn">退出</button>
+        </div>
+
+        <div class="pl20 pr20 mt10">
+            <span class="mr20">会计期间：{{baseData.periodDate}}</span>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <table id="grid"></table>
+            <div id="page"></div>
+        </div>
+        <!-- 打开 -->
+        <Modal v-model="filterModal" title="对账设置" class-name="ht-deleteModal" width="900" :mask-closable="false">
+            <div class="ht-modal-center" style="position: relative;">
+                <Row>
+                    <label>所属组织</label>
+                    <i-select v-model="filterBody.sobId" disabled class="ht-width-md">
+                        <i-option v-for="item in organizationList" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                    </i-select>
+                    <label>会计期间</label>
+                    <i-select v-model="currentAccountYear" style="width:100px">
+                        <i-option v-for="item in years" :value="item" :key="item">{{ item }}
+                        </i-option>
+                    </i-select>
+                    年
+                    <i-select v-model="currentAccountPeriod" style="width:100px">
+                        <i-option v-for="item in periods" :value="item" :key="item">{{ item }}
+                        </i-option>
+                    </i-select>
+                    <label>
+                        <input type="checkbox" v-model="unPostingVoucher"> 包括未过账凭证
+                    </label>
+                </Row>
+                <Row>
+                    <div class="ht-subtitle mt10 ml30" style="float:left;width: 250px;">
+                        <div>固定资产原值科目</div>
+                    </div>
+                    <div class="ht-subtitle mt10 ml30" style="float:left;width: 250px;">
+                        <div>累计折旧科目</div>
+                    </div>
+                    <div class="ht-subtitle mt10 ml30" style="float:left;width: 250px;">
+                        <div>减值准备科目</div>
+                    </div>
+                </Row>
+                <Row>
+                    <div style="float:left;width: 285px;padding: 5px;">
+
+                        <div class="btn-menu">
+                            <button class="ht-btn" @click="actionBtnMth('addNew','dataListOne')">新增行</button>
+                            <button class="ht-btn" @click="actionBtnMth('delete','dataListOne')">删除行</button>
+                        </div>
+                        <div class="ht-receivableW-table">
+
+                            <div class="ht-wrapper-tbl">
+                                <table class="table tablediv table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <td class="wt45" @click="click_all('dataListOne')">
+                                                <checkbox v-model="allShowOne"></checkbox>
+                                            </td>
+                                            <td class="w45">序号</td>
+                                            <td class="wt100">科目</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr lay-size="sm" v-for="(item,idx) in dataListOne">
+                                            <td class="wt45" @click="change_tr(item,'dataListOne')">
+                                                <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                            </td>
+                                            <td class="w45 ht-padding3">{{idx+1}}</td>
+                                            <td class="wt100 ht-padding3">
+                                                <i-input class="required" v-model="item.subjectName" disabled @on-click="showSubjectVisable('dataListOne',item.id)"
+                                                    icon="ios-list-outline" type="text"></i-input>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="float:left;width: 285px;padding: 5px;">
+
+                        <div class="btn-menu">
+                            <button class="ht-btn" @click="actionBtnMth('addNew','dataListTwo')">新增行</button>
+                            <button class="ht-btn" @click="actionBtnMth('delete','dataListTwo')">删除行</button>
+                        </div>
+                        <div class="ht-receivableW-table">
+
+                            <div class="ht-wrapper-tbl">
+                                <table class="table tablediv table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <td class="wt45" @click="click_all('dataListTwo')">
+                                                <checkbox v-model="allShowTwo"></checkbox>
+                                            </td>
+                                            <td class="w45">序号</td>
+                                            <td class="wt100">科目</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr lay-size="sm" v-for="(item,idx) in dataListTwo">
+                                            <td class="wt45" @click="change_tr(item,'dataListTwo')">
+                                                <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                            </td>
+                                            <td class="w45 ht-padding3">{{idx+1}}</td>
+                                            <td class="wt100 ht-padding3">
+                                                <i-input class="required" v-model="item.subjectName" disabled @on-click="showSubjectVisable('dataListTwo',item.id)"
+                                                    icon="ios-list-outline" type="text"></i-input>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="float:left;width: 285px;padding: 5px;">
+
+                        <div class="btn-menu">
+                            <button class="ht-btn" @click="actionBtnMth('addNew','dataListThree')">新增行</button>
+                            <button class="ht-btn" @click="actionBtnMth('delete','dataListThree')">删除行</button>
+                        </div>
+                        <div class="ht-receivableW-table">
+
+                            <div class="ht-wrapper-tbl">
+                                <table class="table tablediv table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <td class="wt45" @click="click_all('dataListThree')">
+                                                <checkbox v-model="allShowThree"></checkbox>
+                                            </td>
+                                            <td class="w45">序号</td>
+                                            <td class="wt100">科目</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr lay-size="sm" v-for="(item,idx) in dataListThree">
+                                            <td class="wt45" @click="change_tr(item,'dataListThree')">
+                                                <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                            </td>
+                                            <td class="w45 ht-padding3">{{idx+1}}</td>
+                                            <td class="wt100 ht-padding3">
+                                                <i-input class="required" v-model="item.subjectName" disabled @on-click="showSubjectVisable('dataListThree',item.id)"
+                                                    icon="ios-list-outline" type="text"></i-input>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </Row>
+            </div>
+            <div slot="footer">
+                <i-button class="ml10" @click="cancelData">取消</i-button>
+                <i-button @click="saveData" type="primary">确定</i-button>
+            </div>
+        </Modal>
+
+        <ht-modal-subject v-model="subjectVisable" :is-parent-click="true" @close="subjectClose" @save="subjectData" ref="modalSubject1"></ht-modal-subject>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+    <script>
+        htLoadJs([
+            'ht-print-choose',
+            '${rc.contextPath}/js/finance/components/ht-modal-subject.js',
+            '${rc.contextPath}/js/finance/components/ht-tree.js',
+            '${rc.contextPath}/js/finance/FixedAssets/FixedAssetsAndGeneralLedgerReconciliation/index.js'
+        ])
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待旧料收回列表</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+<div id="stayRecycle" v-cloak>
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <i-button type="text" class="pd-rg-md" @click="refresh">刷新</i-button>
+            <i-button type="text" class="pd-rg-md" @click="generateReport">生成旧料回收单</i-button>
+            <i-button type="text" class="pd-rg-md" @click="cancel">退出</i-button>
+        </div>
+        <div style="height: 45px"></div>
+        <div v-show="isSearchHide">
+            <i-form  :model="body" label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="商品类型：">
+                            <cascader class="ht-width-input"
+                                      :data="categoryType"
+                                      trigger="hover"
+                                      change-on-select
+                                      is-check="no"
+                                      v-model="commodityCategoty"
+                                      placeholder="商品类型" ></cascader>
+                        </form-item>
+                        <form-item label="客户：">
+                            <ht-customer-list
+                                    @sure="closeCustomer"
+                                    v-model="selectCustomerObj"
+                                    ref="customerList"
+                                    is-check="no"
+                            >
+                            </ht-customer-list>
+                        </form-item>
+                        <form-item label="处理厂家：">
+                            <ht-selectsupplier
+                                    @getinfo="closeSupplier"
+                                    ref="supperList"
+                                    is-check="no"
+                            >
+                            </ht-selectsupplier>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据编号：">
+                            <i-input class="ht-width-input" v-model="body.orderNo"></i-input>
+                        </form-item>
+                        <form-item label="处理方式：">
+                            <i-select
+                                    class="ht-width-input"
+                                    v-model="body.processingMode"
+                                    ref="process"
+                                    @on-clear="clearItem('processingMode', 'process')"
+                                    clearable
+                            >
+                                <i-option v-for="item in processModes" :value="item.value" :key="item.value">
+                                    {{item.name}}
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="日期：">
+                            <date-picker
+                                    v-model="dateArr"
+                                    format="yyyy/MM/dd"
+                                    type="daterange"
+                                    placement="bottom-end"
+                                    placeholder="请选择日期"
+                                    class="ht-width-input"
+                                    @on-clear="clearTime()"
+                            ></date-picker>
+                        </form-item>
+                        <form-item label="处理结果：">
+                            <i-select
+                                    class="ht-width-input"
+                                    v-model="body.processingResults"
+                                    ref="result"
+                                    @on-clear="clearItem('processingResults', 'result')"
+                                    clearable
+                            >
+                                <i-option value="store">存料</i-option>
+                                <i-option value="discount">折现</i-option>
+                                <i-option value="return">返料</i-option>
+                                <i-option value="inner">内部旧料处理</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true"
+                                     :is-add="false" class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <base-data-list :return-row-data="true" v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+
+
+    </div>
+</div>
+<script src='${rc.contextPath}/js/components/ht-btns.js'></script>
+<script src='${rc.contextPath}/js/components/base-data-list.js'></script>
+<script src='${rc.contextPath}/js/components/ht-toggle.js'></script>
+<script src='${rc.contextPath}/js/components/ht-select.js'></script>
+<script src='${rc.contextPath}/js/components/ht-selectsupplier.js'></script>
+<script src='${rc.contextPath}/js/components/ht-customer-list.js'></script>
+<script src='${rc.contextPath}/js/oldmaterial/recycle/stay-recycle-list.js'></script>
+#parse("modules/public/footer.html") </body>
+</html>

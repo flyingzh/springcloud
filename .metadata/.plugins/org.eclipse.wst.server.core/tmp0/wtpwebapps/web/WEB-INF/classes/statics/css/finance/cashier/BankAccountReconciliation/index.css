@@ -1,0 +1,11 @@
+#bankAccountReconciliation .ht-formInfo{
+    padding: 10px 34px;
+    font-size: 14px;
+}
+
+#bankAccountReconciliation .ht-formInfo span{margin-right: 20px;}
+#bankAccountReconciliation .ht-padding10{padding: 10px !important;}
+
+#bankAccountReconciliation .ui-jqgrid .ui-jqgrid-caption {
+    text-align: center !important;text-align: -webkit-center !important;
+}

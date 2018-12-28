@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>等级设置</title>
+    #parse("modules/public/header.html")
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <style>
+        .ht-info-width{
+            width:305px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="paraLevel" class="ht-common-list" v-cloak>
+    <div class="btn-menu mg-bm-md" v-show="!isShow">
+        #if($shiro.hasPermission("basedata:tclientlevel:add"))
+        <span @click="add_click" >新增</span>
+        #end
+        #if($shiro.hasPermission("basedata:tclientlevel:add"))
+        <span @click="copy">复制</span>
+        #end
+        #if($shiro.hasPermission("basedata:tclientlevel:delete"))
+        <span @click="del" >删除</span>
+        #end
+        #if($shiro.hasPermission("basedata:tclientlevel:update"))
+        <span @click="modify" >修改</span>
+        #end
+        <span @click="exit">退出</span>
+    </div>
+    <section v-show="!isShow">
+        <i-form label-width="120"  v-show="isSearchHide">
+            <row>
+                <i-col span="8">
+                    <form-item label="等级类型：">
+                        <i-input v-model='body.name' class="ht-width-md"></i-input>
+                    </form-item>
+                    <form-item label="有效状态：">
+                        <i-select v-model="body.status" ref="status" class="ht-width-md" clearable @on-clear="clearItem('status', 'status')">
+                            <i-option v-for="item in status" :value="item.value">{{item.label}}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="编码：">
+                        <i-input v-model='body.code' class="ht-width-md"></i-input>
+                    </form-item>
+                    <form-item label="创建时间：">
+                        <!-- <date-select v-model="body.createTimeStart" ref="start" style="width:123px"  class="inline-block"></date-select>
+                        <span>~</span>
+                        <date-select v-bind:end="true" ref="end" v-model="body.createTimeEnd" style="width:123px" class="inline-block"></date-select> -->
+                        <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-md"></date-picker>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="创建人：">
+                        <i-input v-model='body.createName' class="ht-width-md"></i-input>
+                    </form-item>
+                    <form-item>
+                        <ht-btns :is-search="true" :is-add="false" @search="search" @clear="clear" class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </row>
+        </i-form>
+
+        <div style="height: 25px;">
+            <sapn class="chevron">
+                <span >
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            </sapn>
+        </div>
+        <base-data-list  :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+    </section>
+
+    <section v-show="isShow">
+
+        <div class="btn-menu">
+            <span @click="save" v-if="!isLock" v-show="saveDisable">保存</span>
+            <span @click="cancel">退出</span>
+        </div>
+        <form id="detailForm" class="form-horizontal" style="width:750px">
+            <div class="form-group form-group-sm">
+                <label for="code" class="col-xs-3 control-label">编码：</label>
+                <div class="col-xs-9">
+                    <input id="code" name="code" :disabled="true" class="form-control ht-info-width" v-model="add.code" :disabled="!isAdd"
+                           type="text"/>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    等级类型：
+                </label>
+                <div class="col-xs-9">
+                    <input id="name" name="name" class="form-control ht-info-width" v-model="add.name" :disabled="isLock"
+                           type="text"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    适用类型：
+                </label>
+                <div class="col-xs-9">
+                    <label class="radio-inline" v-for="item in type">
+                        <input :value="item.value" v-model="add.apply" type="radio" name="apply" :disabled="isLock"/>{{item.label}}
+                    </label>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    有效状态：
+                </label>
+                <div class="col-xs-9">
+                    <label class="radio-inline" v-for="item in status">
+                        <input :value="item.value" v-model="add.status" type="radio" name="status" :disabled="isLock"/>{{item.label}}
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">备注：&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <div class="col-xs-9">
+                    <textarea name="" id="" cols="30" rows="5" v-model="add.remark " class="form-control ht-info-width"
+                              :disabled="isLock"></textarea>
+                </div>
+            </div>
+            <div v-if="isAdd" class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建时间：&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <div class="col-xs-9"  style="padding-top:6px;">
+                    <span>{{add.createTime}}</span>
+                </div>
+            </div>
+            <div v-if="isAdd" class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">创建人：&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <div class="col-xs-9"  style="padding-top:6px;">
+                    <span>{{add.createName}}</span>
+                </div>
+            </div>
+            <div v-if="!isAdd" class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">最后更新时间：&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <div class="col-xs-9"  style="padding-top:6px;">
+                    <span>{{add.updateTime}}</span>
+                </div>
+            </div>
+            <div v-if="!isAdd" class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">最后更新人：&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <div class="col-xs-9"  style="padding-top:6px;">
+                    <span>{{add.updateName}}</span>
+                </div>
+            </div>
+
+        </form>
+    </section>
+</div>
+
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/formatDate.js"></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<script src="${rc.contextPath}/js/components/ht-btns.js"></script>
+<script src="${rc.contextPath}/js/components/date-select.js"></script>
+<script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/basedata/client-level.js"></script>
+
+#parse("modules/public/footer.html") </body>
+</html>

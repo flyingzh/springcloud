@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>应收应付初始化</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/Receivable/index.css">
+
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshData">刷新</button>
+            <button class="ht-btn" @click="uploadExlModal('true')">引入</button>
+            <button class="ht-btn" @click="exportExcel">引出</button>
+            <button class="ht-btn" @click="actionBtnMth('delete')">删除</button>
+            <button class="ht-btn" @click="submitInit">结束初始化</button>
+            <button class="ht-btn" @click="showGo">传递到总账</button>
+            <button class="ht-btn" @click="exitInit">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            <label class="ht-commFloatLeft ht-cashier-title2">币别</label>
+            <i-select @on-change="currencyChange" v-model="currencySelectVal" style="width:200px">
+                <i-option v-for="item in currencyList" :value="item.id" :key="item.id">{{ item.currencyName }}</i-option>
+            </i-select>
+            <label class=" ht-cashier-title2">汇率</label>
+            <Input-number v-model="exchangeRate" disabled></Input-number>
+        </div>
+        <!--<i-table :columns="columns1" :data="dataList"></i-table>-->
+        <template>
+            <div class="ht-tabsMain">
+                <Tabs v-model="tabsTypeVal">
+                    <Tab-pane label="客户" name="1">
+                        <div class="layui-form ht-talList1 pl20 pr20">
+                            <div class="ht-talListHeight">
+                                <table class="layui-table table table-hover table-bordered ht-commTxtContent" lay-size="sm">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th v-for="item in columns1">{{item.title}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="ht-commTxtContent ht-tabMainJq">
+                                        <tr lay-size="sm" v-for="(item,idx) in customDataist" @click="tableChickTr(item)"
+                                            :class="{success: currentSelectRow === item.itemId}">
+                                            <td>{{ idx+1 }}</td>
+                                            <td>
+                                                {{ selectCustomerCode(item.itemId) }}
+                                                <!--{{ item.itemId | selectCustomerCodeFilter}}-->
+                                            </td>
+                                            <td>{{ item.itemName }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.amountFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.amount }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.preAmountFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.preAmount }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.beginBalanceFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.beginBalance }}</td>
+                                            <td @click="tableChickTd(item)">
+                                                <i class="layui-icon ht-icon-ok">&#xe605;</i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{customDataist.length +1}}</td>
+                                            <td class="ht-td-input">
+                                                <i-select v-model="selectCustomerValue" clearable @on-change="(value)=>selectChange(value,1)"
+                                                    :disabled="isStandard" filterable>
+                                                    <i-option v-for="item in selectCustomerArr" :value="item.id" :key="item.id">
+                                                        {{item.name}}
+                                                    </i-option>
+                                                </i-select>
+                                            </td>
+                                            <td>{{ selectCustomerName }}</td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td @click="tableChickTd()">
+                                                <i class="layui-icon ht-icon-ok" v-if="emptyCustomerRight">&#xe605;</i>
+                                            </td>
+                                        </tr>
+                                        <template v-if="customDataist.length > 0">
+                                            <tr class="ivu-table-row success" style="background-color: #dff0d8;">
+                                                <td>{{customDataist.length +2}}</td>
+                                                <td>本页小计</td>
+                                                <td></td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.curTotal.amountFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.amount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.curTotal.preAmountFor
+                                                    }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.preAmount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{
+                                                    dataTotal.curTotal.beginBalanceFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.beginBalance
+                                                    }}</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr class="ivu-table-row success" style="background-color: #dff0d8;">
+                                                <td>{{customDataist.length +3}}</td>
+                                                <td>合计</td>
+                                                <td></td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.allTotal.amountFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.amount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.allTotal.preAmountFor
+                                                    }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.preAmount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{
+                                                    dataTotal.allTotal.beginBalanceFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.beginBalance
+                                                    }}</td>
+                                                <td></td>
+                                            </tr>
+                                        </template>
+                                        <tr v-if="customDataist.length <= 0">
+                                            <td v-if="isOriginal || isStandard" colspan="7" class="ht-noData ht-commTxtContent">暂无数据</td>
+                                            <td v-if="isForeign" colspan="10" class="ht-noData ht-commTxtContent">暂无数据</td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+                            <template>
+                                <div class="ht-commTxtRight ht-pageMain">
+                                    <Page :total="pageInfo.totalNumber" :page-size="pageInfo.size" :current="pageInfo.currentPage"
+                                        @on-change="changePage" show-elevator show-total></Page>
+                                </div>
+                            </template>
+                        </div>
+
+                    </Tab-pane>
+                    <Tab-pane label="供应商" name="2">
+                        <div class="layui-form ht-talList1 pl20 pr20">
+                            <div class="ht-talListHeight">
+                                <table class="layui-table table table-hover table-bordered ht-commTxtContent" lay-size="sm">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th v-for="item in columns2">{{item.title}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="ht-commTxtContent ht-tabMainJq">
+                                        <tr lay-size="sm" v-for="(item,idx) in customDataist" @click="tableChickTr(item)"
+                                            :class="{success: currentSelectRow === item.itemId}">
+                                            <td>{{ idx+1 }}</td>
+                                            <td>
+                                                {{ selectShopCode(item.itemId) }}
+                                                <!--{{ item.itemId | selectShopCodeFilter}}-->
+                                            </td>
+                                            <td>{{ item.itemName }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.amountFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.amount }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.preAmountFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.preAmount }}</td>
+                                            <td v-if="isOriginal || isForeign">{{ item.beginBalanceFor }}</td>
+                                            <td v-if="isForeign || isStandard">{{ item.beginBalance }}</td>
+                                            <td @click="tableChickTd(item)">
+                                                <i class="layui-icon ht-icon-ok">&#xe605;</i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{customDataist.length +1}}</td>
+                                            <td class="ht-td-input">
+                                                <i-select v-model="selectShopValue" clearable @on-change="(value)=>selectChange(value,2)"
+                                                    :disabled="isStandard">
+                                                    <i-option v-for="item in selectShopArr" :value="item.supplierId"
+                                                        :key="item.supplierId">
+                                                        {{item.supplierName}}
+                                                    </i-option>
+                                                </i-select>
+                                            </td>
+                                            <td>{{ selectShopName }}</td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td v-if="isOriginal || isForeign"></td>
+                                            <td v-if="isForeign || isStandard"></td>
+                                            <td @click="tableChickTd()">
+                                                <i class="layui-icon ht-icon-ok" v-if="emptyShopRight">&#xe605;</i>
+                                            </td>
+                                        </tr>
+                                        <template v-if="customDataist.length > 0">
+                                            <tr class="ivu-table-row success" style="background-color: #dff0d8;">
+                                                <td>{{customDataist.length +2}}</td>
+                                                <td>本页小计</td>
+                                                <td></td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.curTotal.amountFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.amount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.curTotal.preAmountFor
+                                                    }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.preAmount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{
+                                                    dataTotal.curTotal.beginBalanceFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.curTotal.beginBalance
+                                                    }}</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr class="ivu-table-row success" style="background-color: #dff0d8;">
+                                                <td>{{customDataist.length +3}}</td>
+                                                <td>合计</td>
+                                                <td></td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.allTotal.amountFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.amount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{ dataTotal.allTotal.preAmountFor
+                                                    }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.preAmount }}</td>
+                                                <td v-if="isOriginal || isForeign">{{
+                                                    dataTotal.allTotal.beginBalanceFor }}</td>
+                                                <td v-if="isForeign || isStandard">{{ dataTotal.allTotal.beginBalance
+                                                    }}</td>
+                                                <td></td>
+                                            </tr>
+                                        </template>
+                                        <tr v-if="customDataist.length <= 0">
+                                            <td v-if="isOriginal || isStandard" colspan="7" class="ht-noData ht-commTxtContent">暂无数据</td>
+                                            <td v-if="isForeign" colspan="10" class="ht-noData ht-commTxtContent">暂无数据</td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+                            <template>
+                                <div class="ht-commTxtRight ht-pageMain">
+                                    <Page :total="pageInfo.totalNumber" :page-size="pageInfo.size" :current="pageInfo.currentPage"
+                                        @on-change="changePage" show-elevator show-total></Page>
+                                </div>
+                            </template>
+                        </div>
+                    </Tab-pane>
+                </Tabs>
+            </div>
+        </template>
+
+        <Modal v-model="detailVisible" width="1200" :title="detailTitle" :mask-closable="false">
+            <div class="ht-detailModalContent">
+                <div style="margin-top: -15px; background-color: #eee;">
+                    <i-button type="text" @click="detailActionBtnMth('saveAll')">保存</i-button>
+                    <!--<i-button type="text" @click="">引出列表</i-button>-->
+                    <i-button type="text" @click="closeDetailModal">退出</i-button>
+                </div>
+                <div style="margin-top: 10px;">
+                    <i-button type="text" @click="detailActionBtnMth('add')">新增行</i-button>
+                    <i-button type="text" @click="detailActionBtnMth('delete')">删除行</i-button>
+                </div>
+                <div style="margin-top: 10px;height: 200px;overflow: auto;">
+                    <table class="layui-table table-hover table-bordered ht-table" lay-size="sm">
+                        <thead>
+                            <tr>
+                                <th style="display: none;">ID</th>
+                                <!-- style="display: none"-->
+                                <th style="display: none;">RPTYPE</th>
+                                <th style="display: none;">CURRENCYID</th>
+                                <th style="display: none;">ITEMID</th>
+                                <th v-for="item in columns3">{{item.title}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr lay-size="sm" v-for="(item,idx) in detailDataList" @click="detailTableChickTr(item)"
+                                :class="{success: detailCurrentSelectRow === item.id}">
+                                <td style="display: none;">{{item.id}}</td>
+                                <!--style="display: none"-->
+                                <td style="display: none;">{{item.rpType}}</td>
+                                <td style="display: none;">{{item.currencyId}}</td>
+                                <td style="display: none;">{{item.itemId}}</td>
+                                <td>{{item.itemName}}</td>
+                                <td class="ht-td-input">
+                                    <input type="number" class="form-control input-sm ht-input" @blur="blur_money(item,'amountFor')"
+                                        v-model="item.amountFor" />
+                                </td>
+                                <td class="ht-td-input" v-if="isForeign">
+                                    <input type="number" disabled class="form-control input-sm ht-input" v-model="item.amount" />
+                                </td>
+                                <td class="ht-td-input">
+                                    <input type="number" class="form-control input-sm ht-input" @blur="blur_money(item,'preAmountFor')"
+                                        v-model="item.preAmountFor" />
+                                </td>
+                                <td class="ht-td-input" v-if="isForeign">
+                                    <input type="number" disabled class="form-control input-sm ht-input" v-model="item.preAmount" />
+                                </td>
+                                <td class="ht-td-input">
+                                    <input type="number" disabled class="form-control input-sm ht-input" @blur="blur_money(item,'beginBalanceFor')"
+                                        v-model="item.beginBalanceFor" />
+                                </td>
+                                <td class="ht-td-input" v-if="isForeign">
+                                    <input type="number" disabled class="form-control input-sm ht-input" v-model="item.beginBalance" />
+                                </td>
+                                <td>
+                                    <Date-picker transfer type="date" size="small" v-model="item.businessTime"
+                                        placeholder="选择日期">
+                                    </Date-picker>
+                                </td>
+                                <td>
+                                    <Date-picker transfer type="date" size="small" v-model="item.deadlineTime"
+                                        placeholder="选择日期">
+                                    </Date-picker>
+                                </td>
+                                <td>
+                                    <i-select v-model="item.departmentId" size="small" filterable>
+                                        <i-option v-for="it in selectDepartmentArr" :value="it.id" :key="it.id">
+                                            {{ it.name }}
+                                        </i-option>
+                                    </i-select>
+                                </td>
+                                <td>
+                                    <i-select v-model="item.employeeId" size="small" filterable>
+                                        <i-option v-for="it in selectEmployeeArr" :value="it.id" :key="it.id">
+                                            {{ it.name }}
+                                        </i-option>
+                                    </i-select>
+                                </td>
+                                <td class="ht-td-input">
+                                    <input type="text" class="form-control input-sm ht-input" v-model="item.remark" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div slot="footer">
+            </div>
+        </Modal>
+
+        <Modal v-model="uploadExlVisible" width="600" title="导入信息" :mask-closable="false">
+            <div class="ht-detailModalContent">
+                <ht-upload-exl :upload-data="uploadData" :upload_config="upload_config" @close-modal="uploadExlModal"></ht-upload-exl>
+            </div>
+            <div slot="footer">
+            </div>
+        </Modal>
+
+        <Modal v-model="deleteVisible" title="信息提示" :loading="deleteLoading" @on-ok="deleteOK">
+            <p>确认要删除记录？</p>
+        </Modal>
+
+        <Modal v-model="detailDeleteVisible" title="信息提示" :loading="detailDeleteLoading" @on-ok="detailDeleteOK">
+            <p>确认要删除记录？</p>
+        </Modal>
+
+        <Modal v-model="modelTitle1Visible" width="550" :title="modelTitle1" :mask-closable="false">
+            <div class="ht-detailModalContent">
+                <p slot="title">客户</p>
+                <div class="ht-lineHeight30 form-group form-group-sm col-sm-12">
+                    <label class="col-sm-6 control-label ht-paddingRight0">客户应收账款--> 总账会计科目
+                    </label>
+                    <div class="col-sm-6">
+                        <i-input v-model="modelFormDataClient.client1.discountSubject" readonly="true" @on-click="showSubjectVisable(1)"
+                            icon="ios-list-outline" type="text"></i-input>
+                    </div>
+                </div>
+                <div class="ht-lineHeight30 form-group form-group-sm col-sm-12">
+                    <label class="col-sm-6 control-label ht-paddingRight0">客户预收账款--> 总账会计科目
+                    </label>
+                    <div class="col-sm-6">
+                        <i-input v-model="modelFormDataClient.client2.discountSubject" readonly="true" @on-click="showSubjectVisable(2)"
+                            icon="ios-list-outline" type="text"></i-input>
+                    </div>
+                </div>
+                <p slot="title">供应商</p>
+                <div class="ht-lineHeight30 form-group form-group-sm col-sm-12">
+                    <label class="col-sm-6 control-label ht-paddingRight0">供应商应付账款--> 总账会计科目
+                    </label>
+                    <div class="col-sm-6">
+                        <i-input v-model="modelFormDataSupplier.supplier1.discountSubject" readonly="true" @on-click="showSubjectVisable(3)"
+                            icon="ios-list-outline" type="text"></i-input>
+                    </div>
+                </div>
+                <div class="ht-lineHeight30 form-group form-group-sm col-sm-12">
+                    <label class="col-sm-6 control-label ht-paddingRight0">供应商预付账款--> 总账会计科目
+                    </label>
+                    <div class="col-sm-6">
+                        <i-input v-model="modelFormDataSupplier.supplier2.discountSubject" readonly="true" @on-click="showSubjectVisable(4)"
+                            icon="ios-list-outline" type="text"></i-input>
+                    </div>
+                </div>
+                <div class="ht-commTxtRight">
+                    <i-button @click="initProjectData">确定</i-button>
+                    <i-button @click="closeGo">取消</i-button>
+                </div>
+            </div>
+            <div slot="footer"></div>
+        </Modal>
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+
+        <Modal v-model="deleteVisible" title="信息提示" :loading="deleteLoading" @on-ok="deleteOK">
+            <p>确认要删除记录？</p>
+        </Modal>
+
+        <!--<Button @click="modal7 = true">Disable upper right corner (including Esc key)</Button>-->
+        <Modal v-model="showMsg" title="信息提示" :closable="false" @on-ok="exitInitOk" @on-cancel="exitInit">
+            <p>系统已启用，不能再进行应收应付初始数据处理</p>
+            <br />
+            <p>如要对初始化数据进行修改，请确认是否进行反初始化</p>
+            <br />
+            <label class="ml20">
+                <input type="checkbox" v-model="oppositeEndInit"> 反初始化
+            </label>
+        </Modal>
+
+    </div>
+
+    <!--<script type="text/javascript" src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>-->
+    <script type="text/javascript" src="${rc.contextPath}/ktc/components/accounting/src/utils/date.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/Receivable/ht-upload-exl.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/Receivable/index.js"></script>
+    #parse("modules/public/footer.html")
+</body>

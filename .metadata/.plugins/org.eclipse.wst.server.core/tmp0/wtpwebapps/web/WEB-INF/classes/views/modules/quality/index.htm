@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>合并版使用 - layui</title>
+
+<link rel="stylesheet" href="../plugins/layui/css/layui.css">
+<style>
+body{padding: 10px;}
+</style>
+</head>
+<body>
+
+<blockquote class="layui-elem-quote layui-text">
+<strong>前端页面演示</strong> - 针对需求文档：
+KTC-ERP-CW-GL
+ERP系统需求规格
+说明书---系统公共参数
+与初始化（总帐、应收应付、出纳）
+</blockquote>
+<div class="layui-form">
+  <table class="layui-table">
+    <colgroup>
+      <col width="500">
+      <col width="60">
+	  <col >
+    </colgroup>
+    <thead>
+      <tr>
+        <th>页面</th>
+        <th>演示</th>
+        <th>备注</th>
+      </tr> 
+    </thead>
+    <tbody>
+      <tr>
+        <td>07 系统参数设置</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td></td>
+      </tr>
+      <tr>
+        <td>08.01总帐模块初始化-------期初余额录入</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td>如有细化的分支页面，复制本行再单独新建一个页面演示。下同。</td>
+      </tr>
+      <tr>
+        <td>08.02总帐模块初始化----------期初余额导入</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td></td>
+      </tr>
+      <tr>
+        <td>08.03  应收应付模块初始化-------期初余额录入</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td></td>
+      </tr>
+      <tr>
+        <td>08.04  应收应付模块初始化-------期初余额导入</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td></td>
+      </tr>
+      <tr>
+        <td>08.05  出纳模块初始化-------期初余额导入</td>
+        <td><a target="_blank" href="###">查看</a></td>
+		<td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="demo1"></div>
+<button class="layui-btn demo" data-type="test">测试弹出式Form</button>
+
+
+<script src="../plugins/layui/layui.all.js"></script>
+<script>
+;!function(){
+  var $ = layui.jquery
+  ,layer = layui.layer
+  ,form = layui.form
+  ,laypage = layui.laypage;
+  
+  layer.ready(function(){
+    //layer.msg('hello');
+  });
+  
+  laypage.render({
+    elem: 'demo1'
+    ,count: 100 //总页数
+  });
+  
+  
+  //触发事件
+  var active = {
+    test: function(){
+      layer.open({
+        type: 1
+        ,resize: false
+        ,content: ['<ul class="layui-form" style="margin: 10px;">'
+          ,'<li class="layui-form-item">'
+            ,'<label class="layui-form-label">邮箱激活</label>'
+            ,'<div class="layui-input-block">'
+              ,'<select name="activate">'
+                ,'<option value="0">未激活</option>'
+                ,'<option value="1">已激活</option>'
+              ,'<select>'
+            ,'</div>'
+          ,'</li>'
+          ,'<li class="layui-form-item" style="text-align:center;">'
+            ,'<button type="submit" lay-submit lay-filter="*" class="layui-btn">提交</button>'
+          ,'</li>'
+        ,'</ul>'].join('')
+        ,success: function(layero){
+          layero.find('.layui-layer-content').css('overflow', 'visible');
+          
+          form.render().on('submit(*)', function(data){
+            layer.msg(JSON.stringify(data.field));
+          });
+        }
+      });
+    }
+  };
+  $('.demo').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+}();
+</script>
+</body>
+</html>

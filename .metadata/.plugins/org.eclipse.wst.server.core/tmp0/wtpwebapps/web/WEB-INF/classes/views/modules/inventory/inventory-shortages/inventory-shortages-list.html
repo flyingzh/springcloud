@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>盘亏单列表</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/inventory/inventory-shortages/inventory-shortages-list.css'>
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="documentNo"
+            :receipt-status="documentStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/profitLossController/findUserOperation?documentType'
+            url-init-approve='${rc.contextPath}/profitLossController/queryProcessByReceiptsId'
+            url-approve='${rc.contextPath}/profitLossController/submitApproval'
+            url-table-data='${rc.contextPath}/profitLossController/queryReceiptsById'
+            @on-auto-approve="autoApproveOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" @click="search">刷新</span>
+            <span class="pd-rg-md is-disabled-update" @click="update">修改</span>
+            <span class="pd-rg-md" @click="submit">提交</span>
+            <span class="pd-rg-md" @click="approval">审核</span>
+            <span class="pd-rg-md" @click="reject">驳回</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <div class="search-menu " style="height: 25px;" v-show="isSearchHide">
+            <i-form label-width="100" v-show="isSearchHide">
+                <i-col span="8">
+                    <form-item label="盘亏单编号：">
+                        <i-input type="text" style="width: 200px" v-model="body.profitLossNo"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                    <form-item label="盘点报告编号：">
+                        <i-input type="text" style="width: 200px" v-model="body.reportNo"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                    <form-item label="单据类型：">
+                        <i-select v-model="body.profitLossMark" @on-clear="defaultDocumentType('mark')" clearable
+                                  ref="mark" class="ht-input-width"
+                                  style="width: 200px;display: inline-block;">
+                            <i-option v-for="item in selectDocumentType" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                        </i-select>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="盘点方案编号：">
+                        <i-input type="text"  style="width: 200px" v-model="body.planNo"
+                                 class="ht-input-width"></i-input>
+                    </form-item>
+                    <form-item label="单据状态：">
+                        <i-select v-model="body.documentStatus" @on-clear="defaultDocumentType('status')" ref="status" clearable class="ht-input-width" style="width: 200px;display: inline-block;" >
+                            <i-option v-for="item in selectStatus" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                        </i-select>
+                    </form-item>
+                    <!--<form-item label="仓库或柜台：">-->
+                    <!--<i-select v-model="body.warehouseOrCounter" class="ht-input-width" style="width: 200px;display: inline-block;" multiple>-->
+                    <!--<i-option v-for="item in selectWarehouseOrCounter" :value="item.value" :key="item.value">{{item.label}}</i-option>-->
+                    <!--</i-select>-->
+                    <!--/form-item>-->
+                </i-col>
+                <i-col span="8">
+                    <form-item label="盘点方案名称：">
+                        <i-input v-model="body.planName" style="width: 200px;"></i-input>
+                    </form-item>
+                    <form-item label="创建日期：">
+                        <date-picker  format="yyyy/MM/dd" type="daterange" placement="bottom-end"
+                                      placeholder="Select date" style="width: 200px" v-model="invertoryTime"></date-picker>
+                    </form-item>
+                    <form-item>
+                        <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                 class="inline-block"></ht-btns>
+                    </form-item>
+                </i-col>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="tblInventoryList" :data_config="data_config_inventory_list"
+                            :need-reload="reload_inventory_list" v-show="isTabulationHide" :return-row-data="true" v-model="selectedUnpicked"></base-data-list>
+        </div>
+        </div>
+</div>
+<script>
+    htLoadJs([
+            'access',
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+
+            '${rc.contextPath}/js/inventory/inventory-shortages/inventory-shortages-list.js'
+        ],
+    );
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

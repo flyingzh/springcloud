@@ -1,0 +1,11 @@
+.active{
+    background: #f1f1f1;
+}
+#recordGoods td:not(:first-child){
+    vertical-align: middle;
+    text-align: center;
+}
+.is-disabled{
+    pointer-events:none;
+    color:#bbbec4
+}

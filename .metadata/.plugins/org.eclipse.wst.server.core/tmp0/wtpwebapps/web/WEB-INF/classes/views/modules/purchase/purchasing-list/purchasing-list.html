@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>采购清单</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+<div id="purchasingList" v-cloak>
+
+    <div>
+        <div class="btn-menu ht-menu-fix">
+            <i-button type="text" class="pd-rg-md" @click="refresh">刷新</i-button>
+            <i-button type="text" class="pd-rg-md" @click="exit">退出</i-button>
+        </div>
+        <div style="height: 45px"></div>
+        <div v-show="isSearchHide">
+            <i-form  label-width="120">
+                <row :gutter="16">
+                    <i-col span="8" >
+                        <form-item label="商品类型：">
+                            <cascader class="ht-width-input"
+                                      :data="categoryType"
+                                      trigger="hover"
+                                      change-on-select
+                                      v-model="commodityCategoty"
+                                      placeholder="商品类型" ></cascader>
+                        </form-item>
+                        <form-item label="款式类型：">
+                            <cascader v-model="newCustomCode"
+                                      :data="productType"
+                                      trigger="hover"
+                                      class="ht-width-md"
+                                      change-on-select></cascader>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="供应商：">
+                            <!--<i-select class="ht-width-input"  filterable clearable v-model="body.supplierId" ref="supplierName">-->
+                                <!--<i-option v-for="item in suppliers" :value="item.id">{{item.supplierName}}</i-option>-->
+                            <!--</i-select>-->
+                            <ht-selectsupplier title="供应商" @getinfo="closeSupplier" ref="supplier" is-check="no"></ht-selectsupplier>
+                        </form-item>
+                        <form-item label="下单日期：">
+                            <date-picker  format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="下单日期" class="ht-width-input" v-model="dateArr" ></date-picker>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="成色：">
+                            <i-select
+                                    class="ht-width-input"
+                                    placeholder="成色"
+                                    v-model="body.goldColor"
+                                    transfer
+                                    clearable
+                                    @on-clear="clearItem('goldColor', 'pColor')"
+                                    ref="pColor">
+                                <i-option v-for="item in colour" :value="item" :key="item">{{item}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="商品名称：">
+                            <i-input class="ht-width-input " placeholder="请输入关键字" v-model="body.goodsName"></i-input>
+                        </form-item>
+                        <form-item>
+                            <i-button type="primary" @click="search">搜索</i-button>
+                            <i-button type="primary" @click="clear">清空</i-button>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div style="height: 25px">
+            <span class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            </span>
+        </div>
+        <div>
+            <tabs :value="currentTab" @on-click="switchTab">
+                <tab-pane label="待采购列表" name="tab1" >
+                    <i-button type="primary" @click="order('general','out')">采购下单</i-button>
+                    <table class="edit-table">
+                        <thead>
+                        <th class="width-xs text-center">
+                            <input type="checkbox" v-model="isCheckedAll" @click="getAll('general')">
+                        </th>
+                        <th>商品图片</th>
+                        <th>商品类型</th>
+                        <th>倒计时</th>
+                        <th>商品编码</th>
+                        <th>商品名称</th>
+                        <th>待采购总数量</th>
+                        <th>待采购总重量</th>
+                        <th style="width: 230px">供应商</th>
+                        <th>业务员</th>
+                        <th>需求交货日期</th>
+                        <th>详细</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in generalList">
+                            <td class="width-xs text-center">
+                                <input type="checkbox" @click="getOutData('general',index)" :checked="outIndex.indexOf(index)>=0">
+                            </td>
+                            <!--商品图片-->
+                            <td>
+                                <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                            </td>
+                            <!--商品类型-->
+                            <td>{{item.goodsType}}</td>
+                            <!--倒计时-->
+                            <td></td>
+                            <!--商品编码-->
+                            <td>{{item.goodsCode}}</td>
+                            <!--商品名称-->
+                            <td>{{item.goodsName}}</td>
+                            <!--待采购总数量-需要计算-->
+                            <td>{{item.totalAmount}}</td>
+                            <td>{{item.totalWeight}}</td>
+                            <!--供应商-->
+                            <td>
+                                {{item.supplierShortName}}
+                            </td>
+                            <!--采购员-->
+                            <td>
+                                <!--<i-select-->
+                                        <!--v-model="item.buyer"-->
+                                        <!--@on-open-change="queryBuyer(item.buyer,index)"-->
+                                        <!--transfer-->
+                                        <!--@on-change="getBuyerName($event,item)"-->
+                                        <!--label-in-value                                >-->
+                                    <!--<i-option v-for="(tmp,i) in buyerOptions[index]" :value="tmp.id" :key="i">{{tmp.emp_name}}</i-option>-->
+                                <!--</i-select>-->
+                                <i-select
+                                        v-model="item.buyer"
+                                        @on-change="getBuyerName($event,item)"
+                                        label-in-value
+                                        transfer>
+                                    <i-option v-for="(tmp,i) in item.buyerInfo" :value="tmp.id" :key="i">{{tmp.emp_Name}}</i-option>
+                                </i-select>
+                            </td>
+                            <!--需求交货日期-->
+                            <td></td>
+                            <!--详细-->
+                            <td class="text-center">
+                                <a class="ht-font-color" @click="showDetailList('general',index)">详细</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div style="text-align:center;margin-top:20px">
+                        <page :total="totalGeneral"
+                              :current="currentGeneral"
+                              :page-size-opts="[10,20,30,40]"
+                              @on-change="changePages"
+                              @on-page-size-change="changePageSize"
+                              size="small"
+                              show-sizer show-total></page>
+                    </div>
+                    <!-- 点击详细的弹窗 -->
+                    <modal v-model="showDetail" title="详细" @on-ok="order('general','inner')" @on-cancel="cancel('general')" width="1000" ok-text="采购下单">
+                        <div>
+                            <i-table
+                                    border
+                                    ref="selection"
+                                    :columns="columnData"
+                                    :data="detailDataList"
+                                    on-change
+                                    @on-select="getOneRow"
+                                    @on-select-all="getAllRow"
+                                    @on-selection-change="cancelOneRow"
+                            ></i-table>
+                        </div>
+                    </modal>
+                    <!--选择供应商弹窗-->
+                    <modal v-model="showSupplier" title="请选择供应商" width="800" >
+                        <table class="edit-table">
+                            <thead>
+                                <th class="width-sm">序号</th>
+                                <th style="width:100px">操作</th>
+                                <th style="width:200px">供应商编码</th>
+                                <th style="width:200px">供应商名称</th>
+                                <th style="width:200px">供应商评分</th>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(k,i) in supplierData">
+                                    <td class="text-center width-sm">{{i+1}}</td>
+                                    <td class="text-center" ><a @click="getData(k.supplierId,k.supplierName,orderType,orderGenre)">选取</a></td>
+                                    <td class="text-center">{{k.supplierCode}}</td>
+                                    <td class="text-center">{{k.supplierName}}</td>
+                                    <td class="text-center">{{k.totleScore}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div slot="footer"></div>
+                    </modal>
+                </tab-pane>
+                <tab-pane label="受托加工待采购列表" name="tab2">
+                    <i-button type="primary" @click="order('purchase','out')">采购下单</i-button>
+                    <table class="edit-table">
+                        <thead>
+                        <th class="width-xs text-center">
+                            <input type="checkbox" v-model="isCheckall" @click="getAll('purchase')" >
+                        </th>
+                        <th>商品图片</th>
+                        <th>商品类型</th>
+                        <th>倒计时</th>
+                        <th>商品编码</th>
+                        <th>商品名称</th>
+                        <th>待采购总数量</th>
+                        <th>待采购总重量</th>
+                        <th style="width: 230px">供应商</th>
+                        <th>业务员</th>
+                        <th>需求交货日期</th>
+                        <th>详细</th>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(item,index) in purchasingList">
+                            <td class="width-xs text-center">
+                                <input type="checkbox" @click="getOutData('purchase',index)" :checked="oIndex.indexOf(index)>=0">
+                            </td>
+                            <!--商品图片-->
+                            <td>
+                                <ht-img-magnifier :url="item.pictureUrl"></ht-img-magnifier>
+                            </td>
+                            <!--商品类型-->
+                            <td>{{item.goodsType}}</td>
+                            <!--倒计时-->
+                            <td></td>
+                            <!--商品编码-->
+                            <td>{{item.goodsCode}}</td>
+                            <!--商品名称-->
+                            <td>{{item.goodsName}}</td>
+                            <!--待采购总数量-需要计算-->
+                            <td>{{item.totalAmount}}</td>
+                            <!--待采购总重量-->
+                            <td>{{item.totalWeight}}</td>
+                            <!--供应商-->
+                            <td>
+                                {{item.supplierShortName}}
+                            </td>
+                            <!--采购员-->
+                            <td>
+                                <!--<i-select-->
+                                        <!--v-model="item.buyerInfo"-->
+                                        <!--transfer-->
+                                        <!--@on-open-change="queryBuyer(item.buyer,index)">-->
+                                    <!--<i-option v-for="(tmp,i) in buyerOptions[index]" :value="tmp" :key="i">{{tmp.emp_name}}</i-option>-->
+                                <!--</i-select>-->
+                                <i-select
+                                        v-model="item.buyer"
+                                        @on-change="getBuyerName($event,item)"
+                                        label-in-value
+                                        transfer>
+                                    <i-option v-for="(tmp,i) in item.buyerInfo" :value="tmp.id" :key="i">{{tmp.emp_Name}}</i-option>
+                                </i-select>
+                            </td>
+                            <!--需求交货日期-->
+                            <td></td>
+                            <!--详细-->
+                            <td class="text-center">
+                                <a class="ht-font-color" @click="showDetailList('purchase',index)">详细</a>
+                            </td>
+                        </tr>
+                        <!--</tbody>-->
+                    </table>
+                    <!-- 点击详细的弹窗 -->
+                    <modal v-model="showPurcahseDetail" title="详细" @on-ok="order('purchase','inner')" @on-cancel="cancel('purchase')" width="1000" ok-text="采购下单">
+                        <div>
+                            <i-table
+                                    border
+                                    ref="selectContent"
+                                    :columns="columnData"
+                                    :data="detailDataList"
+                                    @on-select="oneRow"
+                                    @on-select-all="allRow"
+                                    @on-selection-change="changeRow"
+                            ></i-table>
+                        </div>
+                    </modal>
+                    <div style="text-align:center;margin-top:20px">
+                        <page :total="totalPurchase"
+                              :current="currentPurchase"
+                              :page-size-opts="[10,20,30,40]"
+                              @on-change="switchPages"
+                              @on-page-size-change="switchPageSize"
+                              size="small"
+                              show-sizer show-total></page>
+                    </div>
+                </tab-pane>
+            </tabs>
+        </div>
+    </div>
+</div>
+    <script src='${rc.contextPath}/js/components/ht-img-magnifier.js'></script>
+    <script src='${rc.contextPath}/js/components/ht-selectsupplier.js'></script>
+    <script src='${rc.contextPath}/js/purchase/purchasing-list.js'></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

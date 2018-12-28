@@ -1,0 +1,1 @@
+"use strict";new Vue({el:"#warehouseLocation",data:{},methods:{save:function(){$("form").valid()&&console.log(this.$data)}},mounted:function(){$("form").validate()}});

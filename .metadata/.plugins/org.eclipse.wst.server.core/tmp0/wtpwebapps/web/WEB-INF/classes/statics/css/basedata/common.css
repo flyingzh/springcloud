@@ -1,0 +1,531 @@
+﻿/* base */
+h1,h2,h3,h4,h5,h6,ul,li,dd,dt,th,tr,td{
+    margin: 0;
+    padding: 0;
+}
+/* text-align */
+.text-lf{
+    text-align: left;
+}
+.text-rg{
+    text-align: right;
+}
+/*input-width */
+.ht-width-md{
+    width:200px;
+}
+.ht-width-lg{
+    width:260px;
+}
+
+.ht-width-md{
+    width:260px;
+}
+
+
+/* padding */
+.pd-lf-sm{
+    padding-left:10px;
+}
+.pd-rg-sm{
+    padding-right:10px;
+}
+.pd-top-sm{
+    padding-top:10px;
+}
+.pd-bm-sm{
+    padding-bottom:10px;
+}
+/********************/
+.pd-lf-md{
+    padding-left:20px;
+}
+.pd-rg-md{
+    padding-right:20px;
+}
+.pd-top-md{
+    padding-top:20px;
+}
+.pd-bm-md{
+    padding-bottom:20px;
+}
+/********************/
+.pd-sm {
+    padding: 10px;
+}
+.pd-md{
+    padding: 20px;
+}
+/* margin */
+.mg-lf-sm{
+    margin-left:10px;
+}
+.mg-rg-sm{
+    margin-right:10px;
+}
+.mg-top-sm{
+    margin-top:10px;
+}
+.mg-bm-sm{
+    margin-bottom:10px;
+}
+/********************/
+.mg-lf-md{
+    margin-left:20px;
+}
+.mg-rg-md{
+    margin-right:20px;
+}
+.mg-top-md{
+    margin-top:20px;
+}
+.mg-bm-md{
+    margin-bottom:20px;
+}
+/********************/
+.mg-sm{
+    margin: 10px;
+}
+.mg-md{
+    margin: 20px;
+}
+/* mouse */
+.mouse-point{
+    cursor: pointer;
+}
+
+/* display */
+.inline-block{
+    display: inline-block;
+}
+.flex{
+    display: flex;
+}
+.flex-bwn{
+    display: flex;
+    justify-content: space-between;
+}
+
+/* background-color */
+.bg-gray{
+    background: #F2F2F2;
+}
+.bg-gray-less{
+    background: #E8E8E8;
+}
+.bg-tree {
+    background:#f8f8f8;
+}
+/* 按钮栏 */
+/* 生成分割线 */
+.split-line::after {
+    content: '|';
+    margin: 0 5px;
+}
+/* 按钮栏 */
+.btn-menu {
+    padding:5px 10px;
+    background: #F2F2F2;
+    width:100%;
+}
+.btn-menu>span {
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+.btn-menu{
+    position: relative;
+}
+.btn-menu .ivu-input-wrapper{
+    width: auto;
+}
+/* 按钮栏下过滤框 */
+.btn-menu .filter{
+    padding: 20px 0;
+    background: #FFF;
+    min-width: 380px;
+    border: 1px solid #ccc;
+    position: absolute;
+    top: 10px;
+    left: -4px;
+    z-index: 1;
+}
+.btn-menu .level{
+    display: block;
+}
+.btn-menu .level input{
+    width: 60px;
+}
+.btn-menu .check{
+    display: block;
+}
+.btn-menu .ivu-form-item-content{
+    margin-left: 14px !important;
+}
+.btn-menu .ivu-form-item{
+    margin-bottom: 12px;
+}
+.btn-menu .code input{
+    width: 100px;
+}
+/* 菜单栏顶部固定 */
+.ht-menu-fix{
+    position:fixed;
+    z-index: 999;
+}
+/* 菜单栏顶部固定占位 */
+div.ht-menu-top{
+    padding-top:60px;
+    margin-top:0px;
+}
+/* 小标题 */
+.title-font{
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 5px;
+}
+/* 搜索框 */
+.search-menu{
+    margin:20px 0;
+}
+.search-menu>label{
+    font-size: 14px;
+    margin:0 10px;
+    font-weight: normal;
+}
+
+.search-menu>select{
+    width:200px;
+    display: inline-block;
+}
+/*输入框宽度*/
+.ht-width-input{
+    width: 200px;
+}
+/* 数据列表页折叠按钮 */
+.chevron{
+    display: inline-block;
+    /*position: relative;*/
+    position: absolute;
+    left: 50%;
+    border: 1px solid #cabcbc;
+    padding-left: 5px;
+    /*width: 43px;*/
+    height: 18px;
+    font-size: 8px;
+    color: #999999;
+    border-radius:5px 5px 0 0;
+    margin-bottom: 10px;
+}
+.chevron span i{
+    display: initial;
+    font-size: 10px;
+    width: 30px;
+    cursor: pointer;
+    padding-right: 6px;
+}
+.chevron span :hover {
+    color: #ebe3e3;
+}
+/* 审核章 */
+.ht-approve-stamp{
+    position: absolute;
+    color:#f00;
+    width:55px;
+    height: 30px;
+    border:1px solid #f00;
+    border-radius:48%;
+    transform:rotate(-25deg);
+    top:3%;
+    left:1%;
+    padding:0px 8px;
+    font-size: 18px;
+}
+/* 可输入表格 */
+/* 普通样式 宽度120px*/
+.edit-table td,
+th {
+    width: 120px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #C9C9C9;
+    position: relative;
+}
+
+.edit-table td>input:not([type=checkbox]),
+select {
+    width: 100%;
+    height: 40px;
+    border: none;
+    font-size: 14px;
+    padding-left: 5px;
+    padding-right: 10px;
+}
+/* 表头样式 */
+.edit-table th {
+    text-align: center;
+    background: #F2F2F2;
+}
+/* 合计样式 */
+.edit-table>tfoot>tr>td{
+    background: #F2F2F2;
+}
+.edit-table tr>th:first-child,
+.edit-table tr>td:first-child {
+    text-align: center;
+    width: 50px;
+}
+/* 用于表格内序号、操作的列，class名： width-xs */
+.edit-table th.width-xs,
+.edit-table td.width-xs{
+    width:80px;
+}
+/* 用于表格内较窄的列，class名： width-sm */
+.edit-table th.width-sm,
+.edit-table td.width-sm{
+    width:80px;
+}
+/* 用于表格内一般宽度的列，class名： width-md */
+.edit-table th.width-md,
+.edit-table td.width-md{
+    widows: 120px;
+}
+/* 用于表格内较宽的列，class名： width-lg */
+.edit-table th.width-lg,
+.edit-table td.width-lg{
+    width:240px;
+}
+
+.clearfix:after{
+    display: block;
+    content: '';
+    clear: both;
+}
+
+/* 表格内放大镜 */
+.search-icon{
+    position: absolute;
+    font-size: 20px;
+    top:30%;
+    right:5px;
+    z-index: 5;
+    cursor: pointer;
+}
+/* 小标题 */
+.ht-subtitle{
+    width: 250px;
+    border-bottom: 1px solid #999;
+    margin: 20px 0;
+    margin-left: 10px;
+}
+.ht-subtitle>div{
+    width:150px;
+    background:#999;
+    color:#fff;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    font-size:16px;
+    text-align: center;
+    height: 25px;
+    line-height: 25px;
+}
+.ht-title-font>tr>th{
+    font-size: 14px;
+    font-weight: 700
+}
+/* 菜单栏禁用 */
+.ht-disabled{
+    color:#999;
+}
+/* 验证隐藏input样式 */
+.hidden-input{
+    visibility: hidden;
+    width:0;
+    height: 0;
+}
+.hidden-input~label{
+    position: absolute;
+    top:0;
+    right:8% ;
+}
+[v-cloak]{
+    display: none;
+}
+/* 数字右对齐 */
+.ht-number-right{
+    text-align: right;
+}
+/* 必填项星星 */
+span.star:after{
+    content: '*';
+    color: red;
+    font-size: 13px;
+    width:10px;
+    display:inline-block;
+}
+
+/*滚动条*/
+::-webkit-scrollbar {
+    width:6px;
+    height:6px;
+}
+::-webkit-scrollbar-button:vertical {
+    display:none
+}
+::-webkit-scrollbar-corner, ::-webkit-scrollbar-track {
+    background-color:#e2e2e2;
+}
+::-webkit-scrollbar-thumb {
+    border-radius:0;
+    background-color:rgba(0, 0, 0, .3)
+}
+::-webkit-scrollbar-thumb:vertical:hover {
+    background-color:rgba(0, 0, 0, .35)
+}
+::-webkit-scrollbar-thumb:vertical:active {
+    background-color:rgba(0, 0, 0, .38)
+}
+/* .ui-jqgrid, .ui-jqgrid .ui-jqgrid-view, .ui-jqgrid .ui-jqgrid-hdiv, .ui-jqgrid .ui-jqgrid-bdiv, .ui-jqgrid .ui-jqgrid-pager, .ui-jqgrid .ui-jqgrid-toppager {
+    width: auto !important;
+} */
+
+/* display */
+.inline{display:inline;}
+.inline-block{display:inline-block;}
+
+/* margin & padding */
+.mg0{margin:0;}
+.mg10{margin:10px;}
+.mt0{margin-top:0;}
+.mt5{margin-top:5px;}
+.mt10{margin-top:10px;}
+.mt20{margin-top:20px;}
+.mt30{margin-top:30px;}
+.mr0{margin-right:0;}
+.mr10{margin-right:10px;}
+.mr20{margin-right:20px;}
+.mr30{margin-right:30px;}
+.ml0{margin-left:0;}
+.ml10{margin-left:10px;}
+.ml20{margin-left:20px;}
+.ml30{margin-left:30px;}
+.pd0{padding:0;}
+.pd5{padding:5px;}
+.pd10{padding:10px;}
+.pl0{padding-left:0;}
+.pl5{padding-left:5px;}
+.pl10{padding-left:10px;}
+.pl20{padding-left:20px;}
+.pl30{padding-left:30px;}
+.pd5{padding:5px;}
+.pd10{padding:10px;}
+.pd20{padding:20px;}
+.pd30{padding:30px;}
+.pr0{padding-right:0;}
+.pr5{padding-right: 5px;}
+.pr10{padding-right:10px;}
+.pr20{padding-right:20px;}
+.pr30{padding-right:30px;}
+.pt0{padding-top:0;}
+.pt5{padding-top:5px;}
+.pt10{padding-top:10px;}
+.pt20{padding-top:20px;}
+.pt30{padding-top:30px;}
+.pl30{padding-left:30px;}
+.pb0{padding-bottom:0;}
+.pb5{padding-bottom:5px;}
+.pb10{padding-bottom:10px;}
+.pb20{padding-bottom:20px;}
+.pb30{padding-bottom:30px;}
+.pd-sm{padding:10px;}
+.pd-md{padding:20px;}
+.pd-lg{padding: 30px;}
+
+.ht-float-right{float: right;}
+.w120{width:120px;}
+.w85{width:85px;}
+.w100{width:100px;}
+.w130{width:130px;}
+/*计算减去140px后的宽度*/
+.calc-right-w140{
+    width:calc(100% - 140px);
+}
+.calc-right-w155{
+    width:calc(100% - 155px);
+}
+/*计算减去140px后的宽度*/
+.calc-right-w185{
+    width:calc(100% - 185px);
+}
+.ht-set-table .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > * {
+    float: right;
+}
+.ht-set-table .ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > table {
+    display: none;
+}
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+.clearfix{
+    zoom:1;
+}
+
+
+span.star:after{
+    content: '*';
+    color: red;
+    font-size: 13px;
+    width:10px;
+    display:inline-block;
+}
+.form-control{
+    padding: 0 3px;
+}
+
+
+/* iview poptip 和 modal 同时显示时的调整 */
+.js-keep-poptip .ivu-poptip-popper{z-index:960 !important;display:block !important;}
+.js-keep-poptip .fade-leave-active{-webkit-animation-name:none;animation-name:none;}
+
+.ht-poptip .form-horizontal{margin-top:0;}
+.ht-poptip .ivu-poptip-body-content{margin-bottom:10px;}
+
+/* 财务模块 start  */
+
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-nopadding{padding: 0px !important;}
+
+/* 财务模块头部菜单 背景样式等  */
+.ht-finance-top-menu,.ht-finance-top-menu-span{
+    width: 100%;position: fixed;top: 0px;z-index: 102;background-color: #DDDDDD;
+}
+.ht-finance-top-menu button.ivu-btn-text{padding: 6px 5px !important; font-size: 14px !important;}
+
+.ht-finance-top-menu-span .ht-menu-span{padding: 6px 5px !important;}
+
+/* 财务模块 end  */
+
+
+/* .ui-jqgrid, .ui-jqgrid .ui-jqgrid-view, .ui-jqgrid .ui-jqgrid-hdiv, .ui-jqgrid .ui-jqgrid-bdiv, .ui-jqgrid .ui-jqgrid-pager, .ui-jqgrid .ui-jqgrid-toppager {
+    width: auto !important;
+} */
+
+.ui-jqgrid-view, .ui-jqgrid,.ui-jqgrid-hdiv,.ui-jqgrid-sdiv,.ui-jqgrid-bdiv,.ui-jqgrid-pager{
+    width: auto !important;
+}
+
+.ui-jqgrid-labels .s-ico{display: none !important;}
+
+[v-cloak] {
+    display: none;
+}

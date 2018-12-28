@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>应收应付结算</title>
+    #parse("modules/public/header.html")
+    <style>
+        .filter label{
+            /* text-align: right; */
+        }
+        .w60 {
+            width: 60px;
+        }
+        .calc-right-w65{
+            width:calc(100% - 65px);
+        }
+    </style>
+</head>
+<body>
+<div id="receivable-settle" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="open" class="ht-btn">开始</button>
+        <button @click="outHtml" class="ht-btn">退出</button>
+    </div>
+    <Row class="pl20 pr20 mt10">
+        <label>
+            <input type="radio" value="1" v-model="formData.settleOrReverse"> 结账
+        </label>
+        <label  style="margin-left:50px">
+            <input type="radio" value="2" v-model="formData.settleOrReverse"> 反结账
+        </label>
+    </Row>
+    <div v-if="formData.settleOrReverse==='1'" class="pl20 pr20 mt10">
+        <p>当前会计期间：{{formData.accountYearPeriod}}</p>
+        <p class="mt5">下一会计期间：{{formData.nextAccountYearPeriod}}</p>
+        <p class="ht-extext ht-indent mg-bm-md">为了总结应收应付某一会计期间（年度或月度）的经营活动情况，必须定期进行应收应付结账，结账就是把一定时期内发生的经济业务在各种账簿记录结出【本期发生额】和【期末余额】，从而根据账簿记录编制会计报表。</p>
+        <p class="ht-extext ht-indent mg-bm-md">在结账之前，应先检查本期发生的各种经济业务是否都审核并已经编制记账凭证。对各种成本费用类账户，也应当在结账前对余额进行结转，并登记入账。</p>
+    </div>
+    <div v-else class="pl20 pr20 mt10">
+        <p>当前会计期间：{{formData.accountYearPeriod}}</p>
+        <p class="mt5">上一会计期间：{{formData.lastAccountYearPeriod}}</p>
+        <!--<label class="mt5">-->
+            <!--<input type="checkbox" v-model="formData.whetherToCancel"> 取消本期所作对以前记录的勾对-->
+        <!--</label>-->
+        <p class="mt5">说明：你可以利用“反结账”工具将当前会计期间返回到已结账的期间。你应当慎重使用反结账功能。</p>
+    </div>
+</div>
+
+    <script src="${rc.contextPath}/js/finance/finalAccountsReceivable/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

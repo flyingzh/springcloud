@@ -1,0 +1,227 @@
+﻿/* base */
+h1,h2,h3,h4,h5,h6,ul,li,dd,dt,th,tr,td{
+    margin: 0;
+    padding: 0;
+}
+/* text-align */
+.text-lf{
+    text-align: left;
+}
+.text-rg{
+    text-align: right;
+}
+/* width */
+.width-lg{
+    width:90%
+}
+
+.width-full{
+    width:100%;
+}
+
+.ht-width-md{
+    width:260px;
+}
+
+input.ht-width-md,
+select.ht-width-md{
+
+    width:65%;
+
+}
+
+
+input.ht-width-sm{
+
+   width:30%;
+
+}
+
+
+input.ht-width-ssm{
+
+    width:20%;
+
+}
+
+/* padding */
+.pd-lf-sm{
+    padding-left:10px;
+}
+.pd-rg-sm{
+    padding-right:10px;
+}
+.pd-top-sm{
+    padding-top:10px;
+}
+.pd-bt-sm{
+    padding-bottom:10px;
+}
+.pd-sm {
+    padding: 10px;
+}
+.pd-md{
+    padding: 20px;
+}
+/* margin */
+.mg-lf-sm{
+    margin-left: 10px;
+}
+.mg-top-sm{
+    margin-top: 10px;
+}
+.mg-top-md{
+    margin-top:20px;
+}
+.mg-bm-md{
+    margin-bottom:20px;
+}
+/* mouse */
+.mouse-point{
+    cursor: pointer;
+}
+
+/* display */
+.inline-block{
+    display: inline-block;
+}
+.flex{
+    display: flex;
+}
+.flex-bwn{
+    display: flex;
+    justify-content: space-between;
+}
+
+/* background-color */
+.bg-gray{
+    background: #F2F2F2;
+}
+.bg-gray-less{
+    background: #E8E8E8;
+}
+/* 左边栏宽度 */
+.sider-left{
+    width:400px;
+    border:1px solid #E8E8E8;
+    margin-right:10px;
+}
+
+
+/* 按钮栏 */
+/* 生成分割线 */
+.split-line::after {
+    content: '|';
+    margin: 0 5px;
+}
+/*  */
+.btn-menu {
+    padding:5px 10px;
+    background: #F2F2F2;
+    width:100%;
+}
+
+.btn-menu>span {
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* 小标题 */
+.title-font{
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 5px;
+}
+/* 搜索框 */
+.search-menu{
+    margin:20px 0;
+}
+.search-menu>label{
+    font-size: 14px;
+    margin:0 10px;
+    font-weight: normal;
+}
+
+.search-menu>select{
+    width:200px;
+    display: inline-block;
+}
+/* input框 */
+.input-width{
+    width:200px;
+    display: inline-table;
+}
+/*输入框宽度*/
+.ht-width{   
+    display: inline-block;
+    width: 54%;
+}
+.ht-add{
+    width:45%;
+}
+.ht-form{
+    width:80%;
+}
+
+/* 可输入表格 */
+.edit-table td,
+th {
+    width: 120px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #C9C9C9;
+    position: relative;
+}
+
+.edit-table td>input:not([type=checkbox]),
+select {
+    width: 100%;
+    height: 40px;
+    border: none;
+    font-size: 14px;
+    padding-left: 5px;
+}
+
+.edit-table th {
+    text-align: center;
+    background: #F2F2F2;
+}
+.edit-table tr,th>td:first-child {
+    text-align: center;
+    width: 30px;
+}
+.clearfix:after{
+    display: block;
+    content: '';
+    clear: both;
+}
+
+/* 表格内放大镜 */
+.search-icon{
+    position: absolute;
+    font-size: 18px;
+    top:30%;
+    right:5px;
+}
+/* 小标题 */
+.ht-subtitle{
+    width: 250px;
+    border-bottom: 1px solid #999;
+    margin: 20px 0;
+    margin-left: 10px;
+}
+.ht-subtitle>div{
+    width:100px;
+    background:#999;
+    color:#fff;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    font-size:16px;
+    text-align: center;
+    height: 25px;
+    line-height: 25px;
+}
+.ht-title-font>tr>th{
+    font-size: 14px;
+    font-weight: 700
+} 

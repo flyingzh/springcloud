@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>特别放行单</title>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="SRDocument" v-cloak>
+
+    <!-- 启用多级审核时单据上的操作——审核 approveComment控制驳回框显示隐藏 -->
+    <modal
+            title="审核"
+            v-model="approveComment"
+            :closable="false"
+            @on-ok="getApproveInfo">
+        <div>
+            <p class="mg-bm-md">
+                <span >当前节点：{{currentStep}}</span>
+                <span class="mg-lf-sbg">下级节点：{{nextStep}}</span>
+            </p>
+            <span>审核意见</span>
+            <i-input type="textarea" :rows="4" v-model="approvement.approvalInfo" placeholder="请输入审批意见"></i-input>
+        </div>
+    </modal>
+    <!-- 启用多级审核时单据上的操作——驳回  rejectComment控制驳回框显示隐藏 -->
+    <modal
+            title="驳回"
+            v-model="rejectComment"
+            :closable="false"
+            @on-ok="getRejectInfo">
+        <div>
+            <radio-group v-model="rejectement.approvalResult" class="mg-bm-md" >
+                <radio label="0" checked>驳回上一级</radio>
+                <radio label="-1" class="mg-lf-sbg">驳回到开始级次</radio>
+            </radio-group>
+            <p style="font-weight: 600" class="mg-bm-md">驳回意见</p>
+            <i-input  type="textarea" :rows="4" v-model="rejectement.approvalInfo" placeholder="请输入驳回意见"></i-input>
+        </div>
+    </modal>
+
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+
+        <div class="btn-menu ht-menu-fix">
+            <span @click="reloadAgain" class="pd-rg-sm pd-lf-sm">刷新</span>
+
+            #if($shiro.hasPermission("quality:specialReleaseDocument:add"))
+            <span @click="add" class="pd-rg-sm pd-lf-sm">新增</span>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:admit"))
+            <span @click="save" class="pd-rg-sm pd-lf-sm">提交</span>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:approve"))
+            <span @click="approval" class="pd-rg-sm pd-lf-sm">审核</span>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:reject"))
+            <span @click="reject" class="pd-rg-sm pd-lf-sm">驳回</span>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:update"))
+            <span @click="modify" v-if="!isEdit" class="pd-rg-sm pd-lf-sm">修改</span>
+            #end
+            #if($shiro.hasPermission("quality:specialReleaseDocument:delete"))
+            <span @click="del" class="pd-rg-sm pd-lf-sm">删除</span>
+            #end
+            <!--<span @click="checkUp">上查</span>
+            <span class="split-line"></span>
+            <span @click="setcColumn">设置列</span>
+            <span class="split-line"></span>
+             #if($shiro.hasPermission("quality:specialReleaseDocument:attachment"))
+            <span @click="enclosure">附件</span>
+            <span class="split-line"></span>
+            #end
+            -->
+            <span @click="cancel">退出</span>
+        </div>
+        <div class="search-menu ht-menu-top"  v-show="isSearchHide">
+            <i-form label-width="120" >
+                <row>
+                    <i-col span="8">
+                        <form-item label="单据编号">
+                            <i-input v-model='body.code' placeholder="可模糊搜索" style="width:200px"></i-input>
+                        </form-item>
+                        <form-item label="申请人">
+                            <i-select v-model="body.applicantName" style="width:200px" clearable>
+                                <i-option :value="item.empName" v-for="item in applicantNameList">{{item.empCode}} | {{item.empName}}</i-option>
+                            </i-select>
+                        </form-item>
+
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据日期">
+                            <date-picker :value="dataValue" @on-change="changeDate" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="请选择日期" style="width: 200px"></date-picker>
+                        </form-item>
+                        <form-item label="送检编号">
+                           <i-input v-model='body.sourceDocumentCode' placeholder="可模糊搜索" style="width:200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="单据状态">
+                            <i-select v-model="body.documentStatus" style="width:200px" clearable>
+                                <i-option :value="item.name" v-for="item in documentStatusList">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="检验单号">
+                            <i-input v-model='body.qcDocumentCode' placeholder="可模糊搜索" style="width:200px"></i-input>
+                        </form-item>
+                        <form-item>
+                            #if($shiro.hasPermission("quality:specialReleaseDocument:view"))
+                            <ht-btns  @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                      class="inline-block" vef="inspect"></ht-btns>
+                            #end
+                        </form-item>
+                    </i-col>
+
+                </row>
+            </i-form>
+        </div>
+    </div>
+    <!--折叠显示隐藏-->
+    <div style="height:35px"></div>
+    <div style="height: 25px;">
+        <sapn class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            <span v-show="isHide" style="padding-right: 5px;">|</span>
+            <span v-show="isSearchHide">
+                    <Icon type="chevron-up" @click="hidTabulation" v-show="!isTabulationHide"></Icon>
+                    <Icon type="chevron-down" @click="hidTabulation" v-show="isTabulationHide" ></Icon>
+                </span>
+        </sapn>
+    </div>
+    <base-data-list v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+</div>
+
+<script src="${rc.contextPath}/js/quality/specialReleaseDocument.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

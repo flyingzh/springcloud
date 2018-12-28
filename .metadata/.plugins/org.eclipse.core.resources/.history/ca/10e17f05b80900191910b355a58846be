@@ -1,0 +1,12 @@
+package com.micro.springcloud.controller;
+
+import com.micro.springcloud.constance.Constance;
+
+public class UserController {
+	
+	public static void main(String[] args) {
+		String text = Constance.TEXT;
+	}
+	
+	
+}

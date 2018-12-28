@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>其他收据单</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/report/otherPaymentReceipt/index.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/ktc/css/ht-fixed-table.css">
+
+</head>
+
+<body>
+    <div id="otherReceipts" v-cloak>
+        <div class="btn-menu ht-finance-menu-cl">
+            <button class="ht-btn" @click="actionBtnMth('addNew')">新增</button>
+            <button class="ht-btn" @click="preserve" :disabled="isDisabled">保存</button>
+            <!--<button class="ht-btn" @click="actionBtnMth('source')">源单</i-button>-->
+            <button class="ht-btn" @click="actionBtnMth('examine')" :disabled="examineisDisabled">审核</button>
+            <button class="ht-btn" @click="actionBtnMth('noexamine')" :disabled="noexamineisDisabled">反审核</button>
+            <button class="ht-btn" @click="actionBtnMth('delete')" :disabled="deleteisDisabled">删除</button>
+            <button class="ht-btn" @click="actionBtnMth('edit')" :disabled="editisDisabled">修改</button>
+            <button class="ht-btn" @click="print">打印</button>
+            <Dropdown trigger="click" @on-click="voucherAction" placement="bottom-start" style="margin-left: 10px">
+                <button class="ht-btn">凭证
+                    <Icon type="arrow-down-b"></Icon>
+                </button>
+                <Dropdown-menu slot="list">
+                    <Dropdown-item name="addVoucher" :disabled="voucherisDisabled">生成凭证</Dropdown-item>
+                    <Dropdown-item name="showVoucher" :disabled="showVoucherDisabled">查看凭证</Dropdown-item>
+                </Dropdown-menu>
+            </Dropdown>
+            <Dropdown trigger="click" @on-click="optionAction" placement="bottom-start" style="margin-left: 20px">
+                <button class="ht-btn">选项
+                    <Icon type="arrow-down-b"></Icon>
+                </button>
+                <Dropdown-menu slot="list">
+                    <Dropdown-item name="saveAdd">
+                        <Icon type="checkmark-circled" v-if="isSaveAdd"></Icon>
+                        保存后自动新增
+                    </Dropdown-item>
+                </Dropdown-menu>
+            </Dropdown>
+            <button class="ht-btn" @click="beforeOrLast(2)" :disabled="selecteBefore">前单</button>
+            <button class="ht-btn" @click="beforeOrLast(1)" :disabled="selecteAfter">后单</button>
+            <button class="ht-btn" @click="outHtml">退出</button>
+        </div>
+
+        <div class="ht-receivableW-form pl20 pr20 ht-paddingTop30">
+            <img src="${rc.contextPath}/images/audit.png" v-if="formData.auditStatus === 2" class="ht-audit">
+            <div class="col-sm-12 ht-formTitle">{{formData.otherTypesDocuments | filterTitle}} </div>
+
+            <i-row class="pt10">
+                <i-col :span="8" class="ht-lineHeight30">
+                    <label class="w85 ht-star2">单据类型：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <i-select v-model="formData.documentType" ref="sel1" name="a1" class="required inline-block calc-right-w140"
+                        filterable>
+                        <i-option v-for="item in documentTypeList" :value="item.value" :key="'documentTypeList'+item.value">
+                            <slot>{{ item.label }}</slot>
+                        </i-option>
+                    </i-select>
+                </i-col>
+                <i-col :span="8" class="ht-lineHeight30">
+                    <label class="w85 ht-star2">日期：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <Date-picker transfer type="date" name="a2" disabled class="required inline-block calc-right-w140"
+                        v-model="formData.documentDate" placeholder="选择日期">
+                    </Date-picker>
+                </i-col>
+                <i-col :span="8" class="ht-lineHeight30">
+                    <label class="w85 ht-star2">单据号：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <input v-model="formData.documentNumber" name="a3" class="form-control required inline-block calc-right-w140"
+                        type="text" />
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85 ht-star2">
+                        {{formData.otherTypesDocuments == 1 ? '客户' : '供应商'}}：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <i-select v-if="formData.otherTypesDocuments == 1" ref="sel2" v-model="formData.occurrenceObjectId"
+                        @on-change="operateData('occurrenceObject','customers')" name="a4" class="required inline-block calc-right-w140"
+                        filterable>
+                        <i-option v-for="item in formDataInit.customers" :value="item.occurrenceObjectId" :key="'formDataInitcustomers1'+item.occurrenceObjectId">
+                            <slot>{{ item.occurrenceObject }}</slot>
+                        </i-option>
+                    </i-select>
+
+                    <i-select v-if="formData.otherTypesDocuments != 1" ref="sel2" v-model="formData.occurrenceObjectId"
+                        @on-change="operateData('occurrenceObject','suppliers')" name="a4" class="required inline-block calc-right-w140"
+                        filterable>
+                        <i-option v-for="item in formDataInit.suppliers" :value="item.occurrenceObjectId" :key="'formDataInitsuppliers2'+item.occurrenceObjectId">
+                            <slot>{{ item.occurrenceObject }}</slot>
+                        </i-option>
+                    </i-select>
+
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85 ht-star2">币别：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <i-select v-model="formData.coinStopId" ref="sel4" @on-change="changeCurrency('coinStop','currencys')"
+                        name="a5" class="required inline-block calc-right-w140" filterable>
+                        <i-option v-for="item in formDataInit.currencys" :value="item.coinStopId" :key="'formDataInitcurrencys'+item.coinStopId">
+                            <slot>{{ item.coinStop }}</slot>
+                        </i-option>
+                    </i-select>
+                </i-col>
+                <!--<i-col :span="8" class="mt5 ht-lineHeight30">-->
+                <!--<label class="w85">结算号：</label>-->
+                <!--<input  v-model="formData.for6" name="a11" class="form-control required" type="text" />-->
+                <!--</i-col>-->
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85">应结算金额：</label>
+                    <Input-number v-model="formData.payableAmountFor" disabled class=" inline-block calc-right-w140"></Input-number>
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85 ht-star2">结算账户：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <i-input class="required inline-block calc-right-w140" v-model="formData.clearanceAccount" readonly="true"
+                        @on-click="showSubjectVisable" icon="ios-list-outline" type="text"></i-input>
+                    <!-- <i-select v-model="formData.clearanceAccountId" ref="sel5" @on-change="operateData1('clearanceAccountId')" name="a7" class="required inline-block calc-right-w140"
+                        filterable>
+                        <i-option v-for="item in formDataInit.clearanceAccounts" :value="item.subjectId" :key="'formDataInitclearanceAccounts'+item.subjectId">
+                            <slot>{{ item.subjectName }}</slot>
+                        </i-option>
+                    </i-select> -->
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85 ht-star2">汇率：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <input v-model="formData.exchangeRate" name="a8" disabled class="form-control required inline-block calc-right-w140"
+                        type="number" />
+                </i-col>
+                <!--<i-col :span="8" class="mt5 ht-lineHeight30">-->
+                <!--<label class="w85">结算方式：</label>-->
+                <!--<input  v-model="formData.for9" name="a5" class="form-control required inline-block calc-right-w140" type="text" />-->
+                <!--</i-col>-->
+                <!--<i-col :span="8" class="mt5" class="ht-lineHeight30">-->
+                <!--<label class="w85">已结算金额：-->
+                <!--<span class="star"></span>-->
+                <!--</label>-->
+                <!--<input v-model="formData.for12" name="a7" disabled -->
+                <!--class="form-control required text-right inline-block calc-right-w140"-->
+                <!--type="number"/>-->
+                <!--</i-col>-->
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85 ht-star2">收款期限：
+                        <!-- <span class="star"></span> -->
+                    </label>
+                    <Date-picker transfer type="date" name="a9" disabled class="required inline-block calc-right-w140"
+                        v-model="formData.receiptPaymentPeriod" placeholder="选择日期">
+                    </Date-picker>
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85">摘要：</label>
+                    <input v-model="formData.summary" name="10" class="form-control required inline-block calc-right-w140" />
+                </i-col>
+            </i-row>
+        </div>
+        <div class="ht-receivableW-table mt10 pl20 pr20 clearfix">
+            <div class="ht-wrapper-tbl">
+                <table class="table tablediv">
+                    <thead>
+                        <tr class="text-center">
+                            <td class="wt45"></td>
+                            <td class="wt200">
+                                <span class="star"></span>
+                                {{formData.otherTypesDocuments==1 ? '收入类别' :'支出类别'}}
+                            </td>
+                            <td class="wt200">
+                                <span class="star"></span>
+                                收款金额
+                            </td>
+                            <td class="wt200">收款金额（本位币）</td>
+                            <td class="wt300">备注</td>
+                            <td class="wt45">操作</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr lay-size="sm" v-for="(item,idx) in tableList" @click="clickTr(item)" :class="{success: currentSelectRow === item.line_number}">
+                            <td class="wt45 ht-lineHeight32 text-center">{{idx+1}}</td>
+                            <td class="wt200">
+                                <i-select v-model="item.incomeCategoryId" :ref=`selTable${idx}` remote clearable
+                                    filterable class="ht-tab-select" @on-change="(value)=>selectChange(value,item)">
+                                    <i-option v-for="it in formDataInit.incomeCategorys" :value="it.incomeCategoryId"
+                                        :key="'formDataInitincomeCategorys'+it.incomeCategoryId+idx">
+                                        <slot>{{ it.incomeCategoryName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </td>
+                            <td class="wt200">
+                                <input :max="1000000000000000000" :min="1" type="number" class="text-right form-control"
+                                    v-on:blur="receivedForChange(item)" v-model="item.amountPaymentReceivedFor" />
+                                <!-- {{item.amountPaymentReceivedFor}} -->
+                            </td>
+                            <td class="wt200 ht-lineHeight32 text-right">
+                                {{ receivedNum(item)}}
+                            </td>
+                            <td class="wt300">
+                                <input class="form-control" v-model="item.remark" />
+                            </td>
+                            <td class="wt45 ht-lineHeight32 text-center">
+                                <Icon type="close-round" @click="del(idx)"></Icon>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="wt45"></td>
+                            <td class="wt200">
+                                <i-select v-model="addData.incomeCategoryId" remote clearable filterable :disabled="true"
+                                    class="ht-tab-select">
+                                    <!--<i-option v-for="item in formDataInit.incomeCategorys" :value="item.incomeCategoryId" :key="'formDataInitincomeCategorys'+item.incomeCategoryId">-->
+                                    <!--</i-option>-->
+                                </i-select>
+                            </td>
+                            <td class="wt200 text-right">
+                                <input :max="1000000000000000000" :min="1" :disabled="true" type="number" class="text-right form-control"
+                                    v-on:blur="addreceivedForChange" />
+                                <!-- v-on:blur="receivedForChange(item)" -->
+                            </td>
+                            <td class="wt200 ht-lineHeight32 text-right">
+                                <input :disabled="true" type="number" class="text-right form-control" />
+                            </td>
+                            <td class="wt300">
+                                <input class="form-control" v-model="addData.remark" :disabled="true" />
+                            </td>
+                            <td class="wt45 ht-lineHeight32 text-center">
+                                <Icon type="plus" @click="addDataMethod"></Icon>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="wt45">合计</td>
+                            <td class="wt200"></td>
+                            <td class="wt200 text-right">{{totalReceivedFor}}</td>
+                            <td class="wt200 text-right">{{totalReceived}}</td>
+                            <td class="wt300"></td>
+                            <td class="wt45"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="ht-receivableW-form mt10 pl20 pr20 clearfix">
+            <i-row class="pt10">
+                <i-col :span="8" class="ht-lineHeight30">
+                    <label class="w85">经手人：</label>
+                    <i-select v-model="formData.brokerageId" ref="sel6" class="inline-block calc-right-w140" @on-change="operateData('brokerage','brokerages')">
+                        <i-option v-for="item in formDataInit.brokerages" :value="item.brokerageId" :key="'formDataInitbrokerages'+item.brokerageId">
+                            {{ item.brokerage }}
+                        </i-option>
+                    </i-select>
+                </i-col>
+                <i-col :span="8" class="ht-lineHeight30">
+                    <label class="w85">部门：</label>
+                    <i-select v-model="formData.departmentId" ref="sel7" @on-change="operateData('department','departments')"
+                        class="inline-block calc-right-w140">
+                        <i-option v-for="item in formDataInit.departments" :value="item.departmentId" :key="'formDataInitdepartments'+item.departmentId">
+                            {{ item.department }}
+                        </i-option>
+                    </i-select>
+                </i-col>
+                <i-col :span="8" class="ht-lineHeight30">
+                    <div style="height:35px;"></div>
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85">制单人：</label>
+                    <div class="inline-block calc-right-w140">{{formData.createName}}</div>
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85">审核人：</label>
+                    <div class="inline-block calc-right-w140">{{formData.auditorName}}</div>
+                </i-col>
+                <i-col :span="8" class="mt5 ht-lineHeight30">
+                    <label class="w85">审核日期：</label>
+                    <div class="inline-block calc-right-w140">{{formData.auditorDate}}</div>
+                </i-col>
+            </i-row>
+        </div>
+        <Modal v-model="deleteVisible" title="信息提示" class-name="ht-deleteModal" :loading="deleteLoading" @on-ok="deleteOK">
+            <p>确认要删除记录？</p>
+        </Modal>
+        <div v-if="!writeIsChange || formData.auditStatus === 2 " class="ht-writeIsChangeDiv"></div>
+
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+
+    </div>
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/js/finance/otherPaymentReceipt/index.js"></script>
+
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

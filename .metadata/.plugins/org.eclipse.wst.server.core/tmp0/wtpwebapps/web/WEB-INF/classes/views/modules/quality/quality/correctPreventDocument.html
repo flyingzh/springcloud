@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<!--    <title>纠正预防单列表</title>-->
+    <!--<link rel="stylesheet" href="../../ktc/css/base.css">
+    <link rel="stylesheet" href="../../ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="../../ktc/css/gold.css">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="../../css/iview.css"><script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <link rel="stylesheet" href="../../ktc/css/common.css">
+    <link rel="stylesheet" href="../../css/basedata/ht-list-common.css">-->
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="correctPreventDocument" v-cloak>
+        <div v-if="!isShow">
+            <!-- 按钮栏 -->
+           <!-- <fieldset class="layui-elem-field layui-field-title">
+                <legend>纠正预防单列表</legend>
+            </fieldset>-->
+            <ht-approve-reject
+                    :can-reject-when-audit="canRejectWhenAudit"
+                    :status-map="statusMap"
+                    :trigger="modalTrigger"
+                    :modal-type="modalType"
+                    :receipt-id="documentCode"
+                    :receipt-status="documentStatus"
+                    :step-list.sync="stepList"
+                    :table-data.sync="approvalTableData"
+                    url-check='${rc.contextPath}/tQcCorrectPreventDocument/findUserOperation'
+                    url-init-approve='${rc.contextPath}/tQcCorrectPreventDocument/queryProcessByReceiptsId'
+                    url-approve='${rc.contextPath}/tQcCorrectPreventDocument/submitApproval'
+                    url-table-data='${rc.contextPath}/tQcCorrectPreventDocument/queryReceiptsById'
+                    @on-auto-approve="autoSubmitOrReject"
+                    @on-approve="approvalOrRejectCallBack"
+                    @on-reject="approvalOrRejectCallBack"
+                    ref="ar">
+            </ht-approve-reject>
+            <div class="btn-menu ht-menu-fix">
+                <span @click="reloadAgain" class="pd-rg-md" v-if="!isEdit">刷新</span>
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:add"))
+                <span class="pd-rg-md" @click="add">新增</span>
+                #end
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:admit"))
+                <span class="pd-rg-md" @click="submit">提交</span>
+                #end
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:approve"))
+                <span class="pd-rg-md" @click="approval">审核</span>
+                #end
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:reject"))
+                <span class="pd-rg-md" @click="reject">驳回</span>
+                #end
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:update"))
+                <span class="pd-rg-md" @click="update">修改</span>
+                #end
+                #if($shiro.hasPermission("quality:tQcCorrectPreventDocum:delete"))
+                <span class="pd-rg-md" @click="del">删除</span>
+                #end
+                <!--<span class="pd-rg-md" @click="">设置列</span>-->
+                <!--<span class="pd-rg-md" @click="">附件</span>-->
+                <span class="pd-rg-md" @click="cancel">退出</span>
+            </div>
+            <div class="search-menu ht-menu-top" style="height: 80px; margin-bottom: 190px;" v-show="isSearchHide">
+                <i-form label-width="120">
+                    <row>
+                        <i-col span="8">
+                            <form-item label="单据编号：">
+                                <i-input v-model='body.documentCode' placeholder="可模糊搜索" class="ht-width-md"></i-input>
+                            </form-item>
+                            <form-item label="源单类型：">
+                                <i-select class="ht-width-md" clearable @on-clear="handleClearType('sourceDocType')" v-model="body.sourceDocumentType" ref="sourceDocType">
+                                    <i-option v-for="item in DocumentTypeList" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <!--<div class="col-xs-2 control-label" style="height: 32px;">
+                                <label>单据类型：</label>
+                                <select v-model="body.sourceDocumentType" class="form-control input-sm inline-block" style="width: 120px;">
+                                    <option value="">全部</option>
+                                    <option :value="item.value" v-for="item in DocumentTypeList">{{item.name}}
+                                </select>
+                            </div>-->
+                            <form-item label="发出人：" >
+                                <i-select class="ht-width-md" clearable @on-clear="handleClearType('sendOut')" filterable v-model="body.issuePersonId" ref="sendOut">
+                                    <i-option v-for="item in empList" :value="item.id" :label="item.empName" :key="item.empCode">
+                                        <slot>{{item.empCode}} | {{ item.empName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="单据日期：">
+                                <date-picker v-model="selectDateArr" format="yyyy/MM/dd" type="daterange" placement="bottom-end" placeholder="请选择日期" style="width: 200px"></date-picker>
+                            </form-item>
+                            <form-item label="源单单号：">
+                                <i-input class="ht-width-md" v-model="body.sourceDocumentCode"></i-input>
+                            </form-item>
+                            <form-item label="跟踪结论：">
+                                <radio-group v-model="body.followConclusion">
+                                    <radio v-for="item in conclusionList" :label="item.value">{{item.name}}</radio>
+                                </radio-group>
+                            </form-item>
+                        </i-col>
+                        <i-col span="8">
+                            <form-item label="单据状态：">
+                                <i-select clearable @on-clear="handleClearType('docStatus')" class="ht-width-md" v-model="body.documentStatus" ref="docStatus">
+                                    <i-option  v-for="item in documentStatusList" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <!--<div class="col-xs-2 control-label" style="height: 32px;">
+                                <label>单据状态：</label>
+                                <select v-model="body.documentStatus" class="form-control input-sm inline-block" style="width: 120px;">
+                                    <option value="">全部</option>
+                                    <option :value="item.value" v-for="item in documentStatusList">{{item.name}}
+                                </select>
+                            </div>-->
+                            <!--<div class="col-xs-2 control-label" style="height: 32px;">
+                                <label>业务流向：</label>
+                                <select v-model="body.businessFlowDirection" class="form-control input-sm inline-block" style="width: 120px;">
+                                    <option value="">全部</option>
+                                    <option :value="item.value" v-for="item in businessFlowDirectionList">{{item.name}}
+                                </select>
+                            </div>-->
+                            <form-item label="业务流向：">
+                                <i-select class="ht-width-md" clearable @on-clear="handleClearType('business')" v-model="body.businessFlowDirection" ref="business">
+                                    <i-option v-for="item in businessFlowDirectionList" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item>
+                                <ht-btns  @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+                <!-- 修改部分结束 -->
+            </div>
+        </div>
+        <div style="height:35px"></div>
+        <div style="height: 25px">
+            <sapn class="chevron">
+            <span v-show="isTabulationHide">
+                <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+            </span>
+                <!--<span v-show="isHide" style="padding-right: 5px;">|</span>
+                <span v-show="isSearchHide">
+                <Icon type="chevron-up" @click="hidTabulation" v-show="!isTabulationHide"></Icon>
+                <Icon type="chevron-down" @click="hidTabulation" v-show="isTabulationHide" ></Icon>
+            </span>-->
+            </sapn>
+        </div>
+        <correct-prevent-list :data_config="data_config" :need-reload="reload" v-model="selected" v-show="isTabulationHide"></correct-prevent-list>
+    </div>
+</div>
+
+  <!--  <script src='../../js/jquery-2.0.3.min.js'></script>
+    <script src='../../js/vue.min.js'></script>
+    <script src="../../plugins/layui/layui.all.js"></script>
+    <script src='../../plugins/ztree/jquery.ztree.all.min.js'></script>
+    <script src='../../plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+    <script src='../../plugins/jquery-validation-1.17/messages_zh.js'></script>
+    <script src='../../ktc/js/app.js'></script>
+    <script src='../../plugins/jqgrid/jquery.jqGrid.min.js'></script>
+    <script src='../../plugins/jqgrid/grid.locale-cn.js'></script>
+    <script src="../../plugins/iview/iview.min.js"></script>
+    <script src='../../js/basedata/components/search-select-more.js'></script>
+    <script src="../../js/basedata/components/base-data-list.js"> </script>
+    <script src="../../js/basedata/components/ht-add-del-btn.js"> </script>
+    <script src="../../js/basedata/components/date-select.js"> </script>
+    <script src="../../js/basedata/components/ht-btns.js"> </script>
+    <script src="../../js/basedata/components/ht-tree.js"> </script>-->
+    <script src="${rc.contextPath}/js/quality/correct-prevent-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-approve-reject.js"> </script>
+    <script src="${rc.contextPath}/js/quality/correctPrerventDocument.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

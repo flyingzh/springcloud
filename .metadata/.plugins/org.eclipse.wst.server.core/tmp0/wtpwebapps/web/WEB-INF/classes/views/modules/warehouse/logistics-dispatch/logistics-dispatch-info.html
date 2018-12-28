@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>物流配送单-新增</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/warehouse/logistics-dispatch/logistics-dispatch-info.css'>
+    <style>
+        .table-responsive>td,.table-responsive>th{
+            position: relative;
+        }
+        .input-color{
+            border: 1px solid red;
+        }
+      #form-table .ivu-tabs{
+          overflow: visible;
+      }
+        .hidden-input~label {
+            position: static;
+           /* top: 0;
+            right: 15%;*/
+        }
+        .edit-table td{
+            position: static;
+        }
+        .disabled-input{
+            width:200px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #dddee1;
+            background: #f3f3f3;
+            color: #ccc;
+            font-size: 13px;
+            padding: 6px;
+        }
+        .input-text{
+            width:200px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #dddee1;
+            font-size: 13px;
+            padding: 6px;
+        }
+         .ui-jqgrid .ui-jqgrid-pager .ui-pager-table{
+             display: block;
+         }
+        .recordGood {
+            vertical-align: middle;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="saveData.documentNo"
+            :receipt-status="saveData.documentStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/logisticsdispatching/findUserOperation'
+            url-init-approve='${rc.contextPath}/logisticsdispatching/queryProcessByReceiptsId'
+            url-approve='${rc.contextPath}/logisticsdispatching/submitapproval'
+            url-table-data='${rc.contextPath}/logisticsdispatching/queryReceiptsById'
+            @on-auto-approve="autoApproveOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <!--<a href="../warehouse/logistics-dispatch/logistics-dispatch-info.html" class="pd-rg-md" style="text-decoration: none;"
+               target="_blank">新增</a>-->
+            <span class="pd-rg-md is-disabled"  @click="add">新增</span>
+            <span class="pd-rg-md is-disabled is-disabled-add" @click="save">保存</span>
+            <span class="pd-rg-md is-disabled is-disabled-submit" @click="submit('formValidate')">提交</span>
+            <span class="pd-rg-md is-disabled" @click="approval">审核</span>
+            <span class="pd-rg-md is-disabled" @click="reject">驳回</span>
+            <span class="pd-rg-md is-disabled" @click="list">列表</span>
+            <span class="pd-rg-md is-disabled" @click="htprint">打印</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <div class="ht-approve-stamp" v-show="isStampShow">
+            审核
+        </div>
+        <!--导航栏-->
+        <!--<div class="search-menu " style="height: 25px;" v-show="isSearchHide">-->
+            <!--<div class="col-xs-7 control-label">-->
+        <i-form label-width="100"  style="width:100%" id="form-table" ref="formValidate"  :rules="ruleValidate"  :model="saveData">
+                <tabs :animated="false" class="clearfix" size="default">
+                    <tab-pane label="基本信息">
+                            <row class="mg-top-md">
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="单据编号：">
+                                            <i-input style="width:200px" disabled v-model='saveData.documentNo'
+                                                     placeholder="单据编码自动生成"
+                                            ></i-input>
+                                            <input class="hidden-input" v-model="saveData.documentNo"
+                                                   name="documentNo"/>
+                                        </form-item>
+                                        <form-item label="日期：" prop="documentTime">
+                                            <date-picker type="date"
+                                                         v-model='saveData.documentTime'
+                                                         placeholder="Select date"
+                                                         style="width: 200px" :disabled="isDisabled"
+                                                         class="ht-width-md" transfer="true"  :readonly="isDisabled"
+                                                         @on-change="htTestChange()"
+                                            ></date-picker>
+                                            <input class="hidden-input" v-show="!generaterDisabled" v-model="saveData.documentTime"
+                                                   name="documentTime" required />
+                                        </form-item>
+                                        <form-item label="物流方式：" class="ht-star" prop="logisticsMode">
+                                            <i-select class="ht-input-width" :disabled="generaterDisabled" ref="dType"
+                                                      style="width: 200px;display: inline-block;" v-model='saveData.logisticsMode'  @on-change="htTestChange()">
+                                                <i-option v-for="item in deliveryType" :value="item.value"  class="ht-width-md"
+                                                          :key="item.value">{{item.name}}</i-option>
+                                            </i-select>
+                                            <!--<span class="star"></span>-->
+                                            <input class="hidden-input"  v-model="saveData.logisticsMode"
+                                                   name="logisticsMode" required />
+                                        </form-item>
+                                        <form-item label="收货人：">
+                                            <i-input :disabled="isDisabled"   style="width: 200px" v-model='saveData.receiptName' class="ht-width-md" @input="htTestChange()"></i-input>
+                                            <input class="hidden-input" v-model="saveData.receiptName"
+                                                   name="receiptName"/>
+                                        </form-item>
+                                        <form-item label="收货地址：">
+                                            <i-input :disabled="isDisabled"   style="width: 642px" v-model='saveData.receivingAddress' class="ht-width-md" @on-change="htTestChange()"></i-input>
+                                            <input class="hidden-input" v-model="saveData.receivingAddress"
+                                                   name="receivingAddress"/>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="所属组织：">
+                                            <i-input  style="width: 200px" disabled
+                                                      v-model='organizanizationName' class="ht-width-md"></i-input>
+                                            <!--<input class="hidden-input" v-model="saveData.organizationId" name="organizationId" required >-->
+                                        </form-item>
+                                        <form-item label="业务类型：" class="ht-star" prop="businessType">
+                                            <i-select :disabled="generaterDisabled"   class="ht-width-md" ref="dType"
+                                                      style="width: 200px;display: inline-block;"  v-model='saveData.businessType' @on-change="isDisabledInput();htTestChange()">
+                                                <i-option v-for="item in selectBusinessType" :value="item.value"
+                                                          :key="item.value">{{item.label}}</i-option>
+                                            </i-select>
+                                            <!--<span class="star" ></span>-->
+                                            <input class="hidden-input" v-show="!generaterDisabled" v-model="saveData.businessType" name="businessType" required>
+                                        </form-item>
+                                        <form-item label="商品总成本：">
+                                            <input :disabled="isDisabled" @on-keyup="proofTest('figure',event)"
+                                                   :class="isDisabled ? 'disabled-input' : 'ivu-input'" style="width: 200px"
+                                                   @input="clearNoNumber(saveData,'merchandiseCost',5);htTestChange()" v-model='saveData.merchandiseCost' ></input>
+                                            <input class="hidden-input" v-model="saveData.merchandiseCost"
+                                                   name="merchandiseCost"/>
+                                        </form-item>
+                                        <form-item label="联系方式：">
+                                            <input :disabled="isDisabled" @on-keyup="proofTest('phone',event)"  :class="isDisabled ? 'disabled-input' : 'ivu-input'" style="width: 200px" @input="clearNoNumber(saveData,'phone',0);htTestChange()" v-model='saveData.phone'></input>
+                                            <input class="hidden-input" v-model="saveData.phone"
+                                                   name="phone"/>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+
+                                        <form-item label="供应商：" class="ht-star" prop="supplierCode">
+                                            <ht-selectsupplier
+                                                    @getinfo="closeSupplier"
+                                                    :disabled="disabledSupplierSelect"
+                                                    ref="supperList"
+                                                    is-check="no"
+                                                    @on-change="htTestChange()"
+                                            >
+                                            </ht-selectsupplier>
+                                            <!--<span class="star"></span>-->
+                                            <input class="hidden-input" v-show="!disabledSupplierSelect" v-model="saveData.supplierCode" name="supperCode" required>
+                                        </form-item>
+                                    <div>
+                                        <form-item label="客户：" class="ht-star" prop="custCode">
+                                            <ht-customer-list
+                                                    v-model="selectCustomerObj"
+                                                    @sure="closeCustomer"
+                                                    :disabled="disabledCustomSelect"
+                                                    ref="customerRef"
+                                                    is-check="no"
+                                                    @on-change="htTestChange()"
+                                            >
+                                            </ht-customer-list>
+                                            <!--<span class="star"></span>-->
+                                            <input class="hidden-input" v-show="!disabledCustomSelect" v-model="saveData.custCode" name="custCode" required>
+                                        </form-item>
+                                        <form-item label="是否保价：">
+                                            <i-select :disabled="isDisabled"   @on-change="htTestChange()" ref="dType"
+                                                      style="width: 200px;display: inline-block;" v-model='saveData.isInsurancePrice' class="ht-width-md">
+                                                <i-option v-for="item in keepPrice" :value="item.value"
+                                                          :key="item.value">{{item.name}}</i-option>
+                                            </i-select>
+                                            <input class="hidden-input" v-model="saveData.isInsurancePrice"
+                                                   name="isInsurancePrice"/>
+                                        </form-item>
+                                        <form-item  label="保额：">
+                                            <input :disabled="isDisabled" v-model='saveData.coverageForce'  :class="isDisabled ? 'disabled-input' : 'ivu-input'" style="width: 200px" @input="clearNoNumber(saveData,'coverageForce',2);htTestChange()"/>
+                                            <input class="hidden-input" v-model="saveData.coverageForce"
+                                                   name="coverageForce"/>
+                                        </form-item>
+                                        <form-item label="寄送人：" >
+                                            <i-input :disabled="isDisabled"   style="width:200px"
+                                                     v-model='saveData.sendSomeone' class="ht-width-md"  @input="htTestChange()"></i-input>
+                                            <input class="hidden-input" v-model="saveData.sendSomeone"
+                                                   name="sendSomeone"/>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                            </row>
+                    </tab-pane>
+                    <!--审批信息-->
+                    <tab-pane label="审批信息">
+                        <steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                            <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                        </steps>
+                        <table class="table edit-table" style="width: 1100px;">
+                            <tr>
+                                <th>操作类型</th>
+                                <th>开始级次</th>
+                                <th>目的级次</th>
+                                <th>审批人</th>
+                                <th>审批意见</th>
+                                <th>审批时间</th>
+                            </tr>
+                            <tr v-for="item in approvalTableData">
+                                <td>{{item.approvalResult}}</td>
+                                <td>{{item.currentLevel}}</td>
+                                <td>{{item.nextLevel}}</td>
+                                <td>{{item.createName}}</td>
+                                <td>{{item.approvalInfo}}</td>
+                                <td>{{item.createTime}}</td>
+                            </tr>
+                        </table>
+                    </tab-pane>
+                    <tab-pane label="其他">
+                            <row class="mg-top-md">
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="创建人：">
+                                            <i-input disabled style="width:200px" v-model='saveData.createName' class="ht-width-md"></i-input>
+                                        </form-item>
+                                        <form-item label="创建日期：">
+                                            <i-input disabled style="width:200px" v-model='saveData.createTime' class="ht-width-md"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="修改人：">
+                                            <i-input disabled style="width:200px" v-model='saveData.updateName' class="ht-width-md"></i-input>
+                                        </form-item>
+                                        <form-item label="修改日期：">
+                                            <i-input disabled style="width:200px" v-model='saveData.updateTime' class="ht-width-md"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                                <i-col span="8">
+                                    <div>
+                                        <form-item label="审核人：">
+                                            <i-input disabled style="width:200px" v-model='saveData.examineVerifyName' class="ht-width-md"></i-input>
+                                        </form-item>
+                                        <form-item label="审核日期：">
+                                            <i-input disabled style="width:200px" v-model='saveData.examineVerifyTime' class="ht-width-md"></i-input>
+                                        </form-item>
+                                    </div>
+                                </i-col>
+                            </row>
+                    </tab-pane>
+                    <tab-pane label="附件" name="name4">
+                        #parse("modules/public/access.html")
+                    </tab-pane>
+                </tabs>
+            </i-form>
+        <!--</div>-->
+        <!--<div style="height: 35px;"></div>-->
+        <!--<ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>-->
+        <!--商品描述切换栏-->
+        <i-form label-width="100" >
+            <tabs :animated="false"   v-show="isTabulationHide">
+                <tab-pane label="物流信息" class="wait-pick">
+                    <div class="table-btn">
+                        <i-button :disabled="isDisabled"  type="text" @click="rowClick('add')">新增行</i-button>
+                        <i-button :disabled="isDisabled"  type="text" @click="rowClick('copy')">复制行</i-button>
+                        <i-button :disabled="isDisabled"  type="text" @click="action2">删除行</i-button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table edit-table" style="text-align: center">
+                            <tr>
+                                <th>序号</th>
+                                <th><span class="star"></span>物流公司</th>
+                                <th><span class="star"></span>物流单号</th>
+                                <th><span class="star"></span>物流费用</th>
+                                <th>物流保价</th>
+                                <th>物流保额</th>
+                                <th>甲方保价</th>
+                                <th>甲方保额</th>
+                                <th>乙方保价</th>
+                                <th>乙方保额</th>
+                            </tr>
+                            <tr v-for="(item,index) in  saveData.logisticsDispatchingDetailList"  @click="action1(index)" :class="{active:selectedIndex === index }" :key="'rawInfo'+index">
+                                <td class="tet-center"><span>{{index+1}}</span></td>
+                                <td>
+                                    <i-select :disabled="isDisabled"  v-model="item.logisticsCompany" style="width:
+                                        120px;"  transfer="true" @on-change="htTestChange()">
+                                        <i-option v-for="(item,index) in selectLogisticsCompany" :value="item.value"
+                                        >{{item.name}}</i-option>
+                                    </i-select>
+                                </td>
+                                <td><input :disabled="isDisabled" class="ivu-input" v-model="item.logisticsBillNo" @input="htTestChange()"/></td>
+                                <td><input :disabled="isDisabled" @input="clearNoNumber(item,'logisticsCost',2);htTestChange()" class="ivu-input" v-model="item.logisticsCost"/></td>
+                                <td><input :disabled="isDisabled" @input="clearNoNumber(item,'logisticsPrice',2);htTestChange()" class="ivu-input" v-model="item.logisticsPrice"/></td>
+                                <td><input :disabled="isDisabled" @input="clearNoNumber(item,'logisticsAmountAmount',2);htTestChange()" class="ivu-input" v-model="item.logisticsAmountAmount"/></td>
+                                <td class="text-center"><input :disabled="isDisabled" @input="clearNoNumber(item,'firstPrice',2);htTestChange()" class="ivu-input" v-model="item.firstPrice"/></td>
+                                <td><input class="ivu-input" :disabled="isDisabled" @input="clearNoNumber(item,'firstAmountAmount',2);htTestChange()" v-model="item.firstAmountAmount"/> </td>
+                                <td class="weight"><input :disabled="isDisabled" @input="clearNoNumber(item,'secondPrice',2);htTestChange()" class="ivu-input" type="text" v-model="item.secondPrice"/></td>
+                                <td class="weight"><input :disabled="isDisabled" @input="clearNoNumber(item,'secondAmountAmount',2);htTestChange()" class="ivu-input" type="text" v-model="item.secondAmountAmount"/></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </tab-pane>
+                <tab-pane label="源单信息" class="finish-pick">
+                    <div class="table-responsive">
+                        <table class="table edit-table" style="text-align: center">
+                            <tr>
+                                <th>序号</th>
+                                <th>源单类型</th>
+                                <th>源单编号</th>
+                            </tr>
+                            <tr v-for="(item,index) in saveData.logisticsDispatchingSourceList">
+                                <td>{{index+1}}</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'W_EMATERIAL_OUT'">受托加工材料出库单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'S_OUT_STOCK'">销售出库单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'P_APPLY_DELIVER'">采购送料单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'P_CREDENTIAL_OUT'">证书商品发出单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'P_RETURN_STOCK'">采购退库单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'O_MATERIALS_OUTPUT'">旧料外发单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'O_MATERIALS_RETURN'">旧料退料单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'O_MATERIALS_REVERT'">旧料返料单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'REPAIR_OUTPUT'">维修发出单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'REPAIR_RETURN'">维修退货单</td>
+                                <td v-model="item.sourceType" v-if="item.sourceType == 'REPAIR_SHIP'">维修发货单</td>
+                                <td v-model="item.sourceNo">{{item.sourceNo}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab-pane>
+            </tabs>
+        </i-form>
+    </div>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-select',
+        'ht-approve-reject',
+        'ht-img-magnifier',
+        'ht-toggle',
+        'access',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/components/ht-selectsupplier.js',
+        '${rc.contextPath}/js/components/ht-customer-list.js',
+        '${rc.contextPath}/js/warehouse/logistics-dispatch/logistics-dispatch-info.js'
+    ]);
+</script>
+#parse("modules/public/footer.html") </body>
+</html>

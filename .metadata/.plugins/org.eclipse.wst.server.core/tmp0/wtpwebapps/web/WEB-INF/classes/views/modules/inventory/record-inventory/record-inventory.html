@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>录入盘点数据</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/inventory/record-inventory/record-inventory.css'>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div>
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span :class="{'pd-rg-md':planForm.documentStatus < 4,'pd-rg-md is-disabled':planForm.documentStatus > 3 }" @click="delRow()">删除行</span>
+            <span :class="{'pd-rg-md':planForm.documentStatus < 4,'pd-rg-md is-disabled':planForm.documentStatus > 3 }" @click="save()">保存</span>
+            <span :class="{'pd-rg-md':planForm.documentStatus < 4,'pd-rg-md is-disabled':planForm.documentStatus > 3 }" @click="submit()">提交</span>
+            <span class="pd-rg-md">打印</span>
+            <span :class="{'pd-rg-md':planForm.documentStatus < 4,'pd-rg-md is-disabled':planForm.documentStatus > 3}" @click="validate()">校验</span>
+            <span :class="{'pd-rg-md':planForm.documentStatus < 4,'pd-rg-md is-disabled':planForm.documentStatus > 3}" @click="clearInventoryData()">清空盘点数据</span>
+        </div>
+    </div>
+    <div v-show="isSearchHide">
+        <div style="height:10px"></div>
+        <div class="ht-subtitle">
+            <div>盘点信息</div>
+        </div>
+        <i-form>
+            <row class="mg-top-md">
+                <i-col span="8">
+                        <form-item label="盘点方案编号：">
+                            <i-select :disabled="openType === 'jump'"   @on-change="changePlanNo" v-model="planForm.documentNo"  class="ht-input-width" filterable :clearable="false" style="width: 200px">
+                                <i-option  v-for="item in toInventoryPlans" :value="item.documentNo">{{item.documentNo}}-{{item.documentName}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="商品类型：" style="margin-left: 24px;">
+                            <i-input  style="width: 200px" disabled v-model="planForm.goodsTypeName"></i-input>
+                        </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="盘点方案名称：">
+                        <i-input  style="width: 200px" v-model="planForm.documentName" disabled></i-input>
+                    </form-item>
+                    <form-item label="仓库或柜台：" style="margin-left: 12px;">
+                        <i-input  style="width: 200px" disabled v-model="planForm.warehouseName"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                        <form-item label="款式类型：">
+                            <i-input  style="width: 200px" disabled v-model="planForm.custStyleTypeName"></i-input>
+                        </form-item>
+                </i-col>
+            </row>
+        </i-form>
+    </div>
+    <!--<div style="height:10px"></div>-->
+    <div class="ht-subtitle">
+        <div>盘点数据录入</div>
+    </div>
+    <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+    <div v-show="isTabulationHide">
+        <i-form @submit.native.prevent>
+            <row class="mg-top-md">
+                <i-col span="24">
+                    <div>
+                        <form-item label="条码号：">
+                            <input ref="inputBarCode" class="ivu-input" @keydown.enter="enterHandle" v-model="inputBarCode" style="width: 200px;">
+                        </form-item>
+                    </div>
+                </i-col>
+            </row>
+        </i-form>
+        <div class="table-responsive">
+            <table class=" table edit-table" id="recordGoods">
+            <thead>
+            <!--<th class="width-xs text-center">-->
+                <!--<input type="checkbox" v-model="isCheckedAll" @click="getAll('general')">-->
+            <!--</th>-->
+            <th style="width: 150px;">商品图片</th>
+            <th>条码号</th>
+            <th>商品类型</th>
+            <th style="width: 200px;">商品编码</th>
+            <th>商品名称</th>
+            <th>计数单位</th>
+            <th>计重单位</th>
+            <th v-show="planForm.displaySkuNum === 1">账存数量</th>
+            <th v-show="planForm.dispalySkuWeight === 1">账存重量</th>
+            <th>盘点数量</th>
+            <th>盘点重量</th>
+            <th>商品明细</th>
+            <th>对应仓库</th>
+            </thead>
+            <tbody>
+            <tr v-for="(item,index) in goodsList" :class="{active:selectedIndex === index }" @click="selectedIndex = index">
+                <td>
+                    <ht-img-magnifier :url="item.pictrueUrl"></ht-img-magnifier>
+                </td>
+                <!--条码号-->
+                <td>{{item.goodsBarCode}}</td>
+                <!--商品类型-->
+                <td>{{item.goodsTypeName}}</td>
+                <!--商品编码-->
+                <td>{{item.goodsNo}}</td>
+                <!--商品名称-->
+                <td>{{item.goodsName}}</td>
+                <!--计数单位-->
+                <td>{{item.countingUnit}}</td>
+                <!--计重单位-->
+                <td>
+                    {{item.weightUnit}}
+                </td>
+                <!--账存数量-->
+                <td v-show="planForm.displaySkuNum === 1">{{item.accountNum}}</td>
+                <!--账存重量-->
+                <td v-show="planForm.dispalySkuWeight === 1">{{item.accountWeight}}</td>
+                <!--盘点数量-->
+                <td v-if ="item.goodsMainType !== 'attr_ranges_gold'">
+                    <input class="ivu-input"   v-model="item.inventoryNum" @input="formatInputNumber(item,'inventoryNum',0)"/>
+                </td>
+                <td v-if ="item.goodsMainType === 'attr_ranges_gold'">
+
+                </td>
+                <!--盘点重量-->
+                <td>
+                    <input class="ivu-input" v-model="item.inventoryWeight" @input="formatInputNumber(item,'inventoryWeight',3)"/>
+                </td>
+                <!--商品明细-->
+                <td @click="showProductDetail(index)">
+                    <a :class="item.goodsMainType === 'attr_ranges_gold'? 'is-disabled':''">商品明细</a>
+                </td>
+                <!--对应仓库-->
+                <td>{{item.warehouseName}}</td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <product-detail
+            ref="modalRef"
+            :show-modal="productDetailModal.showModal"
+            :goods-main-type="goodsList[selectedIndex] && goodsList[selectedIndex].goodsMainType"
+            :ids="productDetailModal.ids"
+            :over-edit="goodsList[selectedIndex] && goodsList[selectedIndex].overEdit"
+            data-source-type="true"
+    ></product-detail>
+</div>
+<script>
+    htLoadJs([
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+
+            '${rc.contextPath}/js/inventory/record-inventory/record-inventory.js'
+        ],
+'debug'
+    );
+</script>
+<script type="application/javascript" src="${rc.contextPath}/js/math.min.js"></script>
+#parse("modules/public/footer.html")
+</body>
+</html>

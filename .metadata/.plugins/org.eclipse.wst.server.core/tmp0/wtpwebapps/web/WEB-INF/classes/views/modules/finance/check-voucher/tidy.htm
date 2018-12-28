@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>整理凭证</title>
+    <link rel="stylesheet" href="../../../statics/ktc/css/base.css">
+    <link rel="stylesheet" href="../../../statics/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="../../../statics/ktc/css/gold.css">
+    <link rel="stylesheet" href="../../../statics/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../statics/css/main.css">
+    <link rel="stylesheet" href="../../../statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../statics/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="../../../statics/css/iview.css">
+    <link rel="stylesheet" href="../../../statics/css/finance/check-voucher/tidy.css">
+
+</head>
+<body>
+<div id="tidy-voucher" class="pd-md container ht-common-list mt10" v-cloak>
+    <breadcrumb separator=">">
+        <breadcrumb-item>查凭证</breadcrumb-item>
+        <breadcrumb-item>整理凭证</breadcrumb-item>
+    </breadcrumb>
+    <ul class="mt10">
+        <li v-for="(item,index) in tepsList" :key="index" :class="[isCur===index+1 ? 'current' :'']">
+            <a>{{index + 1}}.{{item}}</a>
+            <span class="ivu-breadcrumb-item-separator" v-if="index!==tepsList.length-1">&gt;</span>
+        </li>
+    </ul>
+    <div v-if="isCur!==3">
+        <div class="tidy-filter mt10">
+            <label class="inline-block label60">整理范围：</label>
+            <select v-model="formData.for1" class="form-control inline-block width120">
+                <option v-for="item in subjectList" :value="item.value">
+                    {{item.name}}
+                </option>
+            </select>
+            <label class="inline-block label60 ml10">凭证字：</label>
+            <select v-model="formData.for2" class="form-control inline-block width100">
+                <option v-for="item in formDataList" :value="item.value">{{item.label}}</option>
+            </select>
+            <label class="inline-block label60 ml10">起始凭证号：</label>
+            <input v-model="formData.for3" type="number"
+                class="form-control inline-block width80"/>
+            <br />
+            <br />
+            <input type="radio" id="one" value="1" v-model="formData.for4">
+            <label for="one" class="mr30">按凭证号顺次前移补齐断号 </label>
+            <input type="radio" id="two" value="2"  v-model="formData.for4">
+            <label for="two">按凭证日期重新顺次编号</label>
+            <div class="text-right mt10">
+                <i-button @click="confirm">确定</i-button>
+            </div>
+        </div>
+        <div class="jqGrid_wrapper mt10">
+            <i-button type="primary" class="begin" @click="begin" v-if="btnShow">开始整理</i-button>
+            <table id="grid" class="table-striped"></table>
+        </div>
+    </div>
+    <div v-else>
+        <h5 class="mt10 mb10">恭喜你，凭证整理完成！</h5>
+        <a>返回凭证列表</a>
+    </div>
+    
+
+</div>
+
+<script src="../../../statics/plugins/layui/layui.all.js"></script>
+<script src='../../../statics/js/jquery-2.0.3.min.js'></script>
+<script src='../../../statics/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='../../../statics/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='../../../statics/js/vue.min.js'></script>
+<script src='../../../statics/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='../../../statics/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="../../../statics/plugins/layui/layui.all.js"></script>
+<script src='../../../statics/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src="../../../statics/plugins/iview/iview.min.js"></script>
+<script src="../../../statics/js/finance/check-voucher/tidy.js"></script>
+</body>
+</html>

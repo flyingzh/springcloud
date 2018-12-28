@@ -1,0 +1,25 @@
+server:
+  port: 9002
+
+spring:
+  application:
+    name: micro-user
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.50.160:9000/eureka/
+      
+micro:
+  ribbon:
+    addr: http://micro-ribbon/
+micro-user: 
+  ribbon: 
+    ConnectTimeout: 1000
+    ReadTimeout: 1000
+hystrix:
+  command: 
+    default:
+      execution:
+        isolation:
+          thread: 
+            timeoutInMilliseconds: 1500

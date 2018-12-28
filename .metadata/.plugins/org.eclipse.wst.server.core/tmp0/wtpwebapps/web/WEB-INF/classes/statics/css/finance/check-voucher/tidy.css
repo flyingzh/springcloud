@@ -1,0 +1,41 @@
+#tidy-voucher ul li{
+    display: inline-block;
+    /* padding: 10px; */
+    color: #888;
+}
+#tidy-voucher ul li a{
+    color: #888;
+    cursor: auto;
+}
+#tidy-voucher ul li.current a{
+    color: #3CBAFF;
+    font-weight: bold;
+}
+.tidy-filter {
+    margin-bottom: 10px;
+    padding: 20px;
+    width: 560px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+.width80{
+    width: 80px;
+}
+.width100{
+    width: 100px;
+}
+.width120{
+    width: 120px;
+}
+.inline-block{
+    display: inline-block;
+}
+.jqGrid_wrapper{
+    width:560px;
+    position: relative;
+}
+.begin{
+    position: absolute;
+    top: 0;
+    right:-100px;
+}

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <style>
+        html,
+        body {
+            height: 100%
+        }
+
+        #ht-select ul {
+            z-index: 9999;
+            width: 500px;
+        }
+
+        #ht-select ul>li {
+            padding: 5px 10px;
+        }
+
+        #ht-select ul>li:hover {
+            background: #f8f8f8;
+        }
+
+        .department-select .ivu-modal {
+            width: 70% !important;
+        }
+
+        .department-select .ivu-form-item {
+            display: inline-block;
+        }
+
+        .department-select .my-checkbox,
+        .department-select .name,
+        .department-select .code {
+            display: inline-block;
+            text-align: center;
+            padding: 3px 10px;
+            height: 30px;
+            line-height: 30px;
+        }
+
+        .department-select .name,
+        .department-select .code {
+            width: 140px;
+            border-left: 1px solid #ccc;
+        }
+
+        .department-select .item {
+            border-top: 1px solid #ccc;
+        }
+
+        .demo-upload {
+            width: 88px;
+            height: 88px;
+            display: inline-block;
+            text-align: center;
+            line-height: 60px;
+            position: relative;
+            margin-left: 4px;
+        }
+
+        .demo-upload img {
+            width: 88px;
+            height: 88px;
+            border: 1px solid ghostwhite;
+        }
+
+        .demo-upload-text {
+            display: none;
+            bottom: 20px;
+            height: 5px;
+            line-height: 5px;
+        }
+
+        .demo-upload-text-span {
+            height: 8px;
+            font-size: 8px;
+        }
+
+        .demo-upload-list-cover {
+            /*height: 100%;
+            width: 100%;*/
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /*轮播*/
+
+        .carousel {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* 鼠标移上去，Icon变为展示 */
+
+        .demo-upload:hover .demo-upload-list-cover {
+            display: block;
+        }
+
+        .demo-upload-list-cover i {
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 0px 6px;
+        }
+
+        /* 去掉i-select样式 */
+
+        /* .edit-table .ivu-select-selection {
+            border: none;
+        }
+
+        .edit-table .ivu-select-selection {
+            height: 100%;
+        }
+
+        .edit-table .ivu-select {
+            display: block;
+        }
+
+        .edit-table .ivu-select .ivu-select-arrow {
+            display: none;
+        } */
+
+        .vertical-center-modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-container {
+            display: inline-block;
+            text-align: center;
+            margin-right: 10px;
+            position: relative;
+        }
+
+        .upload-item {
+            width: 150px;
+            position: relative;
+            float: left;
+        }
+
+        .upload {
+            width: 150px;
+            height: 150px;
+            text-align: center;
+            border: 1px solid #f2f2f2;
+            line-height: 150px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .upload-close {
+            color: red;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            z-index: 9;
+            font-size: 18px;
+        }
+
+        .notice {
+            color: #999999;
+            padding: 10px 0;
+            margin-top: 25px;
+        }
+
+        .can {
+            height: 50px;
+            width: 50px;
+            margin: 0 auto;
+        }
+
+        .bigimg {
+            width: 180px;
+            height: 180px;
+            position: fixed;
+            left: -999999px;
+            z-index: 999;
+        }
+
+        .jqGrid_wrapper table tbody tr.jqgrow td[role='gridcell'] {
+            white-space: normal;
+        }
+
+        .edit-table tr td .width-select {
+            width: 230px;
+        }
+
+        .edit-table tr td .width-select .ivu-select-selection {
+            max-height: 65px;
+            overflow-y: scroll;
+        }
+
+        .ivu-upload-list-file.ivu-upload-list-file-finish span {
+            display: none;
+        }
+
+        .uploadBtn {
+            width: 138px;
+        }
+
+        .video .ivu-upload-list-file-finish {
+            display: none;
+        }
+
+        .video {
+            display: inline-block;
+        }
+    </style>
+    <title>A002商品基础资料</title>
+    #parse("modules/public/header.html")
+</head>
+
+<body>
+    <div id="product-info" v-cloak class="copyright_content">
+        <img class="bigimg" src="" alt="">
+        <div id="popup" v-show="showModal">
+            <modal v-model="showModal" title="选择组织" @on-ok="okModel" @on-cancel="cancelModel" ok-text="确认">
+                <!-- 这里是表格部分 -->
+                <i-table border ref="test" :columns="columns" :data="colContent" @on-selection-change="changeselect"></i-table>
+            </modal>
+            <!-- 这里是表格部分 -->
+        </div>
+        <div class="btn-menu mg-bm-md" v-if="!isAdd">
+            <!--   <ht-add-del-btn @add="add_click" @del="del" @modify="modify" @view="view"></ht-add-del-btn>-->
+            #if($shiro.hasPermission("basedata:tbasecommodity:add"))
+            <span @click="add">新增</span>
+            #end #if($shiro.hasPermission("basedata:tbasecustomer:add"))
+            <span @click="copy">复制</span>
+            #end #if($shiro.hasPermission("basedata:tbasecommodity:update"))
+            <span @click="modify(1)">修改</span>
+            #end #if($shiro.hasPermission("basedata:tbasecommodity:delete"))
+            <span @click="del">删除</span>
+            #end
+            <!-- #if($shiro.hasPermission("basedata:tbasecommodity:view"))
+        <span @click="view" >查看</span>
+        #end-->
+           <!-- #if($shiro.hasPermission("basedata:tbasecommodity:allot"))
+            <span @click="showOrgin">分配</span>
+            #end-->
+            <span @click="cancle">退出</span>
+        </div>
+        <section v-if="!isAdd">
+            <i-form v-show="isSearchHide" label-width="100" :model="body">
+                <row>
+                    <i-col span="8">
+                        <form-item label="商品名称：">
+                            <i-input v-model="body.name" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品编码：">
+                            <i-input v-model="body.code" class="ht-width-md"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="款式类别：">
+                            <cascader v-model="newCustomCode" :data="productType" trigger="hover" class="ht-width-md" change-on-select></cascader>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="8">
+                        <form-item label="商品系列：">
+                            <i-select ref="seriesSelect" v-model="body.series" multiple class="ht-width-md">
+                                <i-option v-for="item in newSeries" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="创建日期：">
+                            <!-- <date-select v-model="body.beforetime" class="inline-block" style="width:122px" ref="start"></date-select>
+                            <span>~</span>
+                            <date-select :end="true" v-model="body.aftertime" class="inline-block" style="width:122px" ref="end"></date-select> -->
+                            <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期"
+                                class="ht-width-md"></date-picker>
+                        </form-item>
+
+                    </i-col>
+                    <i-col span="8">
+                        <form-item>
+                            <ht-btns v-on:search="search" @clear="clearbody" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+            <div style="height: 25px;">
+                <sapn class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+                </sapn>
+            </div>
+            <div class="row">
+                <div class="col-xs-3 bg-tree" style="height: 100%">
+                    <!-- <ht-tree url=contextPath+"/tbasecommoditycategory/list" :setting="setting1" :tid='114534'></ht-tree>-->
+                    <ht-tree :node-data="categoryList" :setting="setting1" :tid='114534' ref="my_tree"></ht-tree>
+                </div>
+                <div class="col-xs-9">
+                    <div class="list-area">
+                        <base-data-list :data_config="data_config_list" :need-reload="reload" ref="baseDataListRef" :jdx-code="true" v-model="selected"></base-data-list>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div v-if="isAdd">
+            <!--
+                    <department-select :show-modal="showDepartmentModal" v-model="department_selected" @sure=departmentOk @cancel=departmentOk></department-select>
+        -->
+            <!-- <div>{{department_selected}}</div> -->
+            <Modal v-model="showDepartmentModal" width="30" @on-ok="ok1">
+                <ht-tree @getTreeData="getTreeData" url="${rc.contextPath}/tbasecommodity/findByDepartment" :setting="setting2" :tid='114534'></ht-tree>
+            </Modal>
+
+            <Modal v-model="showSupplier" @on-ok="ok" @on-cancel="cancel" width="800" title="供应商列表" :mask-closable="false">
+                <i-form label-width="80" class="mg-bm-md" @keydown.native.enter.prevent="keyDown">
+                    <row>
+                        <i-col span="12">
+                            <form-item label="供应商类别">
+                                <i-select v-model="supplySearch.supplierType" multiple class="ht-width-md">
+                                    <i-option v-for="item in suppType" :value="item.code" :key="item.code">{{item .name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="12">
+                            <form-item label="供应商等级">
+                                <i-select v-model="supplySearch.supplierLevel" multiple class="ht-width-md">
+                                    <i-option v-for="item in supplierLevel" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="12">
+                            <form-item label="主营商品">
+                                <i-select v-model="supplySearch.mainProd" multiple class="ht-width-md">
+                                    <i-option v-for="item in mainProduct" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="12">
+                            <form-item label="供应商简称">
+                                <i-input v-model="supplySearch.siShortName" class="ht-width-md"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                    <row>
+                        <i-col span="6" offset="18">
+                            <i-button type="primary" @click="searchSupplier">搜索</i-button>
+                            <i-button type="primary" @click="clearSupplier">清空</i-button>
+                        </i-col>
+                    </row>
+                </i-form>
+                <div id="supply_list">
+                    <supply-search :data_config="supplier_list" :need-reload="supplierReload" v-model="supplier_selected"></supply-search>
+                </div>
+            </Modal>
+            <div class="btn-menu mg-bm-md">
+                <span @click="save" v-show="saveDisable">保存</span>
+                <span @click="quit">退出</span>
+            </div>
+            <i-form label-width="120" class="pd-bm-sm">
+                <row>
+                    <i-col span="16">
+                        <row>
+                            <i-col span="10">
+                                <form-item label="创建组织：" class="ht-star">
+                                    <i-input v-model="organizationName" :disabled="true"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="10" offset="4">
+                                <form-item label="商品编码：" class="ht-star">
+                                    <i-input @on-blur="vCode"  v-model="commodity.code" :disabled="showMainType"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <row>
+                            <i-col span="10">
+                                <form-item label="主类型：" class="ht-star">
+                                    <i-select :disabled="showIsType" v-model="mainType1" @on-change="changeType($event)">
+                                        <i-option v-for="item in type" :value="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                            </i-col>
+                            <i-col span="4">
+                                <i-select :disabled="showMainType" @on-change="changeMainType($event)" v-model="mainType" v-show="isShowMaterial">
+                                    <i-option v-for="item in materialType" :value="item.value">{{item.label}}</i-option>
+                                </i-select>
+                            </i-col>
+                            <i-col span="10" :offset="mainType1 === 1?'':'4'">
+                                <form-item label="商品名称：" class="ht-star">
+                                    <i-input v-model="commodity.name" :disabled="showName"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </i-col>
+                    <i-col span="8">
+                        <carousel autoplay current-index="0" autoplaySpeed="2000" class="carousel">
+                            <carousel-item v-for="(item,index) in carouselList" :key="index">
+                                <div>
+                                    <img class="carousel" :src="item.url" />
+                                    <span>{{item.name}}</span>
+                                </div>
+                            </carousel-item>
+                        </carousel>
+                    </i-col>
+                </row>
+            </i-form>
+            <div>
+                <tabs value="name1" :animated="false" class="pd-bm-md" @on-click="getWrapperHeight">
+                    <tab-pane label="基本资料" name="name1">
+                        <i-form model='baseBody' label-width="120">
+                            <form-item label="商品类型：" class="ht-star">
+                                <cascader v-if="commodity.id == ''" @on-change="changeCategory($event)" :data="categoryType" trigger="hover" v-model="commodityCategoty"
+                                    class="ht-width-lg inline-block"></cascader>
+                                <i-input :disabled="showOn" v-if="commodity.id != ''" type="text" v-model="categoryName1" class="ht-width-lg inline-block"></i-input>
+                            </form-item>
+                            <form-item label="款式类别：" :class="commodity.mainType == 'attr_ranges_goods' ? 'ht-star' :''">
+                                <row>
+                                    <i-col span="11">
+                                        <i-input :disabled="showOn" v-if="commodity.id != ''" type="text" class="ht-width-lg" v-model="styleName1"></i-input>
+                                    </i-col>
+                                    <i-col v-if="commodity.id == ''" span="11" class="ht-width-lg" v-for="(item,index) in styleList">
+                                        <i-select :disabled="commodityCategoty.length == 0" @on-change="changeStyleList($event,index)" v-model="styleListData[index].data"
+                                            :key="item">
+                                            <i-option v-for="options in item" :value="options.id" :key="options.StyleName">{{options.styleName}}
+                                            </i-option>
+                                        </i-select>
+                                    </i-col>
+                                </row>
+                            </form-item>
+                            <form-item label="规格：">
+                                <i-input :disabled="showIsDefault" v-model="commodity.specification" class="ht-width-lg"></i-input>
+                            </form-item>
+                            <form-item label="商品系列：">
+                                <i-select :disabled="showIsDefault" @on-change="changeSeries()" v-model="commodityseries" multiple class="ht-width-lg">
+                                    <i-option v-for="item in newSeries" :value="item.value" :key="item.value">{{item .name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="状态：">
+                                <i-select :disabled="showIsDefault" v-model="commodity.status" class="ht-width-lg">
+                                    <i-option v-for="item in newStatus" :value="item.value">{{item.name}}</i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="供货商家：">
+                                <i-input :disabled="showIsDefault" v-model="suppliernames" class="ht-width-lg" icon="search" @on-click="openSupplier"></i-input>
+                            </form-item>
+                            <form-item label="参考重量：">
+                                <i-input @on-blur="vWeight" :disabled="showIsDefault" v-model="commodity.weight" class="ht-width-lg" number></i-input>
+                            </form-item>
+                            <form-item>
+                                <input type="radio" :disabled="showIsDefault" v-model="commodity.pricingType" value="1" name="pricingType">
+                                <label>按重量计价：</label>
+                                <input type="radio" :disabled="showIsDefault" v-model="commodity.pricingType" value="2" name="pricingType">
+                                <label>按数量计价：</label>
+                            </form-item>
+                            <!--   <form-item label="计重单位">
+                               <i-select class="ht-width-md" @on-change="chooseUnit" v-model="commodity.weightGroupId" :disabled="isQuantityUnit ? true : false">
+                                   <i-option v-for="(item,index) in weightUnit" :value="item.id" :key="index">{{item.name}}</i-option>
+                               </i-select>
+                               <i-select v-model="commodity.weightUnitId" clearable class="ht-width-md" :disabled="isQuantityUnit ? true : false">
+                                   <i-option v-for="item in weightDetail" :value="item.id">{{item.name}}</i-option>
+                               </i-select>
+                           </form-item>
+
+                           <form-item label="计数单位">
+                               <i-select class="ht-width-md" v-model="commodity.countGroupId" @on-change="chooseQuantityUnit" :disabled="isWeightUnit ? true : false">
+                                   <i-option v-for="(item,index) in quantityUnit" :value="item.id" :key="index">{{item.name}}</i-option>
+                               </i-select>
+                               <i-select class="ht-width-md" clearable v-model="commodity.countUnitId" :disabled="isWeightUnit ? true : false">
+                                   <i-option v-for="item in quantityDetail" :value="item.id">{{item.name}}</i-option>
+                               </i-select>
+                           </form-item>-->
+                            <form-item label="计重单位：">
+                                <i-select class="ht-width-lg" style="width:119px"  :disabled="showIsDefault" @on-change="chooseUnit" v-model="commodity.weightGroupId" :disabled="isQuantityUnit ? true : false || showIsDefault">
+                                    <i-option v-for="(item,index) in weightUnit" :value="item.id" v-if="item.isDel==1 || item.id == commodity.weightGroupId"
+                                        :key="item.name">
+                                        {{item.name}}
+                                    </i-option>
+                                </i-select>
+                                <i-select v-model="commodity.weightUnitId" style="width:119px"  clearable class="ht-width-lg" :disabled="isQuantityUnit ? true : false || showIsDefault">
+                                    <i-option v-for="item in weightDetail" :value="item.id" :key="item.name" v-if="item.isDel==1 || item.id == commodity.weightUnitId">{{item.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+
+                            <form-item label="计数单位：">
+                                <i-select class="ht-width-lg" style="width:119px"  v-model="commodity.countGroupId" @on-change="chooseQuantityUnit" :disabled="isWeightUnit ? true : false || showIsDefault">
+                                    <i-option v-for="(item,index) in quantityUnit" :value="item.id" v-if="item.isDel==1 || item.id == commodity.countGroupId"
+                                        :key="item.name">{{item.name}}
+                                    </i-option>
+                                </i-select>
+                                <i-select class="ht-width-lg" clearable style="width:119px"  v-model="commodity.countUnitId" :disabled="isWeightUnit ? true : false || showIsDefault">
+                                    <i-option v-for="item in quantityDetail" :value="item.id" :key="item.name" v-if="item.isDel==1 || item.id == commodity.countUnitId">
+                                        {{item.name}}
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <!--  <form-item label="证书类别">
+                            <i-select class="ht-width-lg" v-model="commodity.certificateType"
+                                      :disabled="showIsDefault" >
+                                <i-option v-for="(item,index) in certificateType" :value="item.value"
+                                          :key="item.name">{{item.name}}
+                                </i-option>
+                            </i-select>
+                        </form-item>-->
+                            <form-item label="备注:">
+                                <i-input :disabled="showIsDefault" type="textarea" v-model="commodity.remark" :rows="5" class="ht-width-lg"></i-input>
+                            </form-item>
+                        </i-form>
+                    </tab-pane>
+                    <tab-pane label="物流资料" name="name2">
+                        <i-form label-width="120">
+                            <row>
+                                <i-col span="8">
+                                    <form-item label="采购部门：">
+                                        <i-input :disabled="showIsDefault" v-model="buyDepartment" icon="search" @on-click="iconPopup" class="ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="单价精度：">
+                                        <i-input :disabled="showIsDefault" v-model="commodity.accuracy" class="ht-width-lg" @on-blur="vInteger"></i-input>
+                                    </form-item>
+                                    <form-item label="默认入库仓：">
+                                        <!-- <search-select-more v-model="commodity.locator" :options="locatorList" :more="false" class="inline-block ht-width-lg" @on-change="locatorChange"></search-select-more> -->
+                                        <i-select :disabled="showIsDefault" v-model="commodity.warehouseInfoId" transfer filterable clearable class="ht-width-lg">
+                                            <i-option v-for="item in locatorList1" :value="item.id" v-if="item.isDel==1 || item.id == commodity.warehouseInfoId" :key="item.id">{{item.codes}}-{{item.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item>
+                                        <input :disabled="showIsDefault" v-model="commodity.isDefBatch" type="checkbox">
+                                        <label>是否启用批次号</label>
+                                    </form-item>
+                                    <form-item>
+                                        <input :disabled="showIsDefault" v-model="commodity.isDefStock" type="checkbox">
+                                        <label>是否需库存管理</label>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="采购负责人：">
+                                        <i-select :disabled="showIsDefault" v-model="commodity.buyer" multiple filterable clearable class="ht-width-lg">
+                                            <i-option v-for="item in buyers" :value="item.id" v-if="item.empStatus==1 || commodity.buyer.indexOf(item.id) != -1" :key="item.id">{{item.empCode}}-{{ item.empName}}
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="计价方法：" class="ht-star">
+                                        <i-select :disabled="showIsDefault" class="ht-width-lg" v-model="commodity.priceMethod">
+                                            <i-option v-for="item in costMethod" :value="item.value" class="ht-width-lg">{{item.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                    <form-item label="默认待检仓：">
+                                        <i-select :disabled="showIsDefault" v-model="commodity.repertoryPositionId" transfer filterable clearable class="ht-width-lg">
+                                            <i-option v-for="item in locatorList" :value="item.id" v-if="item.isDel==1 || item.id == commodity.repertoryPositionId" :key="item.id">{{item.codes}}-{{item.name}}
+                                            </i-option>
+                                        </i-select>
+                                    </form-item>
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </tab-pane>
+                    <tab-pane :disabled="commodity.mainType!='attr_ranges_goods'" label="BOM资料" name="bom" style="width:100%;overflow-x: scroll">
+                        <div style="width:3200px;" id="wrapper" :disabled="showIsDefault">
+                            <div>
+                                <div class="ht-subtitle">
+                                    <div>金料</div>
+                                </div>
+                                <div class="btn-menu">
+                                    <span :is-disabled="showIsDefault" @click="addGoldRow">新增行</span>
+                                    <span class="split-line"></span>
+                                    <span :is-disabled="showIsDefault" @click="delGoldRow">删除行</span>
+                                </div>
+                                <table class=" edit-table ">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">
+                                                <input type="checkbox" @click="checkAllGold" v-model="isCheckedAll">
+                                            </th>
+                                            <!--  <th>
+                                          <label>是否推送到前端</label>
+                                          &lt;!&ndash; <input type="checkbox"> &ndash;&gt;
+                                      </th>-->
+                                            <th style="width:180px">子项编码</th>
+                                            <th>子项名称</th>
+                                            <th>成色</th>
+                                            <th>计重单位</th>
+                                            <th>重量参考值</th>
+                                            <th>重量下限</th>
+                                            <th>重量上限</th>
+                                            <th>金耗(%)</th>
+                                            <th>工费(元)</th>
+                                            <th>转足金重</th>
+                                            <th v-for="item in goldTableHeader">
+                                                <label>{{item.name}}</label>
+                                                <input type="checkbox" v-model="item.isPush">
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item,index) in goldBoms">
+                                            <td class="width-xs text-center">
+                                                <input type="checkbox" :checked="checkGold.indexOf(index)>=0" @click="clickOne(index)">
+                                            </td>
+                                            <!--    <td>
+                                            {{item.isPush}}
+                                            <input type="checkbox" v-model="item.isPush">
+                                        </td>-->
+                                            <td style="width:180px">
+                                                <ht-select 
+                                                    :is-disabled="showIsDefault" 
+                                                    :init-model="item.commodityCode" 
+                                                    @getitem="getGoldItem($event,index)" 
+                                                    v-model="item.commodityCode" 
+                                                    :main-type="'attr_ranges_gold'"
+                                                    :item-url="'/tbasecommodity/info/'"
+                                                    :ktc-status="0"
+                                                    >
+                                                </ht-select>
+                                            </td>
+
+                                            <td>
+                                                {{item.commodityName}}
+                                                <!-- <input class="ivu-input" type="text" v-model="item.commodityName" :disabled="true"> -->
+                                            </td>
+                                            <td>
+                                                {{item.condition}}
+                                                <!-- <i-select v-model="item.condition" :disabled="true" transfer>
+                                                    <i-option v-for="unit in certificateType" :value="unit.value">{{unit.name}}
+                                                    </i-option>
+                                                </i-select> -->
+                                            </td>
+                                            <td style="padding: 0;">
+                                                <div v-for="unitItem in weightUnit">
+                                                    <i-select transfer disabled v-if="item.weightGroupId==unitItem.id" v-model="item.weightUnitId">
+                                                        <i-option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                                        </i-option>
+                                                    </i-select>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 0;">
+
+                                                <input class="ivu-input" type="text" v-model="item.weightReference" @input="clearNoNum(item,'weightReference')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightFloor" @input="clearNoNum(item,'weightFloor')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightUpper" @input="clearNoNum(item,'weightUpper')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.lose" @input="clearNoNum(item,'lose')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.processCost" @input="clearNoNum(item,'processCost')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.pureWeight" @input="clearNoNum(item,'pureWeight')" placeholder="请输入数字">
+                                            </td>
+                                            <td v-for="(data,i) in goldTableHeader" :key="i">
+                                                <i-select multiple v-if="!(typeof(data.data[index]) =='undefined' || data.data[index].length === 0)" :key="data.id" :class="goldAssistAttr[index][i].attrValueIds.length>1?'width-select':''"
+                                                    v-model="goldAssistAttr[index][i].attrValueIds">
+                                                    <i-option value="-1">所有</i-option>
+                                                    <i-option v-for="options in data.data[index]" :value="options.id">
+                                                        {{options.value}}
+                                                    </i-option>
+                                                </i-select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <div class="ht-subtitle">
+                                    <div>石料参数</div>
+                                </div>
+                                <div class="btn-menu">
+                                    <span :is-disabled="showIsDefault" @click="addStoneRow">新增行</span>
+                                    <span class="split-line"></span>
+                                    <span :is-disabled="showIsDefault" @click="delStoneRow">删除行</span>
+
+                                </div>
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">
+                                                <input type="checkbox" @click="checkAllStone" v-model="isCheckedAllStone">
+                                            </th>
+                                            <!-- <th>
+                                             <label>是否推送到前端</label><br>
+                                             &lt;!&ndash; <input type="checkbox"> &ndash;&gt;
+                                         </th>-->
+                                            <th>组成项</th>
+                                            <th style="width:180px">子项编码</th>
+                                            <th>子项编码名称</th>
+                                            <th>计数单位</th>
+                                            <th>数量</th>
+                                            <th>重量选配方式</th>
+                                            <th>计重单位</th>
+                                            <th>重量参考值</th>
+                                            <th>重量下限</th>
+                                            <th>重量上限</th>
+                                            <th>损耗(%)</th>
+                                            <th v-for="item in stonesTableHeader">
+                                                <label>{{item.name}}</label>
+                                                <input type="checkbox" v-model="item.isPush">
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item,index) in stonesBoms">
+
+                                            <td class="width-xs text-center">
+                                                <input type="checkbox" :checked="checkStone.indexOf(index)>=0" @click="clickOneStone(index)">
+                                            </td>
+                                            </td>
+                                            <td>
+                                                <i-select  v-model="item.partName" transfer>
+                                                    <i-option v-for="type in formType" :value="type.value">{{type.name}}</i-option>
+                                                </i-select>
+                                            </td>
+                                            <td style="width:180px">
+                                                <!-- <ht-select :is-disabled="showIsDefault" :init-model="item.commodityCode" @one="changeStoneList(index)" @getitem="getItem"
+                                                    @getinput="getInput" @change="getOption(index,2)" v-model="item.commodityCode"
+                                                    :option-data="itemStoneList[index]"></ht-select> -->
+                                                <ht-select 
+                                                    :is-disabled="showIsDefault" 
+                                                    :init-model="item.commodityCode" 
+                                                    @getitem="getStoneItem($event,index)" 
+                                                    v-model="item.commodityCode" 
+                                                    :main-type="'attr_ranges_stone'"
+                                                    :item-url="'/tbasecommodity/info/'"
+                                                    >
+                                                </ht-select>
+
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.commodityName" :disabled="true">
+                                            </td>
+                                            <!-- <td>
+                                         <select v-model="item.countUnitId">
+                                             <option value="">1</option>
+                                         </select>
+                                     </td>-->
+                                            <td style="padding: 0;">
+                                                <div v-for="unitItem in weightUnit">
+                                                    <i-select  disabled v-if="item.countGroupId==unitItem.id" transfer v-model="item.countUnitId">
+                                                        <i-option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                                        </i-option>
+                                                    </i-select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.count" @input="clearNoNum(item,'count')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <i-select v-model="item.weightWay" transfer>
+                                                    <i-option v-for="type in weightWayArr" :value="type.value">{{type.name}}</i-option>
+                                                </i-select>
+                                            </td>
+                                            <td style="padding: 0;">
+                                                <div v-for="unitItem in weightUnit">
+                                                    <i-select disabled v-if="item.weightGroupId==unitItem.id" transfer v-model="item.weightUnitId">
+                                                        <i-option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                                        </i-option>
+                                                    </i-select>
+                                                </div>
+                                            </td>
+                                            <!-- <td>
+                                         <select v-model="item.weightUnitId">
+                                             <option value="">1</option>
+                                         </select>
+                                     </td>-->
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightReference" @input="clearNoNum(item,'weightReference')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightFloor" @input="clearNoNum(item,'weightFloor')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightUpper" @input="clearNoNum(item,'weightUpper')" placeholder="请输入数字">
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.lose" @input="clearNoNum(item,'lose')" placeholder="请输入数字">
+                                            </td>
+                                            <td v-for="(nature,i) in stonesTableHeader">
+                                                <i-select multiple :key="nature.id" :class="stonesAssistAttr[index][i].attrValueIds.length>1?'width-select':''" v-if="!(typeof(nature.data[index]) =='undefined' || nature.data[index].length === 0)"
+                                                    v-model="stonesAssistAttr[index][i].attrValueIds">
+                                                    <i-option value="-1">所有</i-option>
+                                                    <i-option v-for="options in nature.data[index]" :value="options.id">
+                                                        {{options.value}}
+                                                    </i-option>
+                                                </i-select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <!-- 此部分为bom新增需求表格 -->
+                                <div class="ht-subtitle">
+                                    <div>配件</div>
+                                </div>
+                                <div class="btn-menu">
+                                    <span :is-disabled="showIsDefault" @click="addPartRow">新增行</span>
+                                    <span class="split-line"></span>
+                                    <span :is-disabled="showIsDefault" @click="delPartRow">删除行</span>
+
+                                </div>
+                                <table class="edit-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-xs text-center">
+                                                <input type="checkbox" @click="checkAllPart" v-model="isCheckedAllPart">
+                                            </th>
+                                            <th style="width:180px">子项编码</th>
+                                            <th>子项名称</th>
+                                            <th>计数单位</th>
+                                            <th>数量</th>
+                                            <th>计重单位</th>
+                                            <th>重量</th>
+                                            <th v-for="item in partTableHeader">
+                                                <label>{{item.name}}</label>
+                                                <input type="checkbox" v-model="item.isPush">
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item,index) in partBoms">
+                                            <td class="width-xs text-center">
+                                                <input type="checkbox" :checked="checkPart.indexOf(index)>=0" @click="clickOnePart(index)">
+                                            </td>
+                                            </td>
+                                            <td style="width:180px;">
+                                               
+                                                <!-- <ht-select :is-disabled="showIsDefault" @one="changePartList(index)" @getitem="getItem" @getinput="getInput" @change="getOption(index,3)"
+                                                    v-model="item.commodityCode" :init-model="item.commodityCode" :option-data="itemPartList[index]"></ht-select> -->
+                                                <ht-select 
+                                                    :is-disabled="showIsDefault" 
+                                                    :init-model="item.commodityCode" 
+                                                    @getitem="getPartItem($event,index)" 
+                                                    v-model="item.commodityCode" 
+                                                    :main-type="'attr_ranges_part'"
+                                                    :item-url="'/tbasecommodity/info/'"
+                                                    >
+                                                </ht-select>
+
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.commodityName" :disabled="true">
+                                            </td>
+                                            <td style="padding: 0;">
+                                                <div v-for="unitItem in weightUnit">
+                                                    <i-select disabled v-if="item.countGroupId==unitItem.id" name="" v-model="item.countUnitId">
+                                                        <i-option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                                        </i-option>
+                                                    </i-select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.count" @input="clearNoNum(item,'count')" placeholder="请输入数字">
+                                            </td>
+
+                                            <td style="padding: 0;">
+                                                <div v-for="unitItem in weightUnit">
+                                                    <i-select disabled v-if="item.weightGroupId==unitItem.id" transfer v-model="item.weightUnitId">
+                                                        <i-option v-for="unit in unitItem.tBaseUnits" :value="unit.id">{{unit.name}}
+                                                        </i-option>
+                                                    </i-select>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <input class="ivu-input" type="text" v-model="item.weightReference" @input="clearNoNum(item,'weightReference')" @oninput="clearNoNum(item,'weightReference')">
+                                            </td>
+
+                                            <td v-for="(nature,i) in partTableHeader">
+                                                <i-select multiple :key="nature.id" :class="partAssistAttr[index][i].attrValueIds.length>1?'width-select':''" v-if="!(typeof(nature.data[index]) =='undefined' || nature.data[index].length === 0)"
+                                                    v-model="partAssistAttr[index][i].attrValueIds">
+                                                    <i-option value="-1">所有</i-option>
+                                                    <i-option v-for="options in nature.data[index]" :value="options.id">
+                                                        {{options.value}}
+                                                    </i-option>
+                                                </i-select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <!-- 新增表格结束 -->
+                            </div>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="质检资料" name="name4">
+                        <div>
+                            <i-form label-width="120">
+                                <row style="width: 800px;padding-bottom: 80px">
+                                    <i-col span="12">
+                                        <form-item label="来料质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.materiaMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                        <form-item label="库存质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.stockMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                        <form-item label="门店质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.maintainMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                    </i-col>
+                                    <i-col span="12">
+                                        <form-item label="调拨质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.salesBackMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                        <form-item label="发货质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.shipMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                        <form-item label="其他质检方式：">
+                                            <i-select :disabled="showIsDefault" v-model="commodity.otherMethod" class="ht-width-lg">
+                                                <i-option v-for="item in qualityCheckWays" :value="item.value">
+                                                    {{item.name}}
+                                                </i-option>
+                                            </i-select>
+                                        </form-item>
+                                    </i-col>
+                                </row>
+                            </i-form>
+                        </div>
+                    </tab-pane>
+                    <tab-pane label="财务资料" name="name5">
+                        <i-form label-width="120">
+                            <row>
+                                <i-col span="8">
+                                    <form-item label="成本价格(¥)：">
+                                        <i-input @on-blur="vCostPrice" :disabled="showIsDefault" v-model="commodity.costPrice" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="销售价格(¥)：">
+                                        <i-input @on-blur="vSelling" :disabled="showIsDefault" v-model="commodity.sellingPrice" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="工费(¥)：">
+                                        <i-input @on-blur="vlaborCharges" :disabled="showIsDefault" v-model="commodity.laborCharges" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="销售倍率(¥)：">
+                                        <i-input @on-blur="vsalesRate" :disabled="showIsDefault" v-model="commodity.salesRate" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                </i-col>
+                                <i-col span="8">
+                                    <form-item label="标签价格(¥)：">
+                                        <i-input @on-blur="vLablePrice" :disabled="showIsDefault" v-model="commodity.lablePrice" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="证书费(¥)：">
+                                        <i-input @on-blur="vCertificate" :disabled="showIsDefault" v-model="commodity.certificatePrice" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+                                    <form-item label="其他费用(¥)：">
+                                        <i-input @on-blur="votherFee" :disabled="showIsDefault" v-model="commodity.otherFee" class="isPositiveDouble ht-width-lg"></i-input>
+                                    </form-item>
+
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </tab-pane>
+                    <div v-if="showIsDefault">
+                        <tab-pane label="变更记录" name="name6">
+                            <common-record-list :record_config="change_log" :url="logUrl"></common-record-list>
+                        </tab-pane>
+                    </div>
+                    <tab-pane label="图片视频" name="name7" style="padding-left:10px; ">
+                        <div class="ht-subtitle">
+                            <div>商品图片</div>
+                        </div>
+                        <div class="mg-lf-md">
+                            <div class="upload-container">
+                                <div class='uploadBtn' v-show="!commodity.frontPic || !commodity.frontPic.fdUrl">
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" :data="frontData" :on-success="frontHandleSuccess" :show-upload-list="false"
+                                        :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
+                                        :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传图片</span>
+                                        </div>
+                                    </upload>
+                                </div>
+                                <div class="uploadShowDiv" v-if="commodity.frontPic && commodity.frontPic.fdUrl">
+                                    <img class="photoShow upload" id="frontImg" :src="commodity.frontPic.fdUrl" alt="正面图" />
+                                    <!--<span @click="delFile(3,null)">删除</span>-->
+                                    <icon type="close-circled" @click="delFile(3,null)" class="upload-close"></icon>
+                                </div>
+                                <span>正面图</span>
+                            </div>
+                            <div class="upload-container">
+                                <div class='uploadBtn' v-show="!commodity.sidePic || !commodity.sidePic.fdUrl">
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" :data="sideData" :on-success="sideHandleSuccess" :show-upload-list="false"
+                                        :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
+                                        :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传图片</span>
+                                        </div>
+                                    </upload>
+                                </div>
+                                <div class="uploadShowDiv" v-if="commodity.sidePic && commodity.sidePic.fdUrl">
+                                    <img :src="commodity.sidePic.fdUrl" class="photoShow upload" id="sideImg" alt="侧面图" />
+                                    <!--<span @click="delFile(4,null)">删除</span>-->
+                                    <icon @click="delFile(4,null)" type="close-circled" class="upload-close"></icon>
+                                </div>
+                                <span>侧面图</span>
+                            </div>
+                            <div class="upload-container">
+                                <div class='uploadBtn' v-show="!commodity.downPic || !commodity.downPic.fdUrl">
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" :data="topData" :on-success="topHandleSuccess" :show-upload-list="false"
+                                        :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
+                                        :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传图片</span>
+                                        </div>
+                                    </upload>
+                                </div>
+                                <div class="uploadShowDiv" v-if="commodity.downPic && commodity.downPic.fdUrl">
+                                    <img class="photoShow upload" :src="commodity.downPic.fdUrl" alt="俯视图" />
+                                    <!--<span @click="delFile(5,null)">删除</span>-->
+                                    <icon type="close-circled" class="upload-close" @click="delFile(5,null)"></icon>
+                                </div>
+                                <span>俯视图</span>
+                            </div>
+                            <p class="notice">图片格式为JPG,PNG,BMP,PSD,JPEG</p>
+                        </div>
+                        <div class="ht-subtitle">
+                            <div>商品试戴图</div>
+                        </div>
+                        <div class="mg-lf-md">
+                            <div class="photoUpload inline-block">
+                                <div class="uploadShowDiv upload-item" v-for="(item,index) in commodity.tryPics">
+                                    <img :src="item.fdUrl" class="photoShow upload" alt="试戴图" />
+                                    <!--<span @click="delFile(index,commodity.tryPics)">删除</span>-->
+                                    <icon type="close-circled" class="upload-close" @click="delFile(index,commodity.tryPics)"></icon>
+                                </div>
+                                <div class='uploadBtn inline-block'>
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" multiple :data="tryData" :on-success="tryHandleSuccess" :show-upload-list="false"
+                                        :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
+                                        :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传图片</span>
+                                        </div>
+                                    </upload>
+                                </div>
+                            </div>
+                            <p class="notice">图片格式为JPG,PNG,BMP,PSD,JPEG</p>
+                        </div>
+                        <div class="ht-subtitle">
+                            <div>3D旋转包</div>
+                        </div>
+                        <div class="mg-lf-md">
+                            <div class="photoUpload inline-block">
+                                <div class="uploadShowDiv  upload-item" v-for="(item,index) in commodity.threeDPics" :key="index">
+                                    <div class="upload inline-block">
+                                        <img style="width:130px;height:130px;" src='${rc.contextPath}/images/zip.jpg'>
+                                    </div>
+                                    <span class="pd-sm text-center">{{item.fdName}}
+                                        <!--<span @click="delFile(index,commodity.threeDPics)">删除</span>-->
+                                    </span>
+                                    <icon type="close-circled" class="upload-close" @click="delFile(index,commodity.threeDPics)"></icon>
+                                </div>
+                                <div class='uploadBtn inline-block'>
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" multiple :data="threeDData" :on-success="threeDHandleSuccess" :format="['zip','rar']"
+                                        :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize"
+                                        :show-upload-list="false">
+                                        <!--<Button type="ghost" icon="ios-cloud-upload-outline">Upload 3d图</Button>-->
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传图包</span>
+                                        </div>
+                                    </upload>
+                                </div>
+    
+                            </div>
+                            <p class="notice">格式.ZIP,RAR,大小限制为10M以内</p>
+                        </div>
+                        
+                        <div class="ht-subtitle">
+                            <div>视频</div>
+                        </div>
+                        <div class="mg-lf-md">
+                            <div class="photoUpload clearfix">
+                                <div class="uploadShowDiv  upload-item" v-for="(item,index) in commodity.videos" :key="index">
+                                    <div class="upload inline-block">
+                                        <img style="width:130px;height:130px;" src='${rc.contextPath}/images/video.jpg'>
+                                    </div>
+                                    <div style="width:130px; word-break: break-all;word-wrap: break-word;" class="pd-sm text-center">{{item.fdName}}</div>
+                                    <icon type="close-circled" class="upload-close" @click="delFile(index,commodity.videos)"></icon>
+                                </div>
+                                <div class='uploadBtn video'>
+                                    <upload action="${rc.contextPath}/tbasecommodity/upload" multiple :data="videoData" :on-success="videoHandleSuccess" :show-upload-list="true"
+                                        :format="['wmv','asf','asx','rm','rmvb','mp4','3gp','mov','m4v','avi','dat','mkv','flv','vob']"
+                                        :on-format-error="handleFormatError" :max-size="204800" :on-exceeded-size="handleMaxSize">
+                                        <!--<Button type="ghost" icon="ios-cloud-upload-outline">Upload 视频</Button>-->
+                                        <div class="upload">
+                                            <icon type="ios-cloud-upload-outline" size="20"></icon>
+                                            <span>上传视频</span>
+                                        </div>
+                                    </upload>
+                                </div>
+                            </div>
+                            <p class="notice">格式.MP4，大小限制为10M以内.</p>
+                        </div>
+                        
+
+                    </tab-pane>
+                    <!--   <tab-pane label="图片视频" name="name7">
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn' v-show="!commodity.frontPic || !commodity.frontPic.fdUrl">
+                            <Upload action=contextPath+"/tbasecommodity/upload" :data="frontData"
+                                    :on-success="frontHandleSuccess" :show-upload-list="false">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 正面图</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv" v-if="commodity.frontPic && commodity.frontPic.fdUrl">
+                            <img height="100" width="100" class="photoShow" id="frontImg"
+                                 :src="commodity.frontPic.fdUrl" alt="正面图"/>
+                            <span @click="delFile(3,null)">删除</span>
+                        </div>
+                    </div>
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn' v-show="!commodity.sidePic || !commodity.sidePic.fdUrl">
+                            <Upload action=contextPath+"/tbasecommodity/upload" :data="sideData"
+                                    :on-success="sideHandleSuccess" :show-upload-list="false">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 侧面图</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv" v-if="commodity.sidePic && commodity.sidePic.fdUrl">
+                            <img height="100" width="100" :src="commodity.sidePic.fdUrl" class="photoShow" id="sideImg"
+                                 alt="侧面图"/>
+                            <span @click="delFile(4,null)">删除</span>
+                        </div>
+                    </div>
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn' v-show="!commodity.downPic || !commodity.downPic.fdUrl">
+                            <Upload action=contextPath+"/tbasecommodity/upload" :data="topData"
+                                    :on-success="topHandleSuccess">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 俯视图</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv" v-if="commodity.downPic && commodity.downPic.fdUrl">
+                            <img height="100" width="100" class="photoShow" :src="commodity.downPic.fdUrl" alt="俯视图"/>
+                            <span @click="delFile(5,null)">删除</span>
+                        </div>
+                    </div>
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn'>
+                            <Upload action=contextPath+"/tbasecommodity/upload" multiple="true" :data="tryData"
+                                    :on-success="tryHandleSuccess" :show-upload-list="false">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 试戴图</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv">
+            <span v-for="(item,index) in commodity.tryPics">
+                 <img height="100" width="100" :src="item.fdUrl" class="photoShow" alt="试戴图"/>
+                 <span @click="delFile(index,commodity.tryPics)">删除</span>
+            </span>
+                        </div>
+                    </div>
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn'>
+                            <Upload action=contextPath+"/tbasecommodity/upload" multiple="true" :data="threeDData"
+                                    :on-success="threeDHandleSuccess" :show-upload-list="false">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 3d图</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv">
+              <span v-for="item,index) in commodity.threeDPics">
+                 <img height="100" width="100" :src="item.fdUrl" class="photoShow" alt="3d图"/>
+                 <span @click="delFile(index,commodity.threeDPics)">删除</span>
+            </span>
+                        </div>
+                    </div>
+                    <div class="photoUpload" height="100">
+                        <div class='uploadBtn'>
+                            <Upload action=contextPath+"/tbasecommodity/upload" multiple="true" :data="videoData"
+                                    :on-success="videoHandleSuccess" :show-upload-list="false">
+                                <Button type="ghost" icon="ios-cloud-upload-outline">Upload 视频</Button>
+                            </Upload>
+                        </div>
+                        <div class="uploadShowDiv">
+                            <div class="uploadShowDiv">
+              <span v-for="item,index) in commodity.videos">
+                 <img height="100" width="100" :src="item.fdUrl" class="photoShow" alt="视频"/>
+                 <span @click="delFile(index,commodity.videos)">删除</span>
+            </span>
+                            </div>
+                        </div>
+                    </div>
+                    </tab-pane>-->
+                    <tab-pane :disabled="commodity.mainType=='attr_ranges_goods'" label="辅助属性" name="name8">
+                        <row>
+                            <i-col span="7" offset="1">
+                                <i-table border size="small" :columns="natureTable" :data="natureTableCol" @on-row-dblclick="tableDbClick"></i-table>
+                            </i-col>
+                            <i-col span="15" offset="1">
+                                <transfer v-model="test" :data="detailsNatureData" :target-keys="targetDetailsNature" :render-format="renderTranferContent"
+                                    @on-change="handleTranfer"></transfer>
+                            </i-col>
+                        </row>
+                    </tab-pane>
+                    <tab-pane :disabled="commodity.mainType != 'attr_ranges_gold'" label="金料成色" name="name10">
+                        <i-form label-width="120">
+                            <row style="width: 800px;padding-bottom: 80px">
+                                <i-col span="12">
+                                    <form-item label="金料成色">
+                                        <i-select transfer class="ht-width-lg" v-model="commodity.certificateType" :disabled="showIsDefault">
+                                            <i-option v-for="(item,index) in certificateType" :value="item.name" :key="item.name">{{item.name}}
+                                            </i-option>
+                                        </i-select>
+
+                                    </form-item>
+
+                                </i-col>
+                                <i-col span="1">
+                                    <span class="star"></span>
+                                </i-col>
+                            </row>
+                        </i-form>
+                    </tab-pane>
+                    <tab-pane label="电商(待定)" name="name9"></tab-pane>
+                </tabs>
+            </div>
+        </div>
+
+    </div>
+    #parse("modules/public/footer.html")
+    <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+    <script src="${rc.contextPath}/js/components/ht-select.js"></script>
+    <script src='${rc.contextPath}/js/basedata/commodity/supply-search.js'></script>
+    <script src='${rc.contextPath}/js/basedata/commodity/product-info.js'></script>
+
+</body>
+
+</html>

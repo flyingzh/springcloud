@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" conatent="ie=edge"> #parse("modules/public/header.html")
+    <title>收支类别</title>
+</head>
+<style>
+    .ht-modal-center {
+        margin: 10px 40px 10px 0px;
+    }
+
+    .ht-text-center {
+        font-size: 18px;
+        text-align: center;
+        margin-left: 40px;
+    }
+
+    .ht-disabled {
+        color: #999;
+    }
+
+    .ht-icon {
+        font-size: 16px;
+        position: absolute;
+        right: -25px;
+        bottom: 9px;
+    }
+</style>
+
+<body style="height: 100%;">
+    <div id="incomeExpenditure" class="copyright_content" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="addModal=nodeSelected" :disabled="isDisabled">新增</button>
+            <Modal v-model="addModal" title="收支类别【操作】" width="400" ok-text='保存' @on-ok="saveData" @on-cancel="canceldata"
+                closable="false">
+                <div class="ht-modal-center" style="position: relative;">
+                    <i-form :model="body" label-width="100">
+                        <p class="ht-text-center">收支类别</p>
+                        <form-item class="ht-star" label="代码：">
+                            <i-input v-model="body.code"></i-input>
+                        </form-item>
+                        <form-item class="ht-star" label="名称：">
+                            <i-input v-model="body.name"></i-input>
+                        </form-item>
+                        <form-item class="ht-star" label="科目：">
+                            <i-input v-model="body.subjectName" readonly="true" @on-click="showSubjectVisable" icon="ios-list-outline"
+                                type="text"></i-input>
+                            <!-- <i-select v-model="body.subjectId" filterable>
+                                <i-option v-for="item in subjectList" :value="item.value" :key="'subjectList'+item.value">{{item.label}}</i-option>
+                            </i-select>
+                            <Icon type="search" @click="searchSubject" class="ht-icon"></Icon> -->
+                            <!-- <i-input v-model="body.ieSubject" icon="search" @on-click="searchSubject"></i-input>                            -->
+                        </form-item>
+                    </i-form>
+                </div>
+            </Modal>
+            <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject"></ht-modal-subject>
+
+            <!-- <subject-tree :show="subjectVisiable" :end="subjectEnd" @close="subjectClose" @save="subjectDate"></subject-tree> -->
+            <span class="ht-btn" @click="modify" :disabled="modifyIsDisabled">修改</span>
+            <button class="ht-btn" @click="deleteBatch1">删除</button>
+            <button class="ht-btn" @click="outHtml">退出</button>
+            <!--<span>打印</span>-->
+            <!--<span>预览</span>-->
+            <!--<span>刷新</span>-->
+            <!--<span>禁用</span>-->
+            <!--<span>反禁用</span>-->
+
+        </div>
+        <div class="flex mt10">
+            <div class="sider-left" style="width:200px;">
+                <ht-treeinc :node-data="nodes" :setting="setting"></ht-treeinc>
+            </div>
+            <div class="width-full">
+                <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+            </div>
+        </div>
+    </div>
+    #parse("modules/public/footer.html")
+    <script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>
+    <script src="${rc.contextPath}/js/finance/incomeExpenditure/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <!-- <script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script> -->
+    <script src='${rc.contextPath}/js/basedata/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/basedata/components/ht-add-del-btn.js'></script>
+    <script src="${rc.contextPath}/js/finance/incomeExpenditure/base-data-list.js"></script>
+    <script src="${rc.contextPath}/js/finance/incomeExpenditure/income-expenditure.js"></script>
+</body>
+
+</html>

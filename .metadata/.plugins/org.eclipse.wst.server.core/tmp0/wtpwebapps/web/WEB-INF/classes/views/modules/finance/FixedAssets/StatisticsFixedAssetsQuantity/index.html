@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>固定资产数量统计表</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+
+        .subtotalClass {
+            background: #FFFFBB;
+        }
+        .alltotalClass {
+            background: #FFDD55;
+        }
+
+        .ui-jqgrid tr.jqgrow td {
+            white-space: normal !important;
+            height:auto;
+            vertical-align:text-top;
+            padding-top:2px;
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .pageTitle1 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .w80{width:60px !important;}
+        .calc-w80{
+            width: calc(100% - 80px);
+        }
+        .tree-show{
+            position: absolute;
+            top: 33px;
+            left: 63px;
+            z-index: 8;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="statisticsFixedAssetsQuantity" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <button @click="open" class="ht-btn">打开</button>
+            <button class="ht-btn" @click="exportExcel">引出</button>
+            <button class="ht-btn" @click="printV">打印</button>
+            <button class="ht-btn" @click="exitPrevent">退出</button>
+        </div>
+        <div class="pl20 pr20 mt10">
+            <span class="mr20 pageTitle1">固定资产数量统计表</span>
+            <span class="mr20">会计期间：{{dateStr}}</span>
+        </div>
+        <div class="jqGrid_wrapper pl20 pr20 mt10">
+            <table id="grid"></table>
+            <div id="page"></div>
+        </div>
+        <!-- 打开 -->
+        <Modal v-model="filterVisible" class="filter" width="600px" title="过滤" :mask-closable="false">
+            <div class="ht-subtitle ml0">
+                <div>条件</div>
+            </div>
+            <row>
+                <label class="w80">所属组织：</label>
+                <i-input class="calc-w80" v-model="orgName" disabled> </i-input>
+            </row>
+            <div class="ht-subtitle ml0">
+                <div>汇总设置</div>
+            </div>
+            <row class="mt5">
+                <div>
+                    <label class="w80">&nbsp;</label>
+                    <label>
+                        <input type="checkbox" v-model="formData.checkClass"> 资产类别
+                    </label>
+                    <label class="ml20">
+                        <input type="checkbox" v-model="formData.checkDept"> 使用部门
+                    </label>
+                </div>
+            </row>
+            <div class="ht-subtitle ml0">
+                <div>基本条件</div>
+            </div>
+            <row class="mt5">
+                <i-col :span="12">
+                    <label class="w80">会计年度：</label>
+                    <i-select v-model="formData.accountYear" class="inline-block calc-w80">
+                        <i-option v-for="item in periodYear" :value="item.value" :key="item.value">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </i-col>
+                <i-col :span="12">
+                    <label class="w80">会计期间：</label>
+                    <i-select v-model="formData.accountPeriod" class="inline-block calc-w80">
+                        <i-option v-for="item in periodList" :value="item.name" :key="item.name">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </i-col>
+            </row>
+            <div class="ht-subtitle ml0">
+                <div>其他查询条件</div>
+            </div>
+            <row class="mt5">
+                <i-col :span="12">
+                    <label class="w80">资产类别：</label>
+                    <i-input class="calc-w80" icon="search" v-model="formData.assetsTypeName" name="assetsTypeNameRef" ref="assetsTypeNameRef"
+                             @on-click="showDepartmentTree(true,'showAssetType')"></i-input>
+                    <div v-show="showAssetType" class="tree-show">
+                        <ht-input-tree url="${rc.contextPath}/assetsclassescontroller/assetsClassesList"
+                                       :setting="assetsClassTreeSetting"></ht-input-tree>
+                    </div>
+                </i-col>
+                <i-col :span="12">
+                    <label class="w80">使用部门：</label>
+                    <i-input class="calc-w80" icon="search" v-model="formData.useDepartmentName" name="useDepartmentNameRef" ref="useDepartmentNameRef"
+                             @on-click="showDepartmentTree(true,'showUseDept')"></i-input>
+                    <div v-show="showUseDept" class="tree-show">
+                        <ht-input-tree url="${rc.contextPath}/testDocument/getCurrentUserDeptInfo"
+                                       :setting="useDepartmentTreeSetting"></ht-input-tree>
+                    </div>
+                </i-col>
+            </row>
+
+            <row class="mt5">
+                <i-col :span="12">
+                    <label class="w80">使用状态：</label>
+                    <i-input class="calc-w80" icon="search" v-model="formData.useStateName" name="useStateNameRef" ref="useStateNameRef"
+                             @on-click="showDepartmentTree(true,'showUseStateType')"></i-input>
+                    <div v-show="showUseStateType" class="tree-show">
+                        <ht-input-tree url="${rc.contextPath}/useState/initTree"
+                                       :setting="useStateTreeSetting"></ht-input-tree>
+                    </div>
+                </i-col>
+                <i-col :span="12">
+                    <label class="w80">变动方式：</label>
+                    <i-input class="calc-w80" icon="search" v-model="formData.alterTypeName" name="alterTypeNameRef" ref="alterTypeNameRef"
+                             @on-click="showDepartmentTree(true,'showAlterType')"></i-input>
+                    <div v-show="showAlterType" class="tree-show">
+                        <ht-input-tree url="${rc.contextPath}/app/financeFaChangeMode/treeData"
+                                       :setting="alterTypeTreeSetting"></ht-input-tree>
+                    </div>
+                </i-col>
+            </row>
+            <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="cancel">取消</i-button>
+            </div>
+        </Modal>
+
+            <!--<Modal v-model="filterVisible" width="400px" title="过滤" class="filter" :mask-closable="false">-->
+            <!--<div class="ht-subtitle ml0">-->
+                <!--<div>条件</div>-->
+            <!--</div>-->
+            <!--<Row class="mt5">-->
+                <!--<div>-->
+                    <!--<label class="w60">会计年度</label>-->
+                    <!--<i-select v-model="formData.accountYear" class="inline-block w120" filterable>-->
+                        <!--<i-option v-for="item in periodYear" :value="item.value" :key="item.value">-->
+                            <!--<slot>{{ item.name }}</slot>-->
+                        <!--</i-option>-->
+                    <!--</i-select> 年-->
+                <!--</div>-->
+            <!--</Row>-->
+            <!--<Row class="mt5">-->
+                <!--<label class="w60">会计期间</label>-->
+                <!--<i-select v-model="formData.accountPeriod" class="inline-block w120" filterable>-->
+                    <!--<i-option v-for="item in periodList" :value="item.name" :key="item.name">-->
+                        <!--<slot>{{ item.name }}</slot>-->
+                    <!--</i-option>-->
+                <!--</i-select> 期-->
+            <!--</Row>-->
+            <!--<div class="ht-subtitle ml0">-->
+                <!--<div>汇总设置</div>-->
+            <!--</div>-->
+            <!--<Row class="mt5">-->
+                <!--<label>-->
+                    <!--<input type="checkbox" v-model="formData.check1"> 类别-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="checkbox" v-model="formData.check2"> 使用部门-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="checkbox" v-model="formData.check3"> 经济用途-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<Row class="mt5">-->
+                <!--<label>-->
+                    <!--<input type="checkbox" v-model="formData.check4"> 存放地点-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="checkbox" v-model="formData.check5"> 变动方式-->
+                <!--</label>-->
+                <!--<label class="ml20">-->
+                    <!--<input type="checkbox" v-model="formData.check6"> 使用状态-->
+                <!--</label>-->
+            <!--</Row>-->
+            <!--<div slot="footer">-->
+                <!--<i-button @click="save" type="primary">确定</i-button>-->
+                <!--<i-button @click="cancel">取消</i-button>-->
+            <!--</div>-->
+        <!--</Modal>-->
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
+    </div>
+    <script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
+    <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/StatisticsFixedAssetsQuantity/index.js"></script>
+    #parse("modules/public/footer.html")
+    <script src='${rc.contextPath}/js/finance/components/ht-assets-list.js'></script>
+</body>
+
+</html>

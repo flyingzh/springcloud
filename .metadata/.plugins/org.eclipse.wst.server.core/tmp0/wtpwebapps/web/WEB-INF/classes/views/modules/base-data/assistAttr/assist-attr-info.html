@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <script>var contextPath = '${rc.contextPath}';var rcContextPath = '${rc.contextPath}';</script>
+    <title>辅助属性列表</title>
+</head>
+
+<body>
+<div id="assist-attr-info" v-cloak>
+    <div class="btn-menu" v-show="!isShow">
+        #if($shiro.hasPermission("basedata:tBaseAssistAttr:add"))
+        <span @click="add">新增</span>
+        #end
+        #if($shiro.hasPermission("basedata:tBaseAssistAttr:add"))
+        <span @click="copy">复制</span>
+        #end
+        #if($shiro.hasPermission("basedata:tBaseAssistAttr:update"))
+        <span @click="modify">修改</span>
+        #end
+        #if($shiro.hasPermission("basedata:tBaseAssistAttr:delete"))
+        <span @click="del">删除</span>
+        #end
+        <span @click="exit">退出</span>
+    </div>
+    <div v-show="!isShow">
+        <!--<div class="search-menu" v-show="isSearchHide">-->
+            <!--<label>编码：</label>-->
+            <!--<input type="text" v-model='body.code' class="input-sm  form-control input-width" placeholder="可模糊搜索">-->
+            <!--<label>辅助属性名称：</label>-->
+            <!--<input type="text" v-model='body.name' class="input-sm  form-control input-width" placeholder="可模糊搜索">-->
+            <!--<ht-btns @search="search" @clear='clear' :is-search="true" v-bind:is-add="false"-->
+                     <!--class="inline-block"></ht-btns>-->
+        <!--</div>-->
+        <i-form v-show="isSearchHide" class="mg-top-md" label-width="100">
+            <row>
+                <i-col span="8">
+                    <form-item label="编码:">
+                        <i-input v-model='body.code'  class="ht-width-md"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="辅助属性名称:">
+                        <i-input v-model='body.name' class="ht-width-md"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <ht-btns @search="search" @clear='clear' :is-search="true" v-bind:is-add="false"
+                             class="inline-block"></ht-btns>
+                </i-col>
+            </row>
+        </i-form>
+        <div>
+            <div style="height: 25px;">
+                    <span class="chevron">
+                    <span>
+                        <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                        <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide"></Icon>
+                    </span>
+
+                    </span>
+            </div>
+            <base-data-list :data_config="data_config" @modify="modify" :need-reload="reload"
+                            v-model="selected"></base-data-list>
+        </div>
+    </div>
+    <div v-show="isShow">
+        <div class="btn-menu">
+            <span @click="save" v-if="!isEdit" v-show="isSave">保存</span>
+            <span @click="cancel">退出</span>
+        </div>
+        <form class="form-horizontal" id="attr_form">
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    属性编码
+                </label>
+                <div class="col-xs-7">
+                    <input class="form-control" name="code" disabled maxlength="30" type="text"
+                           v-model="assistAttr.code">
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    属性名称
+                </label>
+                <div class="col-xs-7">
+                    <input class="form-control" name="name" :disabled="isEdit" maxlength="30" type="text"
+                           v-model="assistAttr.name">
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">
+                    <span class="star"></span>
+                    适用范围
+                </label>
+                <div class="col-xs-7">
+                    <label class="radio-inline" v-for="item in range">
+                        <input v-model="selectedRange"  :value="item.value" :disabled="isEdit"
+                               type="checkbox" style="margin-right: 5px" class="radio-inline">{{item.label}}
+                    </label>
+                </div>
+            </div>
+          <!--  <div class="form-group form-group-sm">
+                <label class="col-xs-3 control-label">状态</label>
+                <div class="col-xs-9">
+                    <label class="radio-inline" v-for="item in status">
+                        <input v-model="assistAttr.status" :value="item.value" :disabled="isEdit" name="status"
+                               type="radio">{{item.label}}
+                    </label>
+                </div>
+            </div>-->
+            <!--默认status为1 有效-->
+            <input v-model="assistAttr.status" :value="1" :disabled="isEdit" name="status"
+            type="hidden">
+            <div></div> <div></div>
+            <!-- <fieldset class="layui-elem-field layui-field-title">
+                 <legend>辅助属性值</legend>
+             </fieldset>-->
+            <div class="ht-subtitle" style="margin-top: 50px">
+                <div>属性值</div>
+            </div>
+            <div>
+                <div class="btn-menu" style="margin-left: 50px;width:291px">
+                    <span @click="addContacts">新增行</span>
+                   <!-- <span class="split-line"></span>-->
+                    <span @click="delContacts">删除行</span>
+                </div>
+                <table class="edit-table" style="margin-left: 50px;">
+                    <thead>
+                    <th class="width-xs">
+                        <input type="checkbox" @click="checkAllValues" v-model="isCheckedAll">
+                    </th>
+                    <th >序号</th>
+                  <!--  <th>值代码</th>-->
+                    <th>值名称</th>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(item,index) in assistAttr.tBaseAssistAttrValuess">
+                        <td class="width-xs text-center">
+                            <input type="checkbox" name='line' :disabled="isEdit" v-model="item.isCheck"
+                                   @click="clickOne(index)" :checked="item.isCheck">
+                        </td>
+                        <td class="text-center">{{index+1}}
+                        </td>
+                       <!-- <td>
+                            <input type="text" :disabled="isUpdate && item.id" name="vlaueCode" maxlength="30"
+                                   v-model="item.code">
+                        </td>-->
+                        <td>
+                            <input type="text" :disabled="isEdit" name="valueName" maxlength="30" v-model="item.value">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+<script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+<!--<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>-->
+<!--<script src="${rc.contextPath}/js/basedata/components/base-data-list.js"></script>-->
+<script src="${rc.contextPath}/js/components/ht-btns.js"></script>
+<script src="${rc.contextPath}/js/components/base-data-list.js"></script>
+<script src="${rc.contextPath}/js/basedata/assist-attr-info.js"></script>
+
+<script src='${rc.contextPath}/js/basedata/components/search-select-more.js'></script>
+<script src='${rc.contextPath}/js/basedata/components/base-data-list.js'></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-btns.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/area-select.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/date-select.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-add-del-btn.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/basedata/components/common-record-list.js"></script>
+
+#parse("modules/public/footer.html") </body>
+
+</html>

@@ -1,0 +1,416 @@
+package com.htrfid.finance.vo;
+
+import java.math.BigDecimal;
+
+
+/**
+ * @author lxy
+ * @version V1.0.1
+ * @className FaDepreciationSummaryTableVO
+ * @description 固定资产 折旧汇总表
+ * @email lxyyxljava@163.com
+ * @date 2018-10-29 13:49
+ **/
+public class FaDepreciationSummaryTableVO {
+
+	/** 编号 **/
+	private Integer id;
+	/** 资产编号 **/
+	private String assetCode;
+	/** 资产名称 **/
+	private String assetName;
+	/** 型号 **/
+	private String model;
+	/** 会计年度 **/
+	private Integer accountYear;
+	/** 会计期间 **/
+	private Integer accountPeriod;
+	/** 预计使用期间数 **/
+	private Integer expectUsePeriods;
+	/** 已使用期间数 **/
+	private Integer usePeriodsBeforeservice;
+	/** 类别 **/
+	private Long classId;
+	/** 部门Id **/
+	private Long deptId;
+	/** 类别名称 **/
+	private String className;
+	/** 部门名称 **/
+	private String deptName;
+	/** 期初原值 **/
+	private BigDecimal initValueFor;
+	/** 期初累计折旧 **/
+	private BigDecimal initAddDepreciation;
+	/** 期初净值 **/
+	private BigDecimal initNetValue;
+	/** 期初减值准备 **/
+	private BigDecimal initAllowance;
+	/** 期初净额 **/
+	private BigDecimal initNetAmount;
+	/** 原值新增 **/
+	private BigDecimal addValueFor;
+	/** 原值减少 **/
+	private BigDecimal subtractValueFor;
+	/** 折旧调增 **/
+	private BigDecimal addDepreciation;
+	/** temp折旧调增 **/
+	private BigDecimal tempDepreciation;
+	/** 折旧减少 **/
+	private BigDecimal subtractDepreciation;
+	/** 减值准备调增 **/
+	private BigDecimal subtractValueIncrease;
+	/** 减值准备调减 **/
+	private BigDecimal subtractValueSubtract;
+	/** 本期折旧额 **/
+	private BigDecimal thisPeriodDepreciationAmount;
+	/** 本年折旧额 **/
+	private BigDecimal thisYearDepreciationAmount;
+	/** 本年实际计提折旧额 **/
+	private BigDecimal thisYearAddDepreciationAmount;
+	/** 期末原值 **/
+	private BigDecimal endValueFor;
+	/** 期末累计折旧 **/
+	private BigDecimal endAddDepreciation;
+	/** 期末净值 **/
+	private BigDecimal endNetValue;
+	/** 期末减值准备 **/
+	private BigDecimal endAllowance;
+	/** 期末净额 **/
+	private BigDecimal endNetAmount;
+	/** 本币金额 **/
+	private BigDecimal amount;
+	/** 累计折旧 **/
+	private BigDecimal deprService;
+	/** 减值准备 **/
+	private BigDecimal devalPreparation;
+	/** 本期原值 **/
+	private BigDecimal periodBeginOriginal;
+	/** 原值调整 **/
+	private BigDecimal orgValAdjust;
+	/** 累计折旧调整 **/
+	private BigDecimal deprServiceAdjust;
+	/** 月折旧率 **/
+	private BigDecimal monthDepreciationRate;
+	/** 部门费用分配比率 **/
+	private BigDecimal deptRate;
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getAssetCode() {
+		return assetCode;
+	}
+
+	public void setAssetCode(String assetCode) {
+		this.assetCode = assetCode;
+	}
+
+	public String getAssetName() {
+		return assetName;
+	}
+
+	public void setAssetName(String assetName) {
+		this.assetName = assetName;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public Integer getExpectUsePeriods() {
+		return expectUsePeriods;
+	}
+
+	public void setExpectUsePeriods(Integer expectUsePeriods) {
+		this.expectUsePeriods = expectUsePeriods;
+	}
+
+	public Integer getUsePeriodsBeforeservice() {
+		return usePeriodsBeforeservice;
+	}
+
+	public void setUsePeriodsBeforeservice(Integer usePeriodsBeforeservice) {
+		this.usePeriodsBeforeservice = usePeriodsBeforeservice;
+	}
+
+	public Integer getClassId() {
+		return classId;
+	}
+
+	public void setClassId(Integer classId) {
+		this.classId = classId;
+	}
+
+	public Integer getDeptId() {
+		return deptId;
+	}
+
+	public void setDeptId(Integer deptId) {
+		this.deptId = deptId;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
+	public String getDeptName() {
+		return deptName;
+	}
+
+	public void setDeptName(String deptName) {
+		this.deptName = deptName;
+	}
+
+	public BigDecimal getInitValueFor() {
+		return initValueFor;
+	}
+
+	public void setInitValueFor(BigDecimal initValueFor) {
+		this.initValueFor = initValueFor;
+	}
+
+	public BigDecimal getInitAddDepreciation() {
+		return initAddDepreciation;
+	}
+
+	public void setInitAddDepreciation(BigDecimal initAddDepreciation) {
+		this.initAddDepreciation = initAddDepreciation;
+	}
+
+	public BigDecimal getInitNetValue() {
+		return initNetValue;
+	}
+
+	public void setInitNetValue(BigDecimal initNetValue) {
+		this.initNetValue = initNetValue;
+	}
+
+	public BigDecimal getInitAllowance() {
+		return initAllowance;
+	}
+
+	public void setInitAllowance(BigDecimal initAllowance) {
+		this.initAllowance = initAllowance;
+	}
+
+	public BigDecimal getInitNetAmount() {
+		return initNetAmount;
+	}
+
+	public void setInitNetAmount(BigDecimal initNetAmount) {
+		this.initNetAmount = initNetAmount;
+	}
+
+	public BigDecimal getAddValueFor() {
+		return addValueFor;
+	}
+
+	public void setAddValueFor(BigDecimal addValueFor) {
+		this.addValueFor = addValueFor;
+	}
+
+	public BigDecimal getSubtractValueFor() {
+		return subtractValueFor;
+	}
+
+	public void setSubtractValueFor(BigDecimal subtractValueFor) {
+		this.subtractValueFor = subtractValueFor;
+	}
+
+	public BigDecimal getAddDepreciation() {
+		return addDepreciation;
+	}
+
+	public void setAddDepreciation(BigDecimal addDepreciation) {
+		this.addDepreciation = addDepreciation;
+	}
+
+	public BigDecimal getTempDepreciation() {
+		return tempDepreciation;
+	}
+
+	public void setTempDepreciation(BigDecimal tempDepreciation) {
+		this.tempDepreciation = tempDepreciation;
+	}
+
+	public BigDecimal getSubtractDepreciation() {
+		return subtractDepreciation;
+	}
+
+	public void setSubtractDepreciation(BigDecimal subtractDepreciation) {
+		this.subtractDepreciation = subtractDepreciation;
+	}
+
+	public BigDecimal getSubtractValueIncrease() {
+		return subtractValueIncrease;
+	}
+
+	public void setSubtractValueIncrease(BigDecimal subtractValueIncrease) {
+		this.subtractValueIncrease = subtractValueIncrease;
+	}
+
+	public BigDecimal getSubtractValueSubtract() {
+		return subtractValueSubtract;
+	}
+
+	public void setSubtractValueSubtract(BigDecimal subtractValueSubtract) {
+		this.subtractValueSubtract = subtractValueSubtract;
+	}
+
+	public BigDecimal getThisPeriodDepreciationAmount() {
+		return thisPeriodDepreciationAmount;
+	}
+
+	public void setThisPeriodDepreciationAmount(BigDecimal thisPeriodDepreciationAmount) {
+		this.thisPeriodDepreciationAmount = thisPeriodDepreciationAmount;
+	}
+
+	public BigDecimal getThisYearDepreciationAmount() {
+		return thisYearDepreciationAmount;
+	}
+
+	public void setThisYearDepreciationAmount(BigDecimal thisYearDepreciationAmount) {
+		this.thisYearDepreciationAmount = thisYearDepreciationAmount;
+	}
+
+	public BigDecimal getThisYearAddDepreciationAmount() {
+		return thisYearAddDepreciationAmount;
+	}
+
+	public void setThisYearAddDepreciationAmount(BigDecimal thisYearAddDepreciationAmount) {
+		this.thisYearAddDepreciationAmount = thisYearAddDepreciationAmount;
+	}
+
+	public BigDecimal getEndValueFor() {
+		return endValueFor;
+	}
+
+	public void setEndValueFor(BigDecimal endValueFor) {
+		this.endValueFor = endValueFor;
+	}
+
+	public BigDecimal getEndAddDepreciation() {
+		return endAddDepreciation;
+	}
+
+	public void setEndAddDepreciation(BigDecimal endAddDepreciation) {
+		this.endAddDepreciation = endAddDepreciation;
+	}
+
+	public BigDecimal getEndNetValue() {
+		return endNetValue;
+	}
+
+	public void setEndNetValue(BigDecimal endNetValue) {
+		this.endNetValue = endNetValue;
+	}
+
+	public BigDecimal getEndAllowance() {
+		return endAllowance;
+	}
+
+	public void setEndAllowance(BigDecimal endAllowance) {
+		this.endAllowance = endAllowance;
+	}
+
+	public BigDecimal getEndNetAmount() {
+		return endNetAmount;
+	}
+
+	public void setEndNetAmount(BigDecimal endNetAmount) {
+		this.endNetAmount = endNetAmount;
+	}
+
+	public BigDecimal getAmount() {
+		return amount;
+	}
+
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
+	public BigDecimal getDeprService() {
+		return deprService;
+	}
+
+	public void setDeprService(BigDecimal deprService) {
+		this.deprService = deprService;
+	}
+
+	public BigDecimal getPeriodBeginOriginal() {
+		return periodBeginOriginal;
+	}
+
+	public void setPeriodBeginOriginal(BigDecimal periodBeginOriginal) {
+		this.periodBeginOriginal = periodBeginOriginal;
+	}
+
+	public BigDecimal getDevalPreparation() {
+		return devalPreparation;
+	}
+
+	public void setDevalPreparation(BigDecimal devalPreparation) {
+		this.devalPreparation = devalPreparation;
+	}
+
+	public BigDecimal getOrgValAdjust() {
+		return orgValAdjust;
+	}
+
+	public void setOrgValAdjust(BigDecimal orgValAdjust) {
+		this.orgValAdjust = orgValAdjust;
+	}
+
+	public BigDecimal getDeprServiceAdjust() {
+		return deprServiceAdjust;
+	}
+
+	public void setDeprServiceAdjust(BigDecimal deprServiceAdjust) {
+		this.deprServiceAdjust = deprServiceAdjust;
+	}
+
+	public Integer getAccountYear() {
+		return accountYear;
+	}
+
+	public void setAccountYear(Integer accountYear) {
+		this.accountYear = accountYear;
+	}
+
+	public Integer getAccountPeriod() {
+		return accountPeriod;
+	}
+
+	public void setAccountPeriod(Integer accountPeriod) {
+		this.accountPeriod = accountPeriod;
+	}
+
+	public BigDecimal getMonthDepreciationRate() {
+		return monthDepreciationRate;
+	}
+
+	public void setMonthDepreciationRate(BigDecimal monthDepreciationRate) {
+		this.monthDepreciationRate = monthDepreciationRate;
+	}
+
+	public BigDecimal getDeptRate() {
+		return deptRate;
+	}
+
+	public void setDeptRate(BigDecimal deptRate) {
+		this.deptRate = deptRate;
+	}
+}

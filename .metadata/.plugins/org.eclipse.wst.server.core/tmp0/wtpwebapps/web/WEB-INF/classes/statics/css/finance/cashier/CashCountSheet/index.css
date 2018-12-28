@@ -1,0 +1,106 @@
+.ht-modal-center {
+    margin: 10px 40px 10px 0px;
+}
+
+.ht-text-center {
+    font-size: 18px;
+    text-align: center;
+    margin-left: 40px;
+}
+
+.ht-disabled {
+    color: #999;
+}
+
+.ht-icon {
+    font-size: 16px;
+    position: absolute;
+    right: -25px;
+    bottom: 9px;
+}
+
+#cashCountSheet .ht-tip1{padding: 5px 20px;font-size: 14px;}
+#cashCountSheet .ht-left-content{
+    width: 300px;border: 1px solid #cccccc;margin-right: 5px;height: 450px;margin-left: 10px;margin-bottom: 10px;
+}
+#cashCountSheet .ht-left-content .ht-left-type{    
+    text-align: center;padding: 5px 0px;border-bottom: 1px solid #cccccc;
+}
+#cashCountSheet .ht-left-content .ht-left-type .ivu-radio-wrapper{ margin-right: 30px !important;}
+#cashCountSheet .ht-left-content .ht-left-ztreeData{padding-left: 20px;}
+
+#cashCountSheet .ht-right-content{width: 700px;border: 1px solid #cccccc;height: 450px;padding: 10px;margin-bottom: 10px;}
+
+
+.ht-receivableW-table {height: 265px;overflow: auto;width: 100%;padding: 5px 20px 0px 20px;}
+.ht-receivableW-table th{
+    text-align: center; 
+    text-align: -webkit-center;
+    vertical-align: middle !important;
+    padding: 0px 10px !important;
+}
+.ht-receivableW-table .ht-tbMa{height: 185px;overflow: auto;}
+.ht-tabMainJq .ht-noData{height: 144px;line-height: 144px;}
+
+.ht-wrapper-tbl{width:100%;overflow-x:scroll;}
+.ht-wrapper-tbl table.tablediv {
+    margin:0 auto;
+    border-collapse:collapse;
+    width:100%;
+    border: 1px solid #ccc;
+}
+.ht-wrapper-tbl table td{
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    overflow: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.ht-wrapper-tbl table td::-webkit-scrollbar {
+    display: none;
+}
+.ht-wrapper-tbl thead,tfoot {
+    background:#f2f2f2;
+    display:block
+}
+.ht-wrapper-tbl tbody {
+    height:180px;
+    overflow-y:scroll;
+    display:block;
+
+}
+.wt30{
+    width:30px;
+    min-width:30px;
+    max-width:30px;
+}
+.wt45{
+    width:45px;
+    min-width:45px;
+    max-width:45px;
+}
+.wt100{
+    width:100px;
+    min-width:100px;
+    max-width:100px;
+}
+.wt55{
+    width:55px;
+    min-width:55px;
+    max-width:55px;
+}
+.wt80{
+    width:80px;
+    min-width:80px;
+    max-width:80px;
+}
+.wt130{
+    width:130px;
+    min-width:130px;
+    max-width:130px;
+}
+.wt150{
+    width:150px;
+    min-width:150px;
+    max-width:150px;
+}

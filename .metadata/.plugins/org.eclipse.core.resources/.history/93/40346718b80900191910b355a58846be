@@ -1,0 +1,7 @@
+package com.micro.springcloud.constance;
+
+public class Constance {
+	
+	public static final String TEXT = "1"; 
+	
+}

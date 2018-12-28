@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="login-page">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>金大祥平台</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="icon" href="images/favicon.png">
+    <link rel="stylesheet" href="dist/css/vendors.min.css">
+    <link rel="stylesheet" href="css/AdminLTE.min.css">
+    <link rel="stylesheet" href="ktc/css/base.css">
+    <link rel="stylesheet" href="ktc/css/gold.css">
+    <!--<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>-->
+    <!--<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>-->
+    <style>
+        /* login */
+        .login-page{overflow:hidden;height:100%;}
+        .login-box{margin: 5% auto 0;}
+        .login-layout .widget-box{background:none;}
+        .login-layout .header{margin-bottom:0;border-bottom:0;text-align:center;}
+        .input-icon.input-icon-right > .ace-icon{right:8px;}
+        #id-company-text{margin:1.5em 0;}
+        .ht-lodop-warning{display:none;}
+        .step{height:218px;position:relative;}
+        .step .wrapper-btn{position:absolute;right:0;bottom:0;left:0;width:100%;}
+        .step .content{padding:3em 0 0;}
+        .ivu-upload{display:inline;}
+        .btn-lg{padding: 10px 16px !important;font-size: 18px !important;line-height: 1.3333333 !important;}
+        .btn-primary{color:#fff !important;}
+    </style>
+</head>
+<body class="hold-transition login-page gradient">
+<div class="login-box" id="rrapp" v-cloak>
+    <h1 class="logo-login" title="金大祥平台"></h1>
+    <div class="login-box-body shadow">
+        <div v-show="step[1]" class="step">
+            <div v-if="error" class="alert alert-danger alert-dismissible">
+                <h5 style="margin: 0px;"><i class="fa fa-exclamation-triangle"></i> {{errorMsg}}</h5>
+            </div>
+            <div class="form-group has-feedback">
+                <input type="text" class="form-control round" v-model="username" placeholder="账号">
+                <span class="fa fa-user form-control-feedback hide"></span>
+            </div>
+            <div class="form-group has-feedback">
+                <input type="password" class="form-control round" v-model="password" placeholder="密码">
+                <span class="fa fa-lock form-control-feedback hide"></span>
+            </div>
+            <div class="form-group has-feedback">
+                <input type="text" style="width: 50%;display: inline-block" class="form-control round" v-model="captcha" @keyup.enter="login" placeholder="验证码" />
+                <img alt="如果看不清楚，请单击图片刷新！" style="width: 45%;display: inline-block" class="pointer pull-right" :src="src" @click="refreshCode">
+            </div>
+            <div class="checkbox" style="margin-bottom: 20px;">
+                <label>
+                    <input type="checkbox"  name="isRememberMe" v-model="isRememberMe">记住我,下次免登陆
+                </label>
+            </div>
+            <button type="button" class="btn btn-block btn-primary btn-lg" @click="login">登&nbsp;&nbsp;录</button>
+            <div v-show="hasLodop" class="text-center" style="padding-top:15px;">您未安装打印控件，请 <a href="http://www.lodop.net/download.html" target="_blank">下载</a> 安装Lodop综合版</div>
+        </div>
+
+        <div v-show="step[2]" class="step">
+            <div class="content">
+                <i class="fa fa-exclamation-circle pull-left" style="color:#d6a638;font-size:3em;margin-right:0.5em;"></i>
+                未检测到当前服务器许可信息，是否立即导入许可文件在线验证？
+            </div>
+            <div class="wrapper-btn">
+                <button type="button" class="btn btn-primary btn-lg pull-left" style="width:46%"
+                        @click="go2Step(3)">是</button>
+                <button type="button" class="btn btn-default btn-lg pull-right" style="width:46%"
+                        @click="go2Step(1)">否，下次</button>
+            </div>
+        </div>
+
+        <div v-show="step[3]" class="step">
+            <div class="content text-center">
+                导入许可：
+                <Upload
+                        ref="upload"
+                        :before-upload="handleUpload"
+                        :on-success="handleSuccess"
+                        :on-progress="handleProgress"
+                        :action="uploadUrl">
+                    <i-button type="ghost" icon="ios-cloud-upload-outline">
+                        点击选择许可文件
+                    </i-button>
+                </Upload>
+                <div v-if="file !== null">{{ file.name }}</div>
+            </div>
+            <div class="wrapper-btn">
+                <i-button type="text" @click="upload" :loading="loadingStatus"
+                          class="btn btn-primary btn-lg btn-block">
+                    {{ loadingStatus ? '正在验证，请稍候......' : '在线验证' }}
+                </i-button>
+            </div>
+        </div>
+
+        <div v-show="step[4]" class="step">
+            <div class="content">
+                <i class="ivu-icon ivu-icon-checkmark-circled pull-left"
+                   style="color:#19be6b;font-size:3em;margin-right:0.5em;"></i>
+                恭喜您，验证通过！<br />
+                服务器有效期为：<br/>
+                <span v-show="isLicenseValid">{{expireDateStr}}</span>
+            </div>
+            <div class="wrapper-btn">
+                <button type="button" class="btn btn-primary btn-lg btn-block"
+                        @click="go2Step(1)">确定</button>
+            </div>
+        </div>
+    </div>
+    <h5 class="grey-less text-center" id="id-company-text">&copy; 2018 金大祥版权所有</h5>
+</div>
+
+<script src="dist/js/vendors.min.js"></script>
+<script src="plugins/Lodop/LodopFuncs.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="plugins/layui/layui.js"></script>
+<script src="js/app.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    var contextPath = '${rc.contextPath}';
+</script>
+
+<script src="ktc/js/app.js"></script>
+<div style="visibility: hidden">
+    #[[
+    <script type="text/javascript">
+
+
+        $(document).keydown(function(e) {
+            if (e.keyCode == 13) {
+                vm.login();
+            }
+        });
+
+        var vm = new Vue({
+            el:'#rrapp',
+            data:{
+                // 判断浏览器是否安装了 Lodop 打印控件
+                hasLodop: false,
+                username: 'admin',
+                password: 'admin',
+                captcha: '',
+                error: false,
+                errorMsg: '',
+                isRememberMe:false,
+                isLicenseValid: false,
+                src: 'login/captcha',
+                file: null,
+                loadingStatus: false,
+                step:{
+                    1: true,
+                    2: false,
+                    3: false,
+                    4: false
+                },
+                uploadUrl:contextPath +'/licenseAuth/onlineAuth',
+                expireDateStr:''
+            },
+            beforeCreate: function(){
+                if(self != top){
+                    top.location.href = self.location.href;
+                }
+            },
+            methods: {
+                go2Step: function(stepNo){
+                    var step = this.step;
+                    $.each(step, function(key, val){
+                        step[key] = (key == stepNo) ? true : false;
+                    });
+                },
+                handleUpload (file) {
+                    this.file = file;
+                    return false;
+                },
+                upload () {
+                    if(vm.file === null){
+                        vm.$Message.warning('请先上传许可文件！');
+                        return;
+                    }
+                    this.loadingStatus = true;
+                    this.onlineAuth();
+                },
+                handleProgress(){
+                    vm.file = null;
+                },
+                handleSuccess (response, file, fileList) {
+                    if(response.code === '100100'){
+                        vm.file = null;
+                        vm.loadingStatus = false;
+                        vm.$Message.success('恭喜您，验证通过！');
+                        vm.isLicenseValid = true;
+                        let licenseStartTime = response.data && response.data.serverInfo &&
+                            response.data.serverInfo.licenseStartTime;
+                        let licenseEndTime = response.data && response.data.serverInfo &&
+                            response.data.serverInfo.licenseEndTime;
+                        if(licenseStartTime && licenseEndTime){
+                            let start = new Date(licenseStartTime).format("yyyy/MM/dd");
+                            let end = new Date(licenseEndTime).format("yyyy/MM/dd");
+                            vm.expireDateStr = `${start} - ${end}`;
+                        }
+                        vm.go2Step(4);
+                    }else {
+                        vm.loadingStatus = false;
+                        vm.$Message.warning('验证失败！');
+                    }
+                    //延时清空已上传的文件列表
+                    setTimeout(()=>{vm.$refs.upload.clearFiles();},1500);
+                },
+                onlineAuth(){
+
+                    vm.$refs.upload.post(vm.file);
+                },
+                refreshCode: function(){
+                    this.src = "login/captcha?t=" + $.now();
+                },
+                login: function (event) {
+                    var data = "username="+vm.username+"&password="+vm.password+"&captcha="+vm.captcha+"&isRememberMe="+vm.isRememberMe;
+                    $.ajax({
+                        type: "POST",
+                        url: "login/login",
+                        data: data,
+                        dataType: "json",
+                        success: function(result){
+                            if(result.code == 100100){//登录成功
+                                // 如果没有license
+//                                if (vm.isLicenseValid == false) {
+//                                    vm.go2Step(2);
+//                                    return false;
+//                                }
+
+                                // 缓存登录后的全局信息
+                                layui.data('cfg', {key: 'username', value: vm.username});
+
+                                // 缓存当前用户的信息
+                                var user = layui.data(vm.username);
+                                if (ht.util.hasValue(user.col, 'object') == false) {
+                                    layui.data(vm.username, {key: 'col', value: {}});
+                                }
+                                // 下面等号后改成登录成功后转向的 URL
+                                parent.location.href = ht.login.success();
+                            }else{
+                                vm.error = true;
+                                vm.errorMsg = result.msg;
+                                vm.refreshCode();
+                            }
+                        },
+                        complete: function( xhr,data ){
+                            console.log(xhr);
+                            if(xhr.responseText == 'test'){
+                                vm.go2Step(2)
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        $(window).load(function(){
+            //vm.hasLodop = (CreatedOKLodop7766 == null) || (typeof (CreatedOKLodop7766.VERSION) == "undefined");
+            vm.hasLodop = typeof getLodop() == 'undefined';
+        });
+
+    </script>
+    ]]#
+</div>
+</body>
+</html>

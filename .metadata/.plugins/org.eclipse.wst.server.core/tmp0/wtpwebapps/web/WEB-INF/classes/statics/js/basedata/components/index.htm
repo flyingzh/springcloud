@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../../../plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../plugins/jqgrid/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../plugins/jqgrid/ui.jqgrid.css">
+    <link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="rrapp">
+        <base-data-list v-bind:data_config="data_config" v-on:edit-click="editClick" v-on:refresh="refresh()" v-on:select-all="selectAll"></base-data-list>
+        <search-select-more  v-model="selectdMore"></search-select-more>
+        <div>{{selectdMore}} {{area}}{{date}}</div>
+        <ht-btns v-on:search="search" v-bind:is-search="true" v-bind:is-add="false"></ht-btns>
+        <area-select v-model="area"></area-select>
+        <date-select v-model="date"></date-select>
+    </div>
+
+     <script src="../../../plugins/layui/layui.all.js"></script>
+     <script src='../../../js/jquery-2.0.3.min.js'></script>
+     <script src='../../../plugins/jqgrid/jquery.jqGrid.min.js'></script>
+     <script src='../../../plugins/jqgrid/grid.locale-cn.js'></script>
+     <script type="text/javascript" src="./../../vue.min.js"></script>
+     <script type="text/javascript" src="./../../iview.min.js"></script>
+     <script src="./base-data-list.js"></script>
+     <script src="./search-select-more.js"></script>
+      <script src="ht-search-btn.js"></script>
+    <script src="./area-select.js"></script>
+    <script src="./date-select.js"></script>
+
+      <script>
+        new Vue({
+            el:'#rrapp',
+            data (){
+                return{
+                    selectdMore: [],
+                    area: {},
+                    date: '',
+                    is_search: true,
+                    data_config: {
+                        caption : "这是我的表格",
+                        colNames : [ 'ID', '操作', 'test', 'note','amount','tax'],
+                        colModel : [
+                            {name : 'id',index : 'date',width : 90, align:'center',sorttype : "date"},
+                            {
+                                label: '', name: '', index: 'operate', width: 250,align:'center',
+                                formatter: function (value, grid, rows, state) {
+                                    let btns =`<button class="edit" onclick="$emit('edit',${options.rowId})">编辑</button>`;
+                                    return btns
+                                },
+                            },
+                            {name : 'name',index : 'amount',width : 80,align:'center'},
+                            {name : 'note',index : 'tax',width : 80, align:'center'},
+                            {name : 'amount',index : 'amount',width : 80, align:'center'},
+                            {name : 'tax',index : 'tax',width : 80, align:'center'},
+                        ],
+                        data: [
+                            {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},
+                            {id : "3",date : "2007-09-01",name : "test3",note : "note3",amount : "400.00",tax : "30.00"},
+                            {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},  {id : "1",date : "2007-10-01",name : "test1",note : "note1",amount : "200.00",tax : "10.00"},
+                            {id : "2",date : "2007-10-02",name : "test2",note : "note2",amount : "300.00",tax : "20.00"},
+                        ]
+                    }
+                }
+            },
+            methods: {
+                refresh() {
+                    console.log('分页改变');
+                },
+                selectAll(callback){
+                    console.log(callback);
+                },
+                selectMul(params) {
+                    this.data_config = Object.assign({},{
+                        colModel: this.data_config.colModel,
+                        colNames: this.data_config.colNames,
+                        data: [  {id : "1",invdate : "2007-10-01",name : "test",note : "note",amount : "200.00",tax : "10.00",total : "210.00", aaa : "test",bbb : "note",ccc : "200.00",ddd : "10.00",eee : "210.00"}]
+                    });
+                    this.selectdMore = params.data;
+                },
+                search(){
+                    console.log('搜索');
+                },
+                clear(){
+                    console.log('清空');
+                },
+                add(){
+                    console.log('新增');
+                },
+                del(){
+                    console.log('删除');
+                },
+                editClick(data){
+                    console.log(data)
+                }
+            },
+            mounted(){
+
+            }
+        })
+       
+        </script>
+</body>
+</html>

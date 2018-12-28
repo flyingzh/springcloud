@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>业务基础参数</title>
+
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/metroStyle/metroStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/js/plugin/multi-select/css/ui.multiselect.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css?_1526982273400">
+
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+
+    <script src="${rc.contextPath}/js/vue.min.js"></script>
+    <script src='${rc.contextPath}/plugins/iview/iview.min.js'></script>
+    <script src="${rc.contextPath}/js/jquery.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/jquery.validate.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/additional-methods.min.js"></script>
+    <script src="${rc.contextPath}/plugins/validation/messages_zh.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/layer.js"></script>
+    <script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+    <script src="${rc.contextPath}/js/bootstrap.min.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+    <script src="${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js"></script>
+    <script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+    <script src="${rc.contextPath}/js/common.js"></script>
+    <script src="${rc.contextPath}/plugins/layer/mylayer.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/plugin/multi-select/js/ui.multiselect.js"></script>
+    <script type="text/javascript" src="${rc.contextPath}/ktc/js/app.js"></script>
+</head>
+
+<body>
+    <div class="ht-inner" id="vmDiv">
+
+        <form class="form-horizontal">
+
+            <fieldset class="layui-elem-field layui-field-title mt0">
+                <legend>初始参数</legend>
+            </fieldset>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="businessEnabledAccountingYear.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label ht-star2">启用会计期间：</label>
+                <div class="col-sm-10">
+                    <input v-model="businessEnabledAccountingPeriod.value" class="form-control required" type="number"
+                        :disabled="canUpdateAccountPeriod==false" min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计年度：</label>
+                <div class="col-sm-10">
+                    <input v-model="businessCurrentAccountingYear.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">当前会计时间：</label>
+                <div class="col-sm-10">
+                    <input v-model="businessCurrentAccountingPeriod.value" class="form-control" type="number" :disabled="canUpdateAccountPeriod==false"
+                        min="1" max="12" />
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">存货核算方式：</label>
+                <div class="col-sm-10">
+                    <label class="radio-inline">
+                        <input v-model="businessStockAdjustAccounts.value" type="radio" value="0"> 总仓核算
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="businessStockAdjustAccounts.value" type="radio" value="1"> 分仓核算
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">库存更新控制：</label>
+                <div class="col-sm-10">
+                    <label class="radio-inline">
+                        <input v-model="businessStockUpdateControl.value" type="radio" value="0"> 单据审核后更新
+                    </label>
+                    <label class="radio-inline">
+                        <input v-model="businessStockUpdateControl.value" type="radio" value="1"> 单据保存后更新
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">基本选项：</label>
+                <div class="col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessAuditSameMan.value" true-value="1" false-value="0" />
+                            审核人与制单人可为同一人
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessPrintSaveData.value" true-value="1" false-value="0" />
+                            打印（打印预览）前自动保存单据
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessDoubleMeasurementUnit.value" true-value="1"
+                                false-value="0" />
+                            使用双计量单位
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessAssistMeasurementUnit.value" true-value="1"
+                                false-value="0" />
+                            使用辅助计量单位
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessAuditReverseSameMan.value" true-value="1"
+                                false-value="0" />
+                            审核与反审核必须为同一人
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="businessUpdateSelfData.value" true-value="1" false-value="0" />
+                            只允许删改本人录入的单据
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2"></label>
+                <div class="col-sm-10">
+                    <!-- <button type="button" class="btn btn-primary" @click="save">保存</button> -->
+                    <i-button @click="save" type="primary">保存</i-button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '#vmDiv',
+            data: {
+                businessEnabledAccountingYear: {
+                    id: '',
+                    value: '0', //方便监听数据库值为''触发watch
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessEnabledAccountingYear_init: '',
+                businessEnabledAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessEnabledAccountingPeriod_init: '',
+                businessCurrentAccountingYear: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessCurrentAccountingYear_init: '',
+                businessCurrentAccountingPeriod: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessCurrentAccountingPeriod_init: '',
+                businessStockAdjustAccounts: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessStockAdjustAccounts_init: '',
+                businessStockUpdateControl: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessStockUpdateControl_init: '',
+                businessAuditSameMan: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessAuditSameMan_init: '',
+                businessPrintSaveData: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessPrintSaveData_init: '',
+                businessUpdateSelfData: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessUpdateSelfData_init: '',
+                businessDoubleMeasurementUnit: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessDoubleMeasurementUnit_init: '',
+                businessAssistMeasurementUnit: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessAssistMeasurementUnit_init: '',
+                businessAuditReverseSameMan: {
+                    id: '',
+                    value: '',
+                    readOnly: '',
+                    sobId: ''
+                },
+                businessAuditReverseSameMan_init: '',
+                canUpdateAccountPeriod: false,
+            },
+            methods: {
+                save: function () {
+                    if ($('form').valid()) {
+                        console.log(this.$data);
+                    }
+                    var array = [];
+                    if (vm.businessEnabledAccountingPeriod.value != vm.businessEnabledAccountingPeriod_init) {
+                        vm.businessEnabledAccountingPeriod.readOnly = 1;
+                        vm.businessEnabledAccountingYear.readOnly = 1;
+                        array.push(vm.businessEnabledAccountingYear);
+                        array.push(vm.businessEnabledAccountingPeriod);
+                        vm.businessCurrentAccountingYear.value = vm.businessEnabledAccountingYear.value;
+                        vm.businessCurrentAccountingPeriod.value = vm.businessEnabledAccountingPeriod.value;
+                        array.push(vm.businessCurrentAccountingYear);
+                        array.push(vm.businessCurrentAccountingPeriod);
+                        vm.businessEnabledAccountingPeriod_init = vm.businessEnabledAccountingPeriod.value;
+                    }
+                    if (vm.businessStockAdjustAccounts.value != vm.businessStockAdjustAccounts_init) {
+                        array.push(vm.businessStockAdjustAccounts);
+                        vm.businessStockAdjustAccounts_init = vm.businessStockAdjustAccounts.value;
+                    }
+                    if (vm.businessStockUpdateControl.value != vm.businessStockUpdateControl_init) {
+                        array.push(vm.businessStockUpdateControl);
+                        vm.businessStockUpdateControl_init = vm.businessStockUpdateControl.value;
+                    }
+                    if (vm.businessAuditSameMan.value != vm.businessAuditSameMan_init) {
+                        array.push(vm.businessAuditSameMan);
+                        vm.businessAuditSameMan_init = vm.businessAuditSameMan.value;
+                    }
+                    if (vm.businessPrintSaveData.value != vm.businessPrintSaveData_init) {
+                        array.push(vm.businessPrintSaveData);
+                        vm.businessPrintSaveData_init = vm.businessPrintSaveData.value;
+                    }
+                    if (vm.businessUpdateSelfData.value != vm.businessUpdateSelfData_init) {
+                        array.push(vm.businessUpdateSelfData);
+                        vm.businessUpdateSelfData_init = vm.businessUpdateSelfData.value;
+                    }
+                    if (vm.businessDoubleMeasurementUnit.value != vm.businessDoubleMeasurementUnit_init) {
+                        array.push(vm.businessDoubleMeasurementUnit);
+                        vm.businessDoubleMeasurementUnit_init = vm.businessDoubleMeasurementUnit.value;
+                    }
+                    if (vm.businessAssistMeasurementUnit.value != vm.businessAssistMeasurementUnit_init) {
+                        array.push(vm.businessAssistMeasurementUnit);
+                        vm.businessAssistMeasurementUnit_init = vm.businessAssistMeasurementUnit.value;
+                    }
+                    if (vm.businessAuditReverseSameMan.value != vm.businessAuditReverseSameMan_init) {
+                        array.push(vm.businessAuditReverseSameMan);
+                        vm.businessAuditReverseSameMan_init = vm.businessAuditReverseSameMan.value;
+                    }
+                    if (htUtilHasValue(array, 'array')) {
+                        $.ajax({
+                            type: 'POST',
+                            contentType: 'application/json;charset=utf-8',
+                            url: '${rc.contextPath}/systemProfileController/updateBatch',
+                            data: JSON.stringify(array),
+                            success: function (result) {
+                                if (result.data > 0) {
+                                    alert('更改成功！');
+                                } else {
+                                    alert('更改失败！');
+                                }
+                            }
+
+                        });
+                    } else {
+                        alert('暂无数据提交！');
+                    }
+                }
+            },
+            watch: {
+                'businessEnabledAccountingYear.value': function (val) {
+                    if (val == '') {
+                        //获取会计起始年度
+                        var getAccountingYearUrl = '${rc.contextPath}/systemProfileController/getAccountYear?sobId=1';
+                        var _this = this;
+                        $.ajax({
+                            type: 'POST',
+                            url: getAccountingYearUrl,
+                            success: function (result) {
+                                _this.businessEnabledAccountingYear.value = result.data;
+                            }
+                        });
+                    }
+                },
+            },
+            created: function () {
+                //查询系统信息参数
+                var sysUrl = '${rc.contextPath}/systemProfileController/queryByType?type=业务基础参数&sobId=1'
+                $.ajax({
+                    type: 'POST',
+                    url: sysUrl,
+                    success: function (result) {
+                        var dataObj = result.data;
+                        for (var i = 0; i < dataObj.length; i++) {
+                            if (dataObj[i].name == 'businessEnabledAccountingYear') {
+                                vm.businessEnabledAccountingYear = dataObj[i];
+                                vm.businessEnabledAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessEnabledAccountingPeriod') {
+                                vm.businessEnabledAccountingPeriod = dataObj[i];
+                                vm.businessEnabledAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessCurrentAccountingYear') {
+                                vm.businessCurrentAccountingYear = dataObj[i];
+                                vm.businessCurrentAccountingYear_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessCurrentAccountingPeriod') {
+                                vm.businessCurrentAccountingPeriod = dataObj[i];
+                                vm.businessCurrentAccountingPeriod_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessStockAdjustAccounts') {
+                                vm.businessStockAdjustAccounts = dataObj[i];
+                                vm.businessStockAdjustAccounts_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessStockUpdateControl') {
+                                vm.businessStockUpdateControl = dataObj[i];
+                                vm.businessStockUpdateControl_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessAuditSameMan') {
+                                vm.businessAuditSameMan = dataObj[i];
+                                vm.businessAuditSameMan_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessPrintSaveData') {
+                                vm.businessPrintSaveData = dataObj[i];
+                                vm.businessPrintSaveData_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessDoubleMeasurementUnit') {
+                                vm.businessDoubleMeasurementUnit = dataObj[i];
+                                vm.businessDoubleMeasurementUnit_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessAssistMeasurementUnit') {
+                                vm.businessAssistMeasurementUnit = dataObj[i];
+                                vm.businessAssistMeasurementUnit_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessAuditReverseSameMan') {
+                                vm.businessAuditReverseSameMan = dataObj[i];
+                                vm.businessAuditReverseSameMan_init = dataObj[i].value;
+                            }
+                            if (dataObj[i].name == 'businessUpdateSelfData') {
+                                vm.businessUpdateSelfData = dataObj[i];
+                                vm.businessUpdateSelfData_init = dataObj[i].value;
+                            }
+                        }
+                    }
+                });
+
+                // 查询会计期间是否可以修改
+                var canUpdateAccountPeriodUrl = '${rc.contextPath}/systemProfileController/canUpdateAccountPeriod';
+
+                $.ajax({
+                    type: 'POST',
+                    url: canUpdateAccountPeriodUrl,
+                    data: { "serviceType": "all" },
+                    success: function (result) {
+                        var canUpdateData = result.data;
+                        vm.canUpdateAccountPeriod = canUpdateData;
+                    }
+                });
+            },
+            mounted: function () {
+                $('form').validate();
+            }
+        });
+    </script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

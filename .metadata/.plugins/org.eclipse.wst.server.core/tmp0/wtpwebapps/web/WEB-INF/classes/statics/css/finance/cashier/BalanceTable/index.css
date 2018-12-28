@@ -1,0 +1,28 @@
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-cashier-title1{
+    float: left;
+    line-height: 30px;
+    margin-right: 20%;
+    font-size: 20px;
+}
+.ht-cashier-title2{line-height: 30px;font-weight: 100;}
+.ht-talList1{overflow: auto;}
+.ht-talList1 th{word-break: keep-all;}
+.ht-talList1 .ivu-table-cell {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.ht-talList1 .tabCheck{width: 30px;}
+.ht-talList1 .tabCheck label{margin-bottom: 0px;margin-right: 0px;}
+.ht-talList1 .tabNoPadding{padding: 0px !important;}
+
+.ht-talList1 .tabNoPadding input{
+    border: none;
+    border-radius: 0px;
+    height: 26px;
+}
+.ht-talList1 .success td{background-color: #fcf8e3;}
+
+

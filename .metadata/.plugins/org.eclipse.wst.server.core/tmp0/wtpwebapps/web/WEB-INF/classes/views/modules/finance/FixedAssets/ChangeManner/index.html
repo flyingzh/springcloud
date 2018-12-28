@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>变动方式</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w350{
+            width:350px;
+        }
+        .ht-commFloatLeft{float:left}
+        .ht-left-content{width:250px;}
+        .ht-right-content{width:calc(100% - 290px);}
+        .ht-input-width{width:200px;}
+        .ivu-form-item.cashier{position: relative;}
+        .ivu-form-item.cashier .star{position:absolute;left: -10px;}
+        .table tr th {background:#F2F2F2}
+
+        .ht-writeIsChangeDiv{
+            width: 80%;
+            height: 100%;
+            position: absolute;
+            top: 35px;
+            z-index: 100;
+            right: 0px;
+            background-color: rgba(1,1,1,0.02);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="change-manner" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshFun">刷新</button>
+            <button class="ht-btn" @click="modify('add')">新增</button>
+            <button class="ht-btn" @click="modify('edit')" :disabled="editDisabled">修改</button>
+            <button class="ht-btn" @click="confirm" :disabled="editDisabled">删除</button>
+            <button class="ht-btn" @click="saveFun" :disabled="saveDisabled">保存</button>
+            <button class="ht-btn" @click="closeWindow">退出</button>
+        </div>
+        <div class="clearfix mt10">
+            <div v-if="writeIsChange" class="ht-writeIsChangeDiv"></div>
+            <div class="ht-left-content ht-commFloatLeft" style="overflow: auto;">
+                <ht-structure-tree :node-data="nodes" :setting="setting" :tid="tid"></ht-structure-tree>
+            </div>
+            <div class="ht-right-content ht-commFloatLeft ml20 mr20">
+                <i-form :model="formData" :label-width="120">
+                    <row>
+                        <i-col span="9">
+                            <form-item label="所属组织：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-select v-model="sobId" class="ht-input-width" disabled="true">
+                                    <i-option v-for="item in organizationList" :value="item.id" :key="item.id">
+                                        <slot>{{ item.orgName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                            <form-item label="名称：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-input class="ht-input-width" v-model="formData.modeName" :disabled="isEdit"></i-input>
+                            </form-item>
+                            <form-item label="凭证字：">
+                                <i-select v-model="formData.voucherGroupId" class="ht-input-width">
+                                    <i-option v-for="item in voucherList" :value="item.id" :key="item.id">
+                                        <slot>{{ item.name }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </form-item>
+                        </i-col>
+                        <i-col span="2">&nbsp;</i-col>
+                        <i-col span="9">
+                            <form-item label="编码：" class="ht-star">
+                                <!-- <span class="star"></span> -->
+                                <i-input class="ht-input-width" v-model="formData.modeCode" :disabled="isEdit"></i-input>
+                            </form-item>
+                            <form-item label="上级变动方式：" class="depreciationTreeWrap" >
+                                    <i-input class="ht-input-width" icon="search" v-model="parentName"  @on-click="showAssetClassTree(true)"  readonly="readonly"></i-input>
+                                    <div v-show="showAssetClass" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;width: 200px;">
+                                        <!-- <ht-input-tree :node-data="nodes" :setting="treeSetting" :tId="inputTreeId"></ht-input-tree>-->
+                                        <ht-structure-tree :node-data="inputNodes" :setting="treeSetting" :tid="inputTreeId"></ht-structure-tree>
+                                    </div>
+                            </form-item>
+                            <form-item label="对方科目：">
+                                <i-input class="inline-block ht-input-width" v-model="formData.relativeSubjectName"
+                                    readonly="true" @on-click="showSubjectVisable(1)" icon="ios-list-outline" type="text"></i-input>
+                            </form-item>
+                        </i-col>
+                    </row>
+                </i-form>
+                <div style="width:650px;margin: 0 auto;">
+                    <table class="table table-bordered table-condensed">
+                        <tr>
+                            <th style="width:40px">序号</th>
+                            <th style="width:40%">核算项目类别</th>
+                            <th>核算项目名称</th>
+                        </tr>
+                        <tr v-for="(item, index) in tableList" :key=`${item.name}${index}`>
+                            <td>{{ index+1}}</td>
+                            <td>{{item.type}}</td>
+                            <td>
+                                <i-select v-model="item.itemId" class="ht-input-width">
+                                    <i-option v-for="item in item.list" :value="item.hId" :key="item.hId">
+                                        <slot>{{ item.hName }}</slot>
+                                    </i-option>
+                                </i-select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject1"></ht-modal-subject>
+    </div>
+</body>
+<script>
+    htLoadJs([
+        'ht-print-choose',
+        '${rc.contextPath}/js/finance/components/ht-tree.js',
+        /* '${rc.contextPath}/js/finance/components/ht-input-tree.js',*/
+        '${rc.contextPath}/js/finance/components/ht-structure-tree.js',
+        '${rc.contextPath}/js/finance/components/ht-modal-subject.js',
+        '${rc.contextPath}/js/finance/FixedAssets/ChangeManner/index.js'
+    ])
+</script>
+
+</html>

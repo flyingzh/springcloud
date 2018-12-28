@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>本地服务器信息</title>
+    #parse("modules/public/header.html")
+    <!--<link rel="stylesheet" type="text/css" href="../../../../statics/css/iview.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="../../../../statics/css/basedata/common.css">
+    <link rel="stylesheet" href="../../../../statics/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../../statics/css/main.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css">-->
+<style>
+    .demo-upload {
+        width: 120px;
+        height: 140px;
+        display: inline-block;
+        text-align: center;
+        line-height: 60px;
+        position: relative;
+        margin-left: 4px;
+    }
+
+    .demo-upload img {
+        width: 110px;
+        height: 140px;
+        border: 1px solid ghostwhite;
+    }
+    .authorization{
+        width:550px;
+        height: 70px;
+    }
+    .authorization label{
+        width: 100px;
+        float: left;
+    }
+    .table{
+        text-align: left;
+        vertical-align: middle;
+    }
+    .ztree{
+        float: left;
+    }
+    .ivu-upload{
+        display: inline-block;
+    }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="btn-menu ">
+            <upload action="${rc.contextPath}/licenseAuth/onlineAuth" :show-upload-list="false"  :on-success="sideHandleSuccess"
+                    :format="['lic']"
+                    :on-format-error="handleFormatError" :max-size="20480" :on-exceeded-size="handleMaxSize">
+                                        <div class="upload">
+                                            <a class="pd-rg-md" style=" color:#495060;">导入许可文件</a>
+                                        </div>
+                                    </upload>
+        <span class="pd-rg-md" @click="exit">退出</span>
+    </div>
+    <i-form  label-width="120">
+        <div class="ht-subtitle">
+            <div>公司信息</div>
+        </div>
+            <row>
+                <i-col span="9">
+                    <form-item label="公司全称：">
+                        <i-input disabled v-model="info.company.companyName" style="width:200px;"></i-input>
+                    </form-item>
+                    <form-item label="公司简称：">
+                        <i-input disabled v-model="info.company.companyNameShort" style="width:200px;"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="8">
+                    <form-item label="联系人：">
+                        <i-input disabled v-model="info.company.contact" style="width:200px;"></i-input>
+                    </form-item>
+                    <form-item label="联系电话：">
+                        <i-input disabled v-model="info.company.contactNumber" style="width:200px;"></i-input>
+                    </form-item>
+                </i-col>
+                <i-col span="7">
+                    <form-item label="公司法人：">
+                        <i-input disabled v-model="info.company.corporate" style="width:200px;"></i-input>
+                    </form-item>
+                    <form-item label="统一社会信用代码：">
+                        <i-input disabled v-model="info.company.creditCode" style="width:200px;"></i-input>
+                    </form-item>
+                </i-col>
+            </row>
+        <row>
+            <form-item label="地址：">
+                <area-select v-model="area" url="${rc.contextPath}/baseaddress/queryAddress" :init="areaInit" area-temp="true" />
+            </form-item>
+        </row>
+        <row>
+            <form-item label="营业执照：">
+                <div class="demo-upload">
+                    <img :src="info.company.businessLicenseUrl" class="photoShow upload" id="frontImg"/>
+                </div>
+            </form-item>
+        </row>
+        </i-form>
+    <i-form  label-width="100">
+        <div class="ht-subtitle">
+            <div>服务器信息</div>
+        </div>
+        <row>
+            <i-col span="9">
+                <form-item label="服务器IP地址：">
+                    <i-input disabled v-model="info.serverInfo.serverIp" style="width:200px;"></i-input>
+                </form-item>
+                <form-item label="MAC地址：">
+                    <i-input disabled v-model="info.serverInfo.serverMac" style="width:200px;"></i-input>
+                </form-item>
+                <form-item label="模块授权：">
+                    <div class="info.authModuleIds">
+                        <checkbox-group v-model="info.authModuleIds">
+                            <checkbox v-for="item in info.serverInfo.serverAuthModuleList" :label="item.id" disabled>{{item.moduleName}}</checkbox>
+                        </checkbox-group>
+                    </div>
+                </form-item>
+                <form-item label="授权组织数量：" label-width="110px;">
+                    <table class="table edit-table" style="width: 400px;">
+                        <tr>
+                            <th style="width: 100px;">组织层级</th>
+                            <th>授权数量</th>
+                            <th>授权用户数（单组织）</th>
+                        </tr>
+                        <tr>
+                            <td>分公司</td>
+                            <td>{{info.serverAuthNumEntity.branchCompanyNum}}</td>
+                            <td>{{info.serverAuthNumEntity.branchOnUserNum}}</td>
+                        </tr>
+                        <tr>
+                            <td>子公司</td>
+                            <td>{{info.serverAuthNumEntity.childCompanyNum}}</td>
+                            <td>{{info.serverAuthNumEntity.childOnUserNum}}</td>
+                        </tr>
+                        <tr>
+                            <td>门店</td>
+                            <td>{{info.serverAuthNumEntity.storeNum}}</td>
+                            <td>{{info.serverAuthNumEntity.storeOnNum}}</td>
+                        </tr>
+                    </table>
+                </form-item>
+                <form-item label="服务器层级关系：" label-width="110px">
+                    <ht-tree :expand="true" url="${rc.contextPath}/subordinateController/getServerTree" class="ztree" tid="tree-demo1" :setting="levelTreeSetting"></ht-tree>
+                </form-item>
+            </i-col>
+            <i-col span="8">
+                <form-item label="许可期限：">
+                    <date-picker v-model="licenseTime"
+                                 type="daterange"
+                                 disabled
+                                 readonly
+                                 style="width: 200px" class="ht-input-width" ref="dType"></date-picker>
+                </form-item>
+            </i-col>
+            <i-col span="7">
+                <form-item label="服务器类型：">
+                    <i-input disabled v-model="info.serverInfo.serverType" style="width:200px;"></i-input>
+                </form-item>
+            </i-col>
+        </row>
+    </i-form>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+<script>
+    htLoadJs([
+        'area-select',
+        'ht-tree',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/server/subordinate-server/local-server-info.js'
+    ],'debug')
+</script>
+#parse("modules/public/footer.html")
+</body>
+<!--<script src="../../../../statics/plugins/layui/layui.all.js"></script>
+<script src='../../../../statics/js/jquery-2.0.3.min.js'></script>
+<script src='../../../../statics/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='../../../../statics/plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='../../../../statics/js/vue.min.js'></script>
+<script src='../../../../statics/plugins/iview/iview.min.js'></script>
+<script src='../../../../statics/js/utils.js'></script>
+<script src='../../../../statics/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='../../../../statics/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src='../../../../statics/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src="../../../../statics/ktc/components/basedata/dist/iview.js"></script>
+&lt;!&ndash;组件&ndash;&gt;
+<script src='../../../../statics/js/basedata/components/base-data-list.js'></script>
+<script src='../../../../statics/js/basedata/components/ht-btns.js'></script>
+<script src='../../../../statics/js/components/ht-toggle.js'></script>-->
+<!--js逻辑-->
+
+</html>

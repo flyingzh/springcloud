@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>A010仓库资料</title>
+    <link rel="stylesheet" href="../../ktc/css/base.css">
+    <link rel="stylesheet" href="../../ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="../../ktc/css/gold.css">
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="../../plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="../../css/iview.css">
+    <link rel="stylesheet" href="../../ktc/css/common.css">
+    <link rel="stylesheet" href="../../css/basedata/ht-list-common.css">
+
+    <title>A010仓库资料</title>
+</head>
+<body>
+<div id="warehouse-info" class="pd-md">
+    <ht-common-confirm  v-if="confirmConfig.showConfirm" :config="confirmConfig" @sure="conformSure" @cancel="conformCancel">
+    </ht-common-confirm>
+    <div v-show="!isEdit">
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>仓库列表</legend>
+        </fieldset>
+        <div class="search-menu ">
+            <label>仓库名称：</label>
+            <input type="text" name="wname" class="form-control ht-width-ssm inline-block" v-model="body.name">
+            <label>仓库编码：</label>
+            <input type="text" class="form-control ht-width-ssm inline-block"  v-model="body.codes" >
+            <ht-btns class="inline-block" @search="search" @clear="clear" :is-search="true" :is-add="false"></ht-btns>
+        </div>
+        <div class="search-menu ">
+            <label>仓库类型：</label>
+            <search-select-more class="inline-block" :options="warehouseType" v-model="body.type" ref="type"></search-select-more>
+        </div>
+        <div class="search-menu">
+            <ht-add-del-btn @add="add_click" @del="del_click" @modify="modify" @view="view"></ht-add-del-btn>
+            <base-data-list :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+        </div>
+    </div>
+    <div v-show="isEdit">
+        <!-- 按钮栏 -->
+        <div class="btn-menu">
+            <span @click="save">保存</span>
+            <span class="split-line"></span>
+            <span @click="exit">退出</span>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend v-if="!isShow">新建仓库</legend>
+            <legend v-if="isShow">仓库明细</legend>
+        </fieldset>
+        <form class="form-horizontal ht-form">
+            <div class="layui-tab">
+                <ul class="layui-tab-title" v-if="isShow">
+                    <li class="layui-this" >仓库明细</li>
+                    <li >变更信息</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">仓库编码：<span class="star"></span></label>
+                            <div class="col-xs-9">
+                                <input  class="form-control ht-width required" type="text" name="wcode" v-model="addBody.codes"/>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">仓库名称：<span class="star"></span></label>
+                            <div class="col-xs-9">
+                                <input  class="form-control ht-width required" type="text" name="wname" v-model="addBody.name"/>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">类型：<span class="star"></span></label>
+                            <div class="col-xs-9">
+                                <select name="type" class="form-control ht-width required" name="wType" v-model="addBody.type">
+                                    <option value="0">请选择</option>
+                                    <option :value="item.name" v-for="item in warehouseType">{{item.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">库位组：</label>
+                            <div class="col-xs-9">
+                                <select name="wgroup"  class="form-control ht-width" v-model="addBody.groupId">
+                                    <option>请选择</option>
+                                    <option :value="item.value" v-for="item in warehouseGroup">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">地址：</label>
+                            <div class="col-xs-9">
+                                <area-select v-model="area" :init="areaInit" url="${rc.contextPath}/baseaddress/list" ref="warea" ></area-select>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">仓库管理员：</label>
+                            <div class="col-xs-9">
+                                <select name="adimin"  class="form-control ht-width" v-model="addBody.managerName">
+                                    <option :value="item.label" v-for="item in admin">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">联系电话：</label>
+                            <div class="col-xs-9">
+                                <input  class="form-control ht-width" type="text" v-model="addBody.phoneNum"/>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">有效状态：<span class="star"></span></label>
+                            <div class="col-xs-9">
+                                <label class="radio-inline" v-for="item in status">
+                                    <input type="radio" name="www" :value="item.value" v-model="addBody.status" > {{item.label}}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">备注：</label>
+                            <div class="col-xs-9">
+                                <textarea name="comment"  cols="30" rows="5"  class="form-control ht-width" v-model="addBody.remark" ></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">创建人：</label>
+                            <div class="col-xs-9">
+                                <p class="form-control-static">赖燕</p>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">创建时间：</label>
+                            <div class="col-xs-9">
+                                <p class="form-control-static">2018-05-30</p>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">修改人：</label>
+                            <div class="col-xs-9">
+                                <p class="form-control-static">赖燕</p>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-xs-3 control-label">修改时间：</label>
+                            <div class="col-xs-9">
+                                <p class="form-control-static">2018-05-30</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <base-data-list :data_config="data_config2" ></base-data-list>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+<script src="../../plugins/layui/layui.all.js"></script>
+<script src='../../js/jquery-2.0.3.min.js'></script>
+<script src='../../js/vue.min.js'></script>
+<script src='../../plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src='../../plugins/jqgrid/grid.locale-cn.js'></script>
+<script src='../../plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src='../../plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src="../../plugins/layui/layui.all.js"></script>
+<script src='../../plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src='../../ktc/js/app.js'></script>
+<script src="../../plugins/iview/iview.min.js"></script>
+<script src="../../js/basedata/components/base-data-list.js"> </script>
+<script src='../../js/basedata/components/search-select-more.js'></script>
+<script src="../../js/basedata/components/ht-btns.js"> </script>
+<script src="../../js/basedata/components/ht-add-del-btn.js"> </script>
+<script src="../../js/basedata/components/area-select.js"> </script>
+<script src="../../js/basedata/add-warehouse.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+package com.htrfid.finance.controller;
+
+import com.htrfid.base.controller.BaseController;
+import com.htrfid.finance.entity.VoucherEntryEntity;
+import com.htrfid.finance.service.VoucherEntryService;
+import com.htrfid.registry.consul.model.NewRequestMapping;
+import com.htrfid.util.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * @description:凭证
+ * @author sxy
+ * @eamil sunxiaoyu@tobosoft.com.cn
+ * @date 2018-07-02 10:53
+ * @param
+ * @return
+ */
+@RestController
+@NewRequestMapping(version = "V1.0", value = "/voucherEntry", serviceName = "voucherEntry", serviceDesc = "this is a voucherEntry controller")
+public class VoucherEntryController extends BaseController {
+
+//    private static final Logger logger = LoggerFactory.getLogger(VoucherEntryController.class);
+
+    @Autowired
+    private VoucherEntryService voucherEntryService;
+
+    /**
+     * @description:凭证列表
+     * @author sxy
+     * @eamil sunxiaoyu@tobosoft.com.cn
+     * @date 2018-07-02 10:50
+     * @param voucherEntryEntity
+     * @return com.htrfid.util.Result
+     */
+    @NewRequestMapping( value = "/queryVoucherEntry", serviceName = "voucherEntry-queryVoucherEntry", serviceDesc = "this is a voucher controller API queryVoucherEntry",method = RequestMethod.POST)
+    public Result queryVoucher(@RequestBody VoucherEntryEntity voucherEntryEntity){
+        List<VoucherEntryEntity> voucherEntryList =  voucherEntryService.queryListByBean(voucherEntryEntity);
+        return Result.ok(voucherEntryList);
+    }
+
+    /**
+     * @description:查询凭证(试算平衡调用)
+     * @author sxy
+     * @eamil sunxiaoyu@tobosoft.com.cn
+     * @date 2018-07-02 19:18
+     * @param voucherId, currencyId
+     * @return com.htrfid.util.Result
+     */
+    @NewRequestMapping( value = "/queryEntryVoucherByIdList", serviceName = "voucherEntry-queryEntryVoucherByIdList", serviceDesc = "this is a voucher controller API queryEntryVoucherByIdList",method = RequestMethod.POST)
+    public Result queryEntryVoucherByIdList(@RequestParam("voucherId") Long[] voucherId, @RequestParam("currencyId") Long currencyId){
+        List<VoucherEntryEntity> voucherEntryList =  voucherEntryService.queryEntryVoucherByIdList(voucherId,currencyId);
+        return Result.ok(voucherEntryList);
+    }
+
+    /**
+     * @description 查询凭证分录表视图信息（finance_voucher_entry_v）
+     * @author lxy
+     * @eamil lxyyxljava@163.com
+     * @date  2018-08-21 17:27
+     * @param 
+     * @return 
+     */
+    @NewRequestMapping( value = "/queryVoucherEntryView", serviceName = "voucherEntry-queryVoucherEntryView", serviceDesc = "this is a voucher controller API queryVoucherEntryView",method = RequestMethod.POST)
+    public List<Map<String, Object>> queryVoucherEntryView(@RequestParam(value = "subjectId",required = false) Long subjectId,
+                                                           @RequestParam(value = "currencyId",required = false) Long currencyId,
+                                                           @RequestParam(value = "periodDate",required = false) String periodDate,
+                                                           @RequestParam(value = "sobId",required = false) Long sobId){
+        Map<String, Object> params = new HashMap<>();
+        params.put("subjectId",subjectId);
+        params.put("currencyId",currencyId);
+        params.put("periodDate",periodDate);
+        params.put("sobId",sobId);
+        return  voucherEntryService.queryVoucherEntryView(params);
+    }
+}

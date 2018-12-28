@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>待质检列表</title>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="unSourceDocument" v-cloak>
+    <div v-if="!isShow">
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-sm pd-lf-sm" @click="reloadAgain" v-if="!isEdit">刷新</span>
+            <!--#if($shiro.hasPermission("quality:unSourceDocument:addTestDocument"))
+            <span class="pd-rg-md" @click="insertTestDocument" v-if="!isEdit">生成检验单</span>
+            #end-->
+            <span class="pd-rg-sm pd-lf-sm" @click="insertTestDocument" v-if="!isEdit">生成检验单</span>
+            <span class="pd-rg-sm pd-lf-sm" @click="cancel">退出</span>
+        </div>
+        <div class="search-menu "  v-show="isSearchHide">
+            <i-form label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="单据类型：">
+                            <i-select v-model="body.documentType" class="ht-width-input" ref="dType"  clearable>
+                                <i-option :value="item.value" v-for="item in docType" :key="'dType'+item.value">{{item.name}}</i-option>
+                            </i-select>
+                        </form-item>
+                        <form-item label="单据日期：">
+                            <date-picker :value="dataValue" @on-change="changeDate" format="yyyy-MM-dd" type="daterange" placement="bottom-end"
+                                         placeholder="Select date" class="ht-width-input"></date-picker>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="送检编号：">
+                            <i-input type="text" v-model='body.documentCode' class="ht-width-input" placeholder="可模糊搜索" ></i-input>
+                        </form-item>
+                        <form-item label="源单单号：">
+                            <i-input type="text" v-model='body.upstreamSourceCode' class="ht-width-input" placeholder="可模糊搜索" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="商品类型：">
+                            <cascader :data="categoryType" trigger="hover" class="ht-width-input"
+                                      v-model="commodityCategoty" >
+                            </cascader>
+                        </form-item>
+                        <form-item >
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div style="height:35px"></div>
+        <div style="height: 25px;">
+            <sapn class="chevron">
+                <span v-show="isTabulationHide">
+                    <Icon type="chevron-up" @click="hideSearch" v-show="isSearchHide"></Icon>
+                    <Icon type="chevron-down" @click="hideSearch" v-show="!isSearchHide" ></Icon>
+                </span>
+            </sapn>
+        </div>
+        <div>
+            <base-data-list v-show="isTabulationHide" table_id="myTable" :data_config="data_config" :need-reload="reload" v-model="selected"></base-data-list>
+        </div>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/quality/unSourceDocument.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>记账凭证</title>
+    <link rel="stylesheet" href="../../../statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="../../../statics/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../statics/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="../../../statics/plugins/ztree/css/zTreeStyle/zTreeStyle.css" />
+    <link rel="stylesheet" href="../../../statics/ktc/css/base.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./ht-input-voucher.css">
+</head>
+<body>
+<div id="ht-voucher" class="ht-voucher mg0" v-cloak>
+    <div class="mg10">
+        <div class=" ht-voucher-title">
+            <i-button @click="">新增</i-button>
+            <i-button @click="">保存</i-button>
+            <i-button @click="">打印</i-button>
+            <i-button @click="">审核</i-button>
+            <i-button @click="">反审核</i-button>
+            <i-button @click="">复制</i-button>
+            <i-button @click="">删除</i-button>
+            <Dropdown trigger="click" @on-click="more" placement="bottom-start">
+                <i-button>
+                    更多
+                    <Icon type="arrow-down-b"></Icon>
+                </i-button>
+                <Dropdown-menu slot="list">
+                    <Dropdown-item name="saveVoucher" >保存为凭证模板</Dropdown-item>
+                    <Dropdown-item name="addVoucher" >从模板生成凭证</Dropdown-item>
+                    <Dropdown-item name="changeVoucher" >选项</Dropdown-item>
+                    <Dropdown-item name="redVoucher" >红字冲销</Dropdown-item>
+                </Dropdown-menu>
+            </Dropdown>
+            <i-button @click="">流量</i-button>
+            <div class="ht-float-right">
+                <poptip content="content"
+                    placement="bottom">
+                    <i-button>跳转</i-button>
+                    <div class="ht-filterPoptipContent" slot="content">
+                        <i-input v-model="formData.for5" name="a3" style="width:70px;" size="small" class="required" type="number"></i-input> 年
+                        <i-input v-model="formData.for6" name="a4" style="width:70px;" size="small" class="required" type="number"></i-input> 期
+                        <i-select v-model="formData.for7" style="width:70px;"  size="small">
+                            <i-option v-for="item in formDataList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                        </i-select>
+                        <i-input v-model="formData.for8" name="a5" style="width:70px;" size="small" class="required" type="number"></i-input> 号
+                        <div class="mt10 text-right">
+                            <i-button type="primary" size="small" @click="skipOk">确定</i-button>
+                        </div>
+                    </div>
+                </poptip>
+                <i-button @click="" icon="arrow-left-b"></i-button>
+                <i-button @click="" icon="arrow-right-b"></i-button>
+            </div>
+            
+        </div>
+        <div class="mt10 ht-voucher-title">
+            <div class="col-sm-5">
+                <label>凭证字：</label>
+                <i-select v-model="formData.for1" style="width:70px;" size="small">
+                    <i-option v-for="item in formDataList" :value="item.value" :key="item.value">{{ item.label }}</i-option>
+                </i-select>
+                <i-input v-model="formData.for2" name="a1" style="width:70px;" class="required" size="small" type="number"></i-input>
+                <label>号</label>
+                <label class="pl10">日期：</label>
+                <Date-picker
+                    size="small"
+                    transfer
+                    type="date"
+                    style="width: 130px"
+                    v-model="formData.for3"
+                    placeholder="选择日期">
+                </Date-picker>
+            </div>
+            <h1 class="text-center col-sm-2">记账凭证</h1>
+            <h6 class="col-sm-2">2018年第4期</h6>
+            <div class="col-sm-3 text-right">
+                附单据：<i-input v-model="formData.for4" size="small" name="a2" style="width:70px;"  type="number"></i-input> 张
+            </div>
+        </div>
+        
+        <slot name="col-md-3"></slot>
+    </div>
+    
+    <div id="table" class="mt30 wrap-table">
+        <img src="./audit.png" class="ht-audit">
+        <table class="ht-voucher-table" lay-size="sm">
+            <tr class="ht-th-1 ht-height-48" >
+                <th>摘要</th>
+                <th>会计科目</th>
+                <th v-if="quantityShow">数量</th>
+                <th v-if="currencyShow">币别</th>
+                <th width="219">借方金额</th>
+                <th width="219">贷方金额</th>
+            </tr>
+            <tr v-for="(item, i) in tableDatas" :key="i"
+                @mouseenter="htMouseEnter(i)"
+                @mouseleave="htMouseLeave(i)"
+                :class="{ 'ht-tr-bg': item.isAdd }"
+                >
+                <td>
+                    <div>
+                        <ht-input-voucher :options="JSON.stringify(operate)"
+                            v-model="item.abstract" 
+                            :title="selectTitle"
+                            :get-value="false"
+                            :show-value="false"
+                            @change="(value)=>{change_option(value,item,'abstract')}"
+                            @add="add_option"></ht-input-voucher>
+                        <a v-if="item.isAdd"
+                            @click.stop="clickDigest(item)"
+                            class="ht-right">
+                            摘要
+                        </a>
+                    </div>
+                    <div class="ht-operate-wrap" v-if="item.isAdd">
+                        <span @click.stop="add(i)" class="ht-operate">
+                            <i class="glyphicon glyphicon-plus ht-icon"></i>
+                        </span>
+                        <span @click.stop="del(i)" class="ht-operate">
+                            <i class="glyphicon glyphicon-minus"></i>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <ht-input-voucher :options="JSON.stringify(operate)"
+                        v-model="item.subject" 
+                        :title="selectTitle"
+                        :get-value="true"
+                        :show-value="true"
+                        @change="(value)=>{change_option(value,item,'subject')}"
+                        @add="add_option"></ht-input-voucher>
+                    <a v-if="item.isAdd"
+                        @click.stop="clickSubject(item)"
+                        class="ht-right">
+                        科目
+                    </a>
+                </td>
+                <td v-if="quantityShow">
+                    数量：<input value="1" type="number" />
+                    单位：个
+                </td>
+                <td v-if="currencyShow">
+                    <select @on-change="currencyChange" v-model="item.currency" style="width:60px">
+                        <option v-for="item in currencyList" :value="item.value" :key="item.value">{{ item.label }}</option>
+                    </select>
+                </td>
+                <td class="text-right">
+                    <input v-model="item.debitMomey"
+                        @blur="input_blur(event,item,'debitMomey')"
+                        class="ht-money text-right ht-voucher-input form-control"
+                        type="number"/>
+                </td>
+                <td class="text-right">
+                    <input v-model="item.creditMoney"
+                        @blur="input_blur(event,item,'creditMoney')"
+                        class="ht-money text-right ht-voucher-input form-control"
+                        type="number"/>
+                </td>
+            </tr>
+            <tr>
+                <td :colspan="totalCol" class="text-left ht-total">
+                    合计：<span v-if="totalMoney" :class="[numberStyle(totalDebit) ? 'ht-red-color' : '']">{{totalMoney}}</span>
+                </td>
+                <td class="text-right ht-money">
+                    <span class="pd10">{{progressTotalData(totalDebit)}}</span>
+                </td>
+                <td class="text-right ht-money">
+                    <span class="pd10">{{progressTotalData(totalCredit)}}</span>
+                </td>
+            </tr>
+        </table>
+        <div class=" ht-voucher-title">
+            <span>
+                制单人：{{formData.user}}
+            </span>
+            <span class="ht-float-right">
+                审核人：{{formData.user}}
+            </span>
+        </div>
+        <ht-remark :recmodal="remarkVisable" :remarklist="remarklist"></ht-remark>
+        <subject-tree v-model="subjectVisable" @close="subjectClose" @save="subjectDate"></subject-tree>
+    </div>
+    <slot name="ht-right-bottom"></slot>
+    <slot name="ht-left-bottom"></slot>
+</div>
+
+<script src="../../../statics/js/jquery-1.10.2.min.js"></script>
+<script src="../../../statics/plugins/layui/layui.all.js"></script>
+<script src="../../../statics/js/bootstrap.min.js"></script>
+<script src="../../../statics/js/vue.min.js"></script>
+<script src="../../../statics/plugins/iview/iview.min.js"></script>
+<script src="../../../statics/plugins/ztree/jquery.ztree.all.min.js"></script>
+<script src="./money.js"></script>
+<script src="./ht-input-select.js"></script>
+<script src="./ht-input-voucher.js"></script>
+<script src="./search-select-more.js"></script>
+<script src="./ht-remark.js"></script>
+<script src="../profitStatement/subject-tree.js"></script>
+<script src="../../../statics/js/basedata/components/ht-tree.js"></script>
+<script>
+    new Vue({
+        el: '#ht-voucher',
+        data: {
+            monetaryUnit: [
+                "亿","千","百","十","万","千","百","十","元","角","分"
+            ],
+            tableDatas: [
+                {
+                    // 摘要
+                    abstract: '1',
+                    // 科目
+                    subject: '1',
+                    currency: 1,
+                    quantity: '',
+                    // 借方金额
+                    debitMomey: '1',
+                    // 贷方金额
+                    creditMoney: '1',
+                },
+                {
+                    abstract: '2',
+                    subject: '2',
+                    currency: 1,
+                    quantity: '',
+                    debitMomey: '2',
+                    creditMoney: '2',
+                },
+                {
+                    abstract: '',
+                    subject: '',
+                    currency: 1,
+                    quantity: '',
+                    debitMomey: '',
+                    creditMoney: '',
+                },
+                // {
+                //     abstract: '',
+                //     subject: '',
+                //     currency: 1,
+                //     quantity: '',
+                //     debitMomey: '',
+                //     creditMoney: '',
+                // }
+            ],
+            operate: [
+                {
+                    label: '库存现金_现金',
+                    value: '100101',
+                },
+                {
+                    label: '库存现金_库存外币',
+                    value: '100102',
+                },
+                {
+                    label: '银行存款_建行',
+                    value: '100201',
+                },
+                {
+                    label: '100202',
+                    value: '100202',
+                },
+            ],
+            currencyList:[
+                {
+                    value: 1,
+                    label: 'RMB',
+                    rate: 1
+                },
+                {
+                    value: 2,
+                    label: 'USD',
+                    rate: 6.67
+                },
+            ],
+            currencyShow: false,
+            quantityShow: false,
+            value1:'',
+            selectTitle: '科目',
+            selectdMore: [],
+            formData:{
+                for1: '',
+                for2: '',
+                for3: '',
+                for4: '',
+                for5: 2018,
+                for6: 6,
+                for7: 1,
+                for8: 15,
+                user: '何XX'
+            },
+            formDataList:[
+                {label:'贷',value:1},
+                {label:'借',value:2},
+            ],
+            remarkVisable: false,
+            remarklist:[],
+            subjectVisable:false,
+            row:''
+        },
+        mounted(){
+            this.init();
+        },
+        methods: {
+            skipOk(){},
+            more(value){
+                console.log(value)
+            },
+            change_option(value,item,key){
+                console.log(value,item,key)
+                item.isAdd = false;
+                item[key] = value;
+            },
+            // 新增科目/摘要弹框
+            add_option(){
+                console.log("新增科目/摘要弹框")
+            },
+            
+            change_select(value){
+                this.value1 = value;
+            },
+            currencyChange(value){
+                console.log(value)
+            },
+            init(){
+                this.tableDatas.forEach(row=>{
+                    this.$set(row,'isAdd',false) 
+                });
+            },
+            htMouseEnter(i){
+                this.tableDatas[i]['isAdd'] = true;
+            },
+            htMouseLeave(i){
+                this.tableDatas[i]['isAdd'] = false;
+            },
+            add(index){
+                let data = {
+                        abstract: '',
+                        subject: '',
+                        currency: 1,
+                        quantity: '',
+                        debitMomey: '',
+                        creditMoney: '',
+                        isAdd: false,
+                    };
+                this.tableDatas.splice(index, 0, data);
+            },
+            del(index){
+                this.tableDatas.splice(index, 1);
+            },
+            clickDigest(row){
+                console.log("点击了文摘")
+                // this.currencyShow = !this.currencyShow;
+                this.remarkVisable = true;
+            },
+            clickSubject(row){
+                console.log("点击了科目")
+                // this.quantityShow = !this.quantityShow;
+                this.row = row;
+                this.subjectVisable = true;
+            },
+            // 科目框
+            subjectClose(){
+                this.subjectVisable = false;
+            },
+            subjectDate(value){
+                this.row.subject = value;
+            },
+            // 处理可以金额的单元格
+            filterMoney(key) {
+                switch(key) {
+                    case 'debitMomey':
+                        return true;
+                    case 'creditMoney':
+                        return true;
+                    default:
+                        return false;
+                }
+            },
+            // 格式化数字
+            formatNum(f, digit) {
+                var m = Math.pow(1000, digit);
+                return parseInt(f * m, 10) / m;
+            },
+            // 修改了数据,保留2位小数
+            input_blur(event,item,key) {
+                let other = ""
+                switch(key){
+                    case 'debitMomey':
+                        other = 'creditMoney';
+                        break;
+                    case 'creditMoney':
+                        other = 'debitMomey';    
+                        break;
+                    default:
+                        break;
+
+                }
+                let _v = Number(event.target.value);
+                let newValue = _v ? _v.toFixed(2) : '';
+                if(newValue >= 1000000000000){
+                    item[key] = 999999999999.99;
+                    return ;
+                }
+                item[key] = newValue;
+                newValue&&(item[other] = ''); 
+            },
+            // 处理数据
+            progressData(value, key){
+                if(key === 'creditMoney' || key==='debitMomey'){
+                    return value ? value : '';
+                }
+                return value
+            },
+            // 处理总计的数据
+            progressTotalData(value) {
+                return value ? value.toFixed(2): '';
+            },
+            // 处理是否显示红色
+            numberStyle(value){
+                if(Number(value)<0){
+                    return true;
+                }
+                return false;
+            },
+            
+            // 转大写数字
+            digitUppercase (n) {
+                var fraction = ['角', '分'];
+                var digit = [
+                    '零', '壹', '贰', '叁', '肆',
+                    '伍', '陆', '柒', '捌', '玖'
+                ];
+                var unit = [
+                    ['元', '万', '亿'],
+                    ['', '拾', '佰', '仟']
+                ];
+                var head = n < 0 ? '负' : '';
+                n = Math.abs(n);
+                var s = '';
+                for (var i = 0; i < fraction.length; i++) {
+                    s += (digit[Math.floor(n * 10 * Math.pow(10, i)) % 10] + fraction[i]).replace(/零./, '');
+                }
+                s = s || '整';
+                n = Math.floor(n);
+                for (var i = 0; i < unit[0].length && n > 0; i++) {
+                    var p = '';
+                    for (var j = 0; j < unit[1].length && n > 0; j++) {
+                        p = digit[n % 10] + unit[1][j] + p;
+                        n = Math.floor(n / 10);
+                    }
+                    s = p.replace(/(零.)*零$/, '').replace(/^$/, '零') + unit[0][i] + s;
+                }
+                return head + s.replace(/(零.)*零元/, '元')
+                    .replace(/(零.)+/g, '零')
+                    .replace(/^整$/, '零元整');
+            },
+        },
+        computed: {
+            totalDebit() {
+                let total = 0;
+                this.tableDatas.forEach( row => {
+                    total = Number(Number(total).add(row.debitMomey))
+                })
+                return total ? total: '';
+            },
+            totalCredit() {
+                let total = 0;
+                this.tableDatas.forEach( row => {
+                    total = Number(Number(total).add(row.creditMoney))
+                })
+                return total ? total: '';
+            },
+            showBg() {
+                if (Number(this.totalCredit) >= 1000000000 || Number(this.totalDebit) >= 1000000000){
+                    return false;
+                } else {
+                    return true;
+                }
+            },
+            totalCol() {
+                let currency = this.currencyShow ? 1 : 0;
+                let quantity = this.quantityShow ? 1 : 0;
+                return 2 + currency + quantity;
+            },
+            totalMoney() {
+                if(this.totalDebit === this.totalCredit){
+                    return this.digitUppercase(this.totalDebit);
+                }
+                return ''
+            }
+        }
+    })
+</script>
+</body>
+</html>

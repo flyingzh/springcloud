@@ -1,0 +1,49 @@
+.commFloatLeft{ float: left;}
+.commTxtLeft{text-align: left;}
+.marginLeft10{margin-left: 10px;}
+.cashier-title1{
+    float: left;
+    line-height: 30px;
+    margin-right: 20%;
+    font-size: 20px;
+}
+.cashier-title2{font-weight: 100;}
+.importContent label{font-weight: 100;}
+.importContent .numberInput{width: 100px;float: left;}
+.importContent .labLineH{ line-height: 20px; }
+.importContent .form-group{ height:35px;}
+.talList1{overflow: auto;}
+.talList1 th{word-break: keep-all;}
+.talList1 .tabCheck{width: 30px;}
+.talList1 .tabCheck label{margin-bottom: 0px;margin-right: 0px;}
+.talList1 .tabNoPadding{padding: 0px !important;}
+
+.talList1 .tabNoPadding input{
+    border: none;
+    border-radius: 0px;
+    height: 26px;
+}
+
+.bgColorY{background-color: #ffff0073 !important;}
+
+.ht-explanationContent .ht-explanationBtn{text-align: right;}
+.ht-explanationContent .ht-explanationBtn button{margin-top: 10px;}
+
+.ht-explanationTable {
+    border-spacing: 0;
+    border-collapse: collapse;
+    text-align: center;
+    width: 95%;
+    margin-left: 15px;
+}
+.ht-explanationTable tbody {display: block; height: 150px;overflow-y: scroll; }
+.ht-explanationTable thead,.ht-explanationTable tbody tr {display: table;width: 100%;table-layout: fixed; }
+.ht-explanationTable thead th,.ht-explanationTable tbody tr {text-align: center; }
+.ht-explanationTable tbody tr td{padding: 0px !important; }
+.ht-explanationTable tbody tr .ht-explanationTxt{
+    text-align: left !important;
+    line-height:30px;
+    padding-left: 5px !important;
+}
+/*.ht-explanationTable thead {width: calc( 100% - 1em) }*/
+/*.ht-explanationTable thead th { background: #ccc; }*/

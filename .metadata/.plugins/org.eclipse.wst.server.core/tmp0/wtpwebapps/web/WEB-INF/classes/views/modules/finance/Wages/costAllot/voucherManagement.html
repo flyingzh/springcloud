@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>凭证管理</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .filter .ivu-form-item{margin-bottom: 5px;}
+    </style>
+</head>
+
+<body>
+<div id="voucher-management" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="checkCredentials" class="ht-btn">查看凭证</button>
+        <button @click="delFun" class="ht-btn">删除凭证</button>
+        <button @click="mimeograph" class="ht-btn">打印</button>
+        <button @click="closeWindow" class="ht-btn">退出</button>
+    </div>
+    <p class="mt10 ml20">
+        <label>总账会计期间：</label>
+        <i-select class="w120" v-model="formData.year" @on-change="selectionPeriod">
+            <i-option v-for="item in organizationList" :value="item.year" :label="item.year" :key="item.year" />
+        </i-select>&nbsp;年&nbsp;
+        <i-select class="w120" v-model="formData.startPeriod" @on-change="selectionPeriod">
+            <i-option v-for="item in periodList" :value="item" :label="item" :key="item" />
+        </i-select>&nbsp;期至&nbsp;
+        <i-select class="w120" v-model="formData.endPeriod" @on-change="selectionPeriod">
+            <i-option v-for="item in periodList" :value="item" :label="item" :key="item" />
+        </i-select>
+    </p>
+    <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
+        <table id="grid"></table>
+    </div>
+</div>
+<script src="${rc.contextPath}/js/finance/Wages/costAllot/voucherManagement.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>

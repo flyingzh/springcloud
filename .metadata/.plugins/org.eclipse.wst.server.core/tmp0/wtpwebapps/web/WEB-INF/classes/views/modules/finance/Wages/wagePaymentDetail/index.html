@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>工资发放明细</title>
+    #parse("modules/public/header.html")
+    <style type="text/css">
+        .filter .ivu-form-item {
+            margin-bottom: 5px;
+        }
+
+        .table th {
+            background: #f5f5f5;
+        }
+
+        .ui-table {
+            height: 100px;
+            overflow: auto;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wagePaymentDetail" v-cloak>
+        <div class="btn-menu">
+            <button @click="refresh" class="ht-btn">刷新</button>
+            <button @click="filterFun" class="ht-btn">过滤</button>
+            <button @click="" class="ht-btn">打印</button>
+            <button @click="" class="ht-btn">引出</button>
+            <button @click="" class="ht-btn">退出</button>
+        </div>
+        <row class="mt10 ml20">
+            <i-col span="8">
+                工资类别：<span>{{getCategoryName}}</span>
+            </i-col>
+            <i-col span="8">
+                会计期间：<span>{{formData.startYear+ '年' + formData.startPeriod + '期间 -- ' +formData.endYear+ '年' + formData.endPeriod + '期间'}}</span>
+            </i-col>
+        </row>
+        <div class="jqGrid_wrapper_parent pl20 pr20 mt10" id="subsidiaryLedger_jqGrid_wrapper">
+            <table id="grid"></table>
+        </div>
+        <!-- 过滤 -->
+        <Modal v-model="filterVisible" title="过滤" width="700px" class="filter" :mask-closable="false">
+            <i-form :model="formData" label-width="90">
+                <row>
+                    <!--<form-item label="所属组织：">-->
+                        <!--<i-select class="ht-input-width" v-model="formData.for1">-->
+                            <!--<i-option v-for="item in organizationList" :value="item.value" :label="item.label" :key="item.value" />-->
+                        <!--</i-select>-->
+                    <!--</form-item>-->
+                    <label class="w120 ht-star2 text-right">所属组织：</label>
+                    <i-input class="w200" v-model="organizationName" disabled></i-input>
+                </row>
+                <div class="ht-subtitle ml0">
+                    <div>列表显示设置</div>
+                </div>
+                <row>
+                    <i-col :span="12">
+                        <form-item label="工资类别：">
+                            <i-select class="ht-input-width" v-model="formData.categoryId">
+                                <i-option v-for="item in categoryList" :value="item.id" :label="item.categoryName" :key="item.id" />
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col :span="12">
+
+                        <form-item label="工资项目：">
+                            <div style="max-height: 180px; overflow: hidden;">
+                                <!-- <table class="table table-bordered ui-table">
+                                <tr>
+                                    <th><input type="checkbox" v-model="checkAll" /></th>
+                                    <th>项目名称</th>
+                                    <th>序号</th>
+                                </tr>
+                                <tr v-for="(item,index) in tableList" :key="item.id"
+                                    @click="modifySort(item.id, index)">
+                                    <td>
+                                        <input type="checkbox" v-model="item.isCheck" />
+                                    </td>
+                                    <td>{{item.alterTypeName}}</td>
+                                    <td>{{item.id}}</td>
+                                </tr>
+                            </table> -->
+                                <i-table width="240" height="180" size="small" border :columns="columns1" :data="detail_table"
+                                    lay-size="sm" highlight-row @on-row-dblclick="rowDblclick" @on-selection-change="selectionChange">
+                                </i-table>
+                            </div>
+                        </form-item>
+                    </i-col>
+                </row>
+                <div class="ht-subtitle ml0">
+                    <div>查询条件</div>
+                </div>
+                <row>
+                    <i-col span="12">
+                        <form-item label="起始年期：">
+                            <i-select v-model="formData.startYear" style="width:80px" filterable @on-change="selectionPeriod">
+                                <i-option v-for="item in accountantYearList" :value="item.year" :key="item.year">
+                                    <slot>{{ item.year }}</slot>
+                                </i-option>
+                            </i-select> 年
+                            <i-select v-model="formData.startPeriod" style="width:80px" filterable>
+                                <i-option v-for="item in startPeriodList" :value="item" :key="item">
+                                    <slot>{{ item }}</slot>
+                                </i-option>
+                            </i-select> 期
+                        </form-item>
+                    </i-col>
+                    <i-col span="12">
+                        <form-item label="截止年期：">
+                            <i-select v-model="formData.endYear" style="width:80px" filterable @on-change="selectionPeriod">
+                                <i-option v-for="item in accountantYearList" :value="item.year" :key="item.year">
+                                    <slot>{{ item.year }}</slot>
+                                </i-option>
+                            </i-select> 年
+                            <i-select v-model="formData.endPeriod" style="width:80px" filterable>
+                                <i-option v-for="item in endPeriodList" :value="item" :key="item">
+                                    <slot>{{ item }}</slot>
+                                </i-option>
+                            </i-select> 期
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="12">
+                        <form-item label="员工工号：">
+                            <input v-model="formData.empCode" class="form-control" />
+                        </form-item>
+                    </i-col>
+                    <i-col span="12">
+                        <form-item label="员工姓名：">
+                            <input v-model="formData.empName" class="form-control" />
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="12">
+                        <form-item label="身份证号码：">
+                            <input v-model="formData.empIDCard" class="form-control" />
+                        </form-item>
+                    </i-col>
+                    <i-col span="12">
+                        <form-item label="所属部门：">
+                            <i-input class="ht-input-width" icon="search" v-model="planName" @on-click="showTrees(true,'showAssetType')"
+                                clearable></i-input>
+                            <div v-show="showAssetType" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                <ht-input-tree url="${rc.contextPath}/dept/imported"
+                                    :setting="assetsClassTreeSetting">
+                                </ht-input-tree>
+                            </div>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="12">
+                        <form-item label="员工岗位：">
+                            <i-select v-model="formData.empStation">
+                                <i-option v-for="item in postLevelList" :value="item" :key="item">
+                                    <slot>{{ item }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                    <i-col span="12">
+                        <form-item label="职级：">
+                            <i-select v-model="formData.empRank">
+                                <i-option v-for="item in rankList" :value="item" :key="item">
+                                    <slot>{{ item }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                </row>
+                <row>
+                    <i-col span="12">
+                        <form-item label="岗位级别：">
+                            <i-select v-model="formData.empStationLevel">
+                                <i-option v-for="item in employeePostList" :value="item" :key="item">
+                                    <slot>{{ item }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+            <div slot="footer">
+                <i-button @click="save" type="primary">确定</i-button>
+                <i-button @click="cancel">取消</i-button>
+            </div>
+        </Modal>
+
+    </div>
+    <script src="${rc.contextPath}/js/finance/Wages/wagePaymentDetail/index.js"></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

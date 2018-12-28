@@ -1,0 +1,35 @@
+.demo-upload {
+    width: 120px;
+    height: 140px;
+    display: inline-block;
+    text-align: center;
+    line-height: 60px;
+    position: relative;
+    margin-left: 4px;
+}
+
+.demo-upload img {
+    width: 110px;
+    height: 140px;
+    border: 1px solid ghostwhite;
+}
+.upload a{
+    width: 100px;
+    height: 30px;
+    line-height:30px;
+    color: #FFFFFF;
+    text-align: center;
+    display: block;
+    border-radius: 5px;
+    background-color:blue;
+    margin-top:20px;
+    margin-left: 15px;
+}
+.upload a:hover{
+    text-decoration: none;
+    color: #fff;
+}
+
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+    vertical-align: middle;
+}

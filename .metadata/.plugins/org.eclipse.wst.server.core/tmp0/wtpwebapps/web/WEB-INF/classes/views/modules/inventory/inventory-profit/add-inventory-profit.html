@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新增盘盈单</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href='${rc.contextPath}/css/inventory/inventory-profit/add-inventory-profit.css'>
+    <style>
+        .can-operation{
+            pointer-events:none;
+            color:#bbbec4
+        }
+        #form-info .ivu-tabs{
+            overflow: visible;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <ht-approve-reject
+            :trigger="modalTrigger"
+            :modal-type="modalType"
+            :receipt-id="inventoryProfit.profitLossNo"
+            :receipt-status="inventoryProfit.documentStatus"
+            :step-list.sync="stepList"
+            :table-data.sync="approvalTableData"
+            url-check='${rc.contextPath}/profitLossController/findUserOperation?documentType=1'
+            url-init-approve='${rc.contextPath}/profitLossController/queryProcessByReceiptsId'
+            url-approve='${rc.contextPath}/profitLossController/submitApproval'
+            url-table-data='${rc.contextPath}/profitLossController/queryReceiptsById'
+            @on-auto-approve="autoSubmitOrReject"
+            @on-approve="approvalOrRejectCallBack"
+            @on-reject="approvalOrRejectCallBack"
+            ref="ar">
+    </ht-approve-reject>
+
+    <!-- 按钮栏 -->
+    <div class="btn-menu ">
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':inventoryProfit.documentStatus !== 1}" @click="save">保存</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':inventoryProfit.documentStatus > 1}" @click="submit">提交</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':inventoryProfit.documentStatus === 4}" @click="approval">审核</span>
+        <span :class="{'pd-rg-md':canBeEdited,'pd-rg-md is-disabled':inventoryProfit.documentStatus === 4}" @click="reject">驳回</span>
+        <span class="pd-rg-md" @click="htPrint">打印</span>
+        <span class="pd-rg-md" @click="exit">退出</span>
+    </div>
+
+    <div class="ht-approve-stamp" v-show="isStampShow">
+        审核
+    </div>
+    <div class="mg-top-md  ht-menu-top" style=" padding-top: 20px;">
+        <i-form label-width="100" >
+            <tabs :animated="false" v-show="isSearchHide">
+                <tab-pane label="基本信息">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="盘盈单编号：">
+                                    <input type="text" name="id"  v-model="inventoryProfit.id" hidden="hidden" />
+                                    <i-input style="width:200px" disabled v-model="inventoryProfit.profitLossNo"></i-input>
+                                </form-item>
+                                <form-item label="仓库或柜台：">
+                                    <i-input style="width:200px" disabled v-model="inventoryProfit.warehouseName"></i-input>
+                                </form-item>
+                                <form-item label="商品类型：">
+                                    <i-input style="width:200px" disabled v-model="inventoryProfit.goodsTypeName"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="盘点方案编号：" >
+                                    <i-input style="width: 200px" disabled v-model="inventoryProfit.planNo"></i-input>
+                                </form-item>
+                                <form-item label="盘点人：">
+                                    <i-input style="width: 200px" disabled v-model="inventoryProfit.invertoryUserName"></i-input>
+                                </form-item>
+                                <form-item label="款式类型：">
+                                    <i-input style="width: 200px" disabled v-model="inventoryProfit.custStyleTypeName"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="所属组织：">
+                                  <i-input style="width: 200px;" disabled v-model="inventoryProfit.orgName"></i-input>
+                                </form-item>
+                                <form-item label="盘点日期：">
+                                    <date-picker transfer="true" format="yyyy-MM-dd" name="documentTime" type="date" disabled placeholder="请选择日期" style="width: 200px" v-model="inventoryProfit.invertoryTime" readonly="true"></date-picker>
+                                </form-item>
+                                <form-item label="盘盈类型：">
+                                    <i-select v-model="inventoryProfit.profitLossMark" class="ht-input-width" disabled style="width: 200px;display: inline-block;">
+                                        <i-option v-for="item in selectDocumentType" :value="item.value" :key="item.value">{{item.label}}</i-option>
+                                    </i-select>
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <!--审批信息-->
+                <tab-pane label="审批信息">
+                    <Steps :current="stepList[1] && stepList[1].currentLevel" style="margin-bottom: 20px;">
+                        <step icon="checkmark-circled" v-for="item in stepList" :title="item.processLevel" :content="typeof(item.userName) =='undefined'?'':'当前节点审批人：'+item.userName"></step>
+                    </Steps>
+                    <table class="table edit-table" style="width: 1100px;">
+                        <tr>
+                            <th>操作类型</th>
+                            <th>开始级次</th>
+                            <th>目的级次</th>
+                            <th>审批人</th>
+                            <th>审批意见</th>
+                            <th>审批时间</th>
+                        </tr>
+                        <tr v-for="item in approvalTableData">
+                            <td>{{item.approvalResult}}</td>
+                            <td>{{item.currentLevel}}</td>
+                            <td>{{item.nextLevel}}</td>
+                            <td>{{item.createName}}</td>
+                            <td>{{item.approvalInfo}}</td>
+                            <td>{{item.createTime}}</td>
+                        </tr>
+                    </table>
+                    <!--<base-data-list table_id="approvalInformation" :data_config="data_config_appinfo" :need-reload="reload"></base-data-list>-->
+                </tab-pane>
+                <tab-pane label="其他">
+                    <row class="mg-top-md">
+                        <i-col span="8">
+                            <div>
+                                <form-item label="提交报告人：">
+                                    <i-input disabled style="width:200px" v-model="inventoryProfit.submitName"></i-input>
+                                </form-item>
+                                <form-item label="提交报告日期：">
+                                    <i-input disabled style="width:200px" v-model="inventoryProfit.submitTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                        <i-col span="8">
+                            <div>
+                                <form-item label="审核人：">
+                                    <i-input disabled style="width:200px" v-model="inventoryProfit.examineVerifyName"></i-input>
+                                </form-item>
+                                <form-item label="审核日期：">
+                                    <i-input disabled style="width:200px" v-model="inventoryProfit.examineVerifyTime"></i-input>
+                                </form-item>
+                            </div>
+                        </i-col>
+                    </row>
+                </tab-pane>
+                <tab-pane label="附件">
+                    #parse("modules/public/access.html")
+                </tab-pane>
+            </tabs>
+        </i-form>
+    </div>
+
+    <div style="height:35px"></div>
+    <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+    <i-form label-width="100" id="form-info">
+        <tabs :animated="false" v-show="isTabulationHide" @on-click="tabsSwitch">
+            <tab-pane label="盘盈单信息" name="name1">
+                <div class="table-responsive" id="tab-inner">
+                    <table class="table edit-table" style="table-layout: fixed;">
+                        <tr>
+                            <th>序号</th>
+                            <th>图片</th>
+                            <th>条码号</th>
+                            <th>商品类型</th>
+                            <th style="width: 220px;">商品编码</th>
+                            <th>商品名称</th>
+                            <th>商品明细</th>
+                            <th>账存数量</th>
+                            <th>账存重量</th>
+                            <th>盘点数量</th>
+                            <th>盘点重量</th>
+                            <th>盘盈数量</th>
+                            <th>盘盈重量</th>
+                            <th>称差允许范围</th>
+                            <th>盈亏原因</th>
+                            <th>拟处理意见</th>
+                            <th><span class="star"></span>原因</th>
+                            <th><span class="star"></span>措施</th>
+                            <th>计量单位</th>
+                            <th>计数单位</th>
+                            <th>盘盈金额</th>
+                        </tr>
+                        <!--<tr>-->
+                        <tr  v-for="(item,index) in productDetailList" @click="action1(index)"
+                             :class="{active:selectedIndex === index }" :key="'rawInfo'+index">
+                            <!--序号-->
+                            <td style="text-align: center">{{index+1}}</td>
+                            <!--图片-->
+                            <td>
+                                <ht-img-magnifier :url="item.pictrueUrl"></ht-img-magnifier>
+                            </td>
+                            <!--条码号-->
+                            <td>{{item.goodsBarCode}}</td>
+                            <!--商品类型-->
+                            <td>{{item.goodsTypeName}}</td>
+                            <!--商品编码-->
+                            <td>{{item.goodsNo}}</td>
+                            <!--商品名称-->
+                            <td>{{item.goodsName}}</td>
+                            <!--商品明细-->
+                            <td><a @click="showProductDetail(index)" :class="item.goodsMainType === 'attr_ranges_gold'? 'is-disabled':''" style="text-align: center;display: block;line-height: 30px;">商品明细</a></td>
+                            <!--账存数量-->
+                            <td>{{item.accountNum}}</td>
+                            <!--账存重量-->
+                            <td class="text-center">
+                                {{item.accountWeight}}
+                            </td>
+                            <!--盘点数量-->
+                            <td class="text-center">{{item.inventoryNum}}</td>
+                            <!--盘点重量-->
+                            <td class="text-center">{{item.inventoryWeight}}</td>
+                            <!--盘盈数量-->
+                            <td class="text-center">{{item.profitLossNum}}</td>
+                            <!--盘盈重量-->
+                            <td class="text-center">{{item.profitLossWeight}}</td>
+                            <!--称差允许范围-->
+                            <td class="text-center">{{item.measureDiffRange}}</td>
+                            <!--盈亏原因-->
+                            <td class="text-center">
+                                {{item.reportProfitLossReason}}
+                            </td>
+                            <!--拟处理意见-->
+                            <td class="text-center">
+                                {{item.processingAdvice}}
+                            </td>
+                            <!--原因-->
+                            <td style="position: static;">
+                                <poptip trigger="hover"  placement="top" width="300px;">
+                                    <input v-model="item.profitLossReason"
+                                           class="text-ellipsis ivu-input"
+                                           :disabled="isDisabled"
+                                           @focus="showTheReason(index)"
+                                            @input="htTestChange()"/>
+                                    <div slot="content">
+                                        <table class="table edit-table" width="400">
+                                            <thead>
+                                            <th>条形码</th>
+                                            <th>原因</th>
+                                            <th>措施</th>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>{{item.goodsBarCode}}</td>
+                                                <td style="width: 100px;white-space:pre-wrap">{{item.profitLossReason}}</td>
+                                                <td style="width: 100px;white-space:pre-wrap">{{item.profitLossMeasure}}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </poptip>
+                            </td>
+                            <!--措施-->
+                            <td style="position: static;">
+                                <poptip trigger="hover"  placement="top" width="300px;">
+                                    <input v-model="item.profitLossMeasure"
+                                           class="text-ellipsis ivu-input"
+                                           :disabled="isDisabled"
+                                           @focus="showTheReason(index)"
+                                            @input="htTestChange()"/>
+                                    <div slot="content">
+                                        <table class="table edit-table" width="400">
+                                            <thead>
+                                            <th>条形码</th>
+                                            <th>原因</th>
+                                            <th>措施</th>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>{{item.goodsBarCode}}</td>
+                                                <td style="width: 150px;white-space:pre-wrap">{{item.profitLossReason}}</td>
+                                                <td style="width: 150px;white-space:pre-wrap">{{item.profitLossMeasure}}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </poptip>
+                            </td>
+                            <!--计量单位-->
+                            <td>
+                                {{item.weightUnit}}
+                            </td>
+                            <!--计数单位-->
+                            <td>
+                                {{item.countingUnit}}
+                            </td>
+                            <!--盘盈金额-->
+                            <td>
+                                <i-input v-model="item.profitLossAmount" :disabled="isDisabled" @input="htTestChange()"></i-input>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </tab-pane>
+            </tab-pane>
+        </tabs>
+    </i-form>
+<!--盈亏原因弹框-->
+    <modal v-model="frameTab" :mask-closable="false" title="原因及处理方式" @on-ok="modalReasonDone"
+           @on-cancel="modalReasonCancel"  class-name="vertical-center-modal">
+            <i-form>
+                <row class="mg-top-md">
+                    <i-col span="24">
+                        <div>
+                            <form-item label="条形码：">
+                                <i-input disabled v-model="inventoryProfitInfo.goodsBarCode" style="width:200px;"></i-input>
+                            </form-item>
+                            <form-item label="原因：" class="ht-star">
+                                <i-input type="textarea" v-model="inventoryProfitInfo.profitLossReason" class="ht-width-md" style="margin-left: 12px;" @input="htTestChange"></i-input>
+                                <!--<span class="star"></span>-->
+                            </form-item>
+                            <form-item label="措施：" class="ht-star">
+                                <i-input type="textarea" v-model="inventoryProfitInfo.profitLossMeasure" class="ht-width-md" style="margin-left: 12px;" @input="htTestChange"></i-input>
+                                <!--<span class="star"></span>-->
+                            </form-item>
+                        </div>
+                    </i-col>
+                </row>
+            </i-form>
+    </modal>
+    <product-detail
+            ref="modalRef"
+            :show-modal="productDetailModal.showModal"
+            :goods-main-type="productDetailList[selectedIndex] && productDetailList[selectedIndex].goodsMainType"
+            :ids="productDetailModal.ids"
+            :over-edit="productDetailList[selectedIndex] && productDetailList[selectedIndex].overEdit"
+            :order-status="documentStatus"
+            :t-base-bom-entity="productDetailList[selectedIndex] && productDetailList[selectedIndex].tBaseBomEntity"
+            :my-assist-attrs="productDetailList[selectedIndex] && productDetailList[selectedIndex].assistAttrs"
+            @ok="modalSure($event)"
+            @cancel="modalCancel($event)">
+    </product-detail>
+    <ht-close-modal ref="closeModalRef" @click="closeModal"></ht-close-modal>
+</div>
+
+<script>
+    htLoadJs([
+            'base-data-list',
+            'ht-toggle',
+            'ht-select',
+            'ht-approve-reject',
+            'ht-img-magnifier',
+            'ht-product-detail',
+            '${rc.contextPath}/js/quality/components/ht-tree.js',
+            '${rc.contextPath}/js/access/access.js',
+            '${rc.contextPath}/js/components/ht-close-modal.js',
+            '${rc.contextPath}/js/inventory/inventory-profit/add-inventory-profit.js'
+        ],'debug');
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

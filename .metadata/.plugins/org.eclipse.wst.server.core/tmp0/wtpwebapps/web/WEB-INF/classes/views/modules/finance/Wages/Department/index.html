@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>部门</title>
+    #parse("modules/public/header.html")
+    <style>
+        .w350 {
+            width: 350px;
+        }
+
+        .w60 {
+            width: 60px;
+        }
+
+        .w124 {
+            width: 124px;
+        }
+
+        .ht-commFloatLeft {
+            float: left;
+        }
+
+        .ht-left-content {
+            width: 350px;
+            overflow: auto;
+            padding-left: 65px;
+        }
+
+        .ht-right-content {
+            width: calc(100% - 590px);
+        }
+
+        .ht-input-width {
+            width: 200px;
+        }
+
+        .ivu-form-item.cashier {
+            position: relative;
+        }
+
+        .ivu-form-item.cashier .star {
+            position: absolute;
+            left: -10px;
+        }
+
+        .tips {
+            color: #888
+        }
+
+        .ht-voucherTemplates-content-menu {
+            height: 200px;
+            overflow: auto;
+        }
+
+        .ht-voucherTemplates-content-menu li.ivu-menu-item {
+            padding: 5px 24px !important;
+        }
+
+        .ht-transferheight {
+            height: 320px;
+            overflow: hidden;
+        }
+
+        .ht-transferMain {
+            border: 1px solid #ccc;
+            overflow: auto;
+            height: 270px;
+        }
+
+        .ht-transferTitle {
+            height: 40px;
+            text-align: center;
+            text-align: -webkit-center;
+            background-color: #eee;
+            line-height: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="department" v-cloak>
+        <div class="btn-menu">
+            <button class="ht-btn" @click="refreshLocation">刷新</button>
+            <button class="ht-btn" @click="cancelFun">退出</button>
+        </div>
+        <div class="mt10 pl20 pr20">
+            <i-form :model="formData" :label-width="120">
+                <row>
+                    <i-col span="8">
+                        <form-item label="工资类别：">
+                            <i-select v-model="category.id" class="ht-input-width">
+                                <i-option v-for="item in categoryList" :value="item.id" :key="item.id">
+                                    <slot>{{ item.categoryName }}</slot>
+                                </i-option>
+                            </i-select>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div class="clearfix">
+            <div class="ht-left-content ht-commFloatLeft ht-transferheight">
+                <div class="ht-transferTitle">未导入的部门数据</div>
+                <div class="ht-transferMain">
+                    <Tree ref="vtree1" empty-text="" :data="data2" show-checkbox @on-check-change="transferCheckMth"></Tree>
+                </div>
+            </div>
+            <div class="ht-commFloatLeft ml20 ht-transferheight" style="padding-top: 60px;padding-left: 60px;">
+                <i-button @click="imports">></i-button>
+                </br>
+                <i-button class="mt10" @click="exports">&lt;</i-button>
+            </div>
+            <div class="ht-left-content ht-commFloatLeft  ht-transferheight">
+                <div class="ht-transferTitle">已导入的部门数据</div>
+                <div class="ht-transferMain">
+                    <Tree ref="vtree2" empty-text="" :data="data3" show-checkbox @on-check-change="transferCheckMth2"></Tree>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        Array.prototype.remove = function (val) {
+            let index = this.indexOf(val);
+            if (index > -1) {
+                this.splice(index, 1);
+            }
+        };
+    </script>
+    <script src='${rc.contextPath}/js/finance/Wages/Department/index.js'></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>计提折价</title>
+    #parse("modules/public/header.html")
+    <style>
+        p.w750{
+            max-width: 750px;
+        }
+    </style>
+</head>
+<body>
+<div id="discount-price" v-cloak>
+    <div class="btn-menu">
+        <button @click="refresh" class="ht-btn">刷新</button>
+        <button @click="discountFun" class="ht-btn">计提折旧</button>
+        <button @click="quit" class="ht-btn">退出</button>
+    </div>
+    <div class="pl20 pr20 mt10">
+        <div class="ht-subtitle mt10 ml0">
+            <div>计提折旧提示</div>
+        </div>
+        <p class="w750">
+            <Icon type="android-bulb"></Icon>
+            开始计提折旧前，请填写转账凭证内容。
+        </p>
+        <p class="w750">
+            <Icon type="android-bulb"></Icon>
+            为了合理分摊固定资产在使用中的损耗，应当在期末时按一定的方法对固定资产计提折旧。本功能将自动计算本期各固定资产应提的折旧额，并编制转账凭证，将折旧额按比例分配到各个费用科目中。
+        </p>
+        <div class="ht-subtitle mt10 ml0">
+            <div>转账凭证内容填写</div>
+        </div>
+        <div style="width:300px">
+            <i-form  :model="formData" label-width="90">
+                <form-item label="凭证摘要：">
+                    <i-input class="ht-input-width" v-model="formData.summary"></i-input>
+                </form-item>
+                <form-item label="凭证字：">
+                    <i-select v-model="formData.voucherWordId" class="inline-block">
+                        <i-option v-for="item in organisationList" :value="item.id" :key="item.id">
+                            <slot>{{ item.name }}</slot>
+                        </i-option>
+                    </i-select>
+                </form-item>
+            </i-form>
+        </div>
+
+    </div>
+</div>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/DiscountPrice/index.js"></script>
+#parse("modules/public/footer.html") </body>
+</html>

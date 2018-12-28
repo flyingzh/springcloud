@@ -1,0 +1,77 @@
+.control-label{
+     margin-bottom: 15px;
+ }
+/*span.star:after {*/
+    /*content: '*';*/
+    /*color: red;*/
+    /*font-size: 13px;*/
+    /*width: 10px;*/
+    /*display: inline-block;*/
+/*}*/
+/*.star{*/
+    /*display: inline;*/
+    /*position: absolute;*/
+    /*top: 4px;*/
+    /*right: 126px;*/
+/*}*/
+/*.ui-jqgrid .ui-pager-control .ui-pager-table > tbody > tr > td > table:nth-child(2){*/
+    /*display: none;*/
+/*}*/
+.ui-jqgrid .ui-jqgrid-pager .ui-pager-table{
+    display: block;
+}
+.active{
+    background: #f1f1f1;
+}
+/*.table-responsive{*/
+    /*table-layout: fixed;*/
+    /*overflow-x: scroll;*/
+    /*position: relative;*/
+/*}*/
+/*.table-responsive span{*/
+    /*width:100px;*/
+    /*display: block;*/
+    /*line-height: 40px;*/
+/*}*/
+/*.table-responsive a{*/
+    /*display: block;*/
+    /*width:50px;*/
+    /*text-align: center;*/
+    /*line-height: 40px;*/
+    /*position: relative;*/
+/*}*/
+/*.table{*/
+    /*text-align: center;*/
+/*}*/
+.table-responsive img{
+    display: block;
+    width:50px;
+    height: 30px;
+    text-align: center;
+    transform: scale(1);
+    transition: all ease 0.5s;
+}
+.table-responsive img.active{
+    transform: scale(3);
+    position: absolute;
+    z-index: 100;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+    line-height: 2;
+}
+.table-responsive>td,.table-responsive>th{
+    position: relative;
+}
+/*.tab-star{*/
+    /*display: inline;*/
+    /*position: absolute;*/
+    /*top: 4px;*/
+    /*right: 8px;*/
+/*}*/
+/*span.tab-star:after {*/
+    /*content: '*';*/
+    /*color: red;*/
+    /*font-size: 13px;*/
+    /*width: 10px;*/
+    /*display: inline-block;*/
+/*}*/

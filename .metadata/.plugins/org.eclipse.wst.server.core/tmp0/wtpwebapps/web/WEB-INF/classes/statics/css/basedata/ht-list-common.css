@@ -1,0 +1,48 @@
+.ht-common-list input{
+    width: 180px;
+}
+.ht-common-list .ivu-form-item{
+    min-width: 240px;
+    display: inline-block;
+    width: auto;
+}
+.ht-common-list .ivu-form-item-content{
+    display: inline-block;
+    width: auto;
+    margin-left: 0 !important;
+}
+.ht-common-list .ivu-form-item-content .ivu-input-wrapper{
+    width: auto;
+}
+.ht-common-list .date-select{
+    display: inline-block;
+}
+.ht-common-list .date-picker div{
+    display: inline-block;
+}
+.ht-common-list .ht-search-btn{
+    display: inline-block;
+}
+.ht-common-list .jqGrid_wrapper{
+
+}
+.ht-common-list .jqGrid_wrapper .ui-jqgrid-htable{
+
+}
+.ht-common-list .jqGrid_wrapper .ui-jqgrid-htable th{
+    text-align: center;
+}
+.ht-common-list .jqGrid_wrapper input[role="checkbox"]{
+    width: 14px;
+    height: 14px;
+    display: inline;
+}
+.ht-common-list .jqGrid_wrapper .ivu-btn-primary{
+    width: 40px;
+    height: 20px;
+    padding: 0;
+    opacity: 0.8;
+}
+.ht-common-list .ui-jqgrid .ui-jqgrid-btable tbody tr.jqgrow td{
+    white-space: nowrap;
+}

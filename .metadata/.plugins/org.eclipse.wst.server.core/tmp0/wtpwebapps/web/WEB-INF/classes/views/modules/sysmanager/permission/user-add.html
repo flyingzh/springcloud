@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	#parse("modules/public/header.html")
+	<style>
+		.tablist {
+			border: 1px solid #ccc
+		}
+
+		.tab-center {
+			text-align: center;
+			border: 1px solid #000;
+			width: 50% !important;
+			margin-left: 4px;
+		}
+
+		.tablist tr, .tabModal tr {
+			height: 40px;
+		}
+
+		.prohibited {
+			color: #ccc
+		}
+
+		#inp {
+			width: 732px
+		}
+
+		.tabinfo {
+			padding-left: 36px
+		}
+
+		.ivu-i-input[disabled] {
+			color: black
+		}
+
+		.tr-back {
+			background: #dff0d8 !important;
+		}
+
+		.edit-table th {
+			width: 230px;
+		}
+
+		.tabModal {
+			border: 1px solid #ccc;
+			width: 400px;
+			margin: 0 auto;
+		}
+
+		.btn-gray {
+			color: #999999;
+			pointer-events: none
+		}
+
+		.btn-menu button.ivu-btn {
+			font-size: 14px;
+			padding: 0px 20px;
+		}
+	</style>
+	<title>用户-新增</title>
+</head>
+<body>
+<div id="user-add" v-cloak>
+	<div class="btn-menu">
+		<i-button type="text" class="pd-rg-md" @click="save">保存</i-button>
+	</div>
+	<fieldset class="layui-elem-field layui-field-title">
+		<legend>用户信息</legend>
+	</fieldset>
+	<!--用户信息-->
+	<div class="col-xs-7">
+		<i-form label-width="100" ref="formValidate" :model="addUser" :rules="ruleValidate">
+			<row>
+				<i-col span="10">
+					<form-item class="ht-star" label="登录账号:" prop="loginName">
+						<i-input v-model="addUser.loginName" name="loginName"
+								 class="ht-width-md" @input="clearNum" :disabled="isEdit">
+					</form-item>
+					<form-item class="ht-star" label="输入密码:" prop="password" v-show="isShowPasswordInput">
+						<i-input v-model="addUser.password" type="password" name="password" class="ht-width-md"
+								 @input="clearPass" :disabled="!isShowPasswordInput"/>
+					</form-item>
+					<form-item class="ht-star" label="再次输入密码:" prop="copyPass" v-show="isShowPasswordInput">
+						<i-input v-model="addUser.copyPass" type="password"
+								 class="ht-width-md" @input="clearCopy" @on-blur="checkCopy"
+								 :disabled="!isShowPasswordInput"/>
+					</form-item>
+					<!--	<form-item class="ht-star" label="员工编号:">
+							<i-input id="empCode" v-model="addUser.empCode" name="empCode" class="ht-width-md"/>
+						</form-item>
+						<form-item class="ht-star" label="员工姓名:">
+							<i-input id="username" v-model="addUser.username" name="username" class="ht-width-md"/>
+						</form-item>-->
+					<form-item label="员工：" class="ht-star" prop="empCode">
+						<i-select  @on-change="changeSaleEmp($event)" :disabled="isEdit" v-model="addUser.empCode" label-in-value class="ht-width-input" transfer filterable :clearable="false">
+							<i-option v-if="item.empStatus == 1"  v-for="item in employees" :value="item.empCode">{{item.empCode}}-{{item.empName}}</i-option>
+						</i-select>
+					</form-item>
+					<form-item class="ht-star" label="手机号:" prop="phone">
+						<i-input id="phone" v-model="addUser.phone" name="phone" class="ht-width-md"
+								 @input="clearPhone" :disabled="isEdit"/>
+					</form-item>
+					<form-item class="ht-star" label="邮箱:" prop="email">
+						<i-input v-model="addUser.email" name="email" class="ht-width-md" @input="checkEmail"
+								 @on-blur="regEmail" :disabled="isEdit"/>
+					</form-item>
+				</i-col>
+			</row>
+		</i-form>
+	</div>
+	<!--分配角色-->
+	<div class="col-xs-5">
+		<fieldset class="col-xs-8 layui-elem-field layui-field-title">
+			<legend>分配角色</legend>
+		</fieldset>
+		<div class="col-xs-5">
+			<ht-tree url="${rc.contextPath}/role/getRoleTree?type=2" :setting="roleZtree" :tid="zTree"></ht-tree>
+		</div>
+	</div>
+	<!--所管组织-->
+	<div class="col-xs-5">
+		<fieldset class="col-xs-8 layui-elem-field layui-field-title">
+			<legend>所管组织</legend>
+		</fieldset>
+		<div class="col-xs-5">
+			<ht-tree url="${rc.contextPath}/user/queryAllOrgan" :setting="organZtree" tid="oriTree"></ht-tree>
+		</div>
+	</div>
+</div>
+<script src="${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js"></script>
+<script src="${rc.contextPath}/js/components/ht-tree.js"></script>
+<script src="${rc.contextPath}/js/permission/user-add.js"></script>
+#parse("modules/public/footer.html")
+</body>
+</html>

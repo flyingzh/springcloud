@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>人员 - 列表</title>
+    #parse("modules/public/header.html")
+</head>
+<body>
+<div id="employee_list" v-cloak>
+    <div>
+        <!-- 按钮栏 -->
+        <div class="btn-menu ">
+            <span class="pd-rg-md" @click="refresh">刷新</span>
+            <span class="pd-rg-md" @click="add">新增</span>
+            <span class="pd-rg-md" @click="update">修改</span>
+            <span class="pd-rg-md" @click="del_click">删除</span>
+            <span class="pd-rg-md" @click="importData">引入</span>
+            <span class="pd-rg-md" @click="getExcelTemplate">引出模板</span>
+            <span class="pd-rg-md" @click="exit">退出</span>
+        </div>
+        <!--导航栏-->
+        <div class="search-menu" v-show="isSearchHide">
+            <i-form label-width="100">
+                <!-- row代表行 -->
+                <row :gutter="24">
+                    <i-col span="8">
+                        <form-item label="工号：">
+                            <i-input v-model="body.empCode" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="职员名称：">
+                            <i-input type="text" v-model="body.empName" ref="sType" class="ht-input-width" style="width: 200px"></i-input>
+                        </form-item>
+                    </i-col>
+                    <i-col span="8">
+                        <form-item label="所属部门：" class="departmentTreeWrap" style="position: relative;">
+                            <i-input class="ht-width-input"
+                                     icon="search"
+                                     v-model="body.deptName"
+                                     @on-click="showDepartmentTree(true)"
+                                     readonly
+                            ></i-input>
+                            <div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                <ht-tree
+                                        url="${rc.contextPath}/documentAllController/getDeptInfoByCurrentUserOrgId"
+                                        :setting="treetSetting"></ht-tree>
+                            </div>
+                        </form-item>
+                        <form-item>
+                            <ht-btns @search="search" @clear='clear' :is-search="true" :is-add="false"
+                                     class="inline-block"></ht-btns>
+                        </form-item>
+                    </i-col>
+                </row>
+            </i-form>
+        </div>
+        <div style="height: 35px;"></div>
+        <ht-toggle :is-search-hide.sync="isSearchHide" :is-tabulation-hide.sync="isTabulationHide"></ht-toggle>
+        <div>
+            <base-data-list table_id="myTable" :data_config="data_config" :need-reload="reload" :return-row-data=true v-model="selected"  v-show="isTabulationHide"></base-data-list>
+        </div>
+    </div>
+    <Upload v-show="false"
+            ref="upload"
+            :on-success="handleSuccess"
+            :data="excelParam"
+            show-upload-list="false"
+            :on-progress="handleProcessing"
+            :on-format-error="handleFormatError"
+            :format="['xls','xlsx']"
+            accept=".xls,.xlsx"
+            action='${rc.contextPath}/employee/importExcel'>
+        <i-button v-show="false" type="ghost" icon="ios-cloud-upload-outline">开始上传</i-button>
+        <span>文件上传大小限制为2M以内</span>
+    </Upload>
+</div>
+<script>
+    htLoadJs([
+        'base-data-list',
+        'ht-toggle',
+        'ht-select',
+        '${rc.contextPath}/js/quality/components/ht-tree.js',
+        '${rc.contextPath}/js/components/ht-close-modal.js',
+        '${rc.contextPath}/js/components/ht-customer-list.js',
+        '${rc.contextPath}/js/sysmanager/employee/employee_list.js',
+    ]);
+</script>
+#parse("modules/public/footer.html")
+</body>
+</html>

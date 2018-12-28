@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>固定资产初始化录入</title>
+    #parse("modules/public/header.html")
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/ht-fixed-table.css">
+    <link rel="stylesheet" type="text/css" href="${rc.contextPath}/css/finance/FixedAssets/InitialFixedAssets/index.css">
+    <style>
+        .w350{
+        width:350px;
+    }
+    .ht-commFloatLeft{float:left}
+    .ht-left-content{width:250px;border:1px solid red;height:300px;}
+    .ht-right-content{width:calc(100% - 290px);}
+    .ht-input-width{width:200px;}
+    .ivu-form-item.cashier{position: relative;}
+    .ivu-form-item.cashier .star{position:absolute;left: -10px;}
+    .tips{color:#888}
+    .ht-lg-mark .ivu-form-item-content{width:calc(50% + 200px);}
+    .foot_copyright{margin-top: 0 !important;}
+    </style>
+</head>
+
+<body>
+    <div id="initial-fixed-assets" v-cloak>
+        <div class="btn-menu">
+            <button @click="saveCard" class="ht-btn">保存</button>
+            <button @click="addCard" class="ht-btn">新增</button>
+            <button v-if="managerType=='info'" @click="copy" class="ht-btn">复制</button>
+            <button v-if="managerType=='info' || managerType=='update' || managerType=='change'" class="ht-btn" @click="openCardModal">变动记录</button>
+            <button @click="first" class="ht-btn">首笔</button>
+            <button @click="previous" class="ht-btn">上一笔</button>
+            <button @click="next" class="ht-btn">下一笔</button>
+            <button @click="last" class="ht-btn">末笔</button>
+            <button @click="list" class="ht-btn">列表</button>
+            <button @click="quit" class="ht-btn">退出</button>
+        </div>
+        <div class="mt10 pl20 pr20">
+            <i-form :model="formData" label-width="120">
+                <Tabs value="name1">
+                    <Tab-pane label="基本信息" name="name1">
+                        <!-- <source-list :show-modal="showSourceModal" v-model="imcoming.tQcTestDocumentEntity.sourceDocumentCode" @sure="closeSourceModal"></source-list>
+                    <department-select></department-select>-->
+                        <row>
+                            <i-col span="8">
+                                <form-item label="所属组织：" class="ht-star">
+                                    <i-select class="ht-input-width" v-model="card.sobId" :disabled="managerType=='info'"
+                                        ref="coinStopId">
+                                        <i-option v-for="item in organizationList" :value="item.id" :key="item.orgName">{{item.orgName}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="资产名称：" class="ht-star">
+                                    <i-input class="ht-input-width" v-model="card.assetName" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                                <form-item :label="enterOrChange" class="ht-star">
+                                    <Date-picker transfer type="date" class="ht-input-width" v-model="card.enterAccountDate"
+                                        placeholder="选择日期" :disabled="managerType=='info'" :options="options">
+                                    </Date-picker>
+                                </form-item>
+                                <form-item label="使用状态：" class="ht-star departmentTreeWrap">
+                                    <i-input class="ht-input-width" icon="search" v-model="useStateName" @on-click="showDepartmentTree(true,'showUseState')"
+                                        :disabled="managerType=='info'" readonly="true"></i-input>
+                                    <div v-show="showUseState" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                        <ht-input-tree :node-data="useStateTree" :setting="useStateTreeSetting" :tid="syztId"></ht-input-tree>
+                                    </div>
+                                </form-item>
+                                <form-item label="变动方式：" class="ht-star">
+                                    <i-input class="ht-input-width" icon="search" v-model="changeMethodName" @on-click="showDepartmentTree(true,'showChangeMethod')"
+                                        :disabled="managerType=='info'" readonly="true"></i-input>
+                                    <div v-show="showChangeMethod" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                        <ht-input-tree :node-data="alterTypeTree" :setting="changeMethodTreeSetting"
+                                            :tid="bdfsId"></ht-input-tree>
+                                    </div>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="资产类别：" class="ht-star">
+                                    <i-input class="ht-input-width" icon="search" v-model="assetTypeName" @on-click="showDepartmentTree(true,'showAssetType')"
+                                        :disabled="managerType=='info'" readonly="true"></i-input>
+                                    <div v-show="showAssetType" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                        <ht-input-tree :node-data="assetTypeTree" :setting="assetTypeTreeSetting" :tid="zclbId"></ht-input-tree>
+                                    </div>
+                                </form-item>
+                                <form-item label="数量：" class="ht-star">
+                                    <i-input class="ht-input-width" v-model="card.num" disabled></i-input>
+                                </form-item>
+                                <form-item label="存放地点：">
+                                    <i-select class="ht-input-width" v-model="card.locationId" :disabled="managerType=='info'">
+                                        <i-option v-for="item in locationList" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="规格型号：">
+                                    <i-input class="ht-input-width" v-model="card.model" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                                <form-item label="制造商：">
+                                    <i-input class="ht-input-width" v-model="card.manufacturer" :disabled="managerType=='info'"></i-input>
+                                    <!--<i-select class="ht-input-width" v-model="formData.basicInformation.for11"-->
+                                    <!--:disabled="true">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :key="item.value">{{item.label}}</i-option>-->
+                                    <!--</i-select>-->
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="资产编号：" class="ht-star">
+                                    <i-input class="ht-input-width" v-model="card.assetCode" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                                <form-item label="计量单位：">
+                                    <div class="ht-input-width">
+                                        <i-select @on-change="listUnitByGroupId" class="inline-block" v-model="card.unitGroupId"
+                                            style="width: 90px" :disabled="managerType=='info'">
+                                            <i-option v-for="item in unitGroupList" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                        <i-select class="inline-block" v-model="card.unitId" style="width: 90px"
+                                            :disabled="managerType=='info'">
+                                            <i-option v-for="item in unitList" :value="item.id" :key="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                    </div>
+                                    <!--<i-input class="ht-input-width" v-model="formData.basicInformation.for13" disabled></i-input>-->
+                                </form-item>
+                                <form-item label="经济用途：">
+                                    <i-select class="ht-input-width" v-model="card.useType" :disabled="managerType=='info'">
+                                        <i-option v-for="item in economyUseList" :value="item.value" :key="item.value">{{item.name}}</i-option>
+                                    </i-select>
+                                </form-item>
+                                <form-item label="产地：">
+                                    <i-input class="ht-input-width" v-model="card.originPlace" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                                <form-item label="供应商：">
+                                    <!--<i-input class="ht-input-width" icon="search" v-model="formData.basicInformation.for16"-->
+                                    <!--@on-click="showDepartmentTree(true,'showSupplier')" :disabled="showAll"></i-input>-->
+                                    <!--<div v-show="showSupplier" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">-->
+                                    <!--<ht-input-tree :url=treeUrl :setting="supplierTreeSetting"></ht-input-tree>-->
+                                    <!--</div>-->
+                                    <i-input class="ht-width-input" v-model="supplierName" icon="search" @on-click="onSupplier"
+                                        readonly="true" :disabled="managerType=='info'"></i-input>
+                                    <supplier-source-list :show-modal="showSupplier" v-model="selectSupplier" @sure="closeSupplier"
+                                        @cancel="closeSupplier"></supplier-source-list>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <row>
+                            <i-col :span="16">
+                                <form-item label="备注：" class="ht-lg-mark">
+                                    <i-input class="" v-model="card.remark" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col :span="8">
+                                <form-item label="流水号：">
+                                    <i-input class="ht-input-width" v-model="card.id" disabled></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <div class="ht-subtitle mt10 ml0">
+                            <div>附属设备</div>
+                        </div>
+                        <div>
+                            <i-button @click="openSEListModal">附属设备</i-button>
+                            <span v-if="dataList.length>0" class="tips">共有{{dataList.length}}张附属设备固定资产卡片，合计金额：{{attachTotal}}</span>
+                            <span v-else class="tips">没有附属设备固定资产卡片</span>
+                        </div>
+                    </Tab-pane>
+                    <Tab-pane label="部门及其他" name="name2">
+                        <div class="ht-subtitle ml0">
+                            <div>相关科目<span class="star"></span></div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="固定资产科目：">
+                                    <!-- <i-select class="ht-input-width" v-model="formData.otherDepartments.for1">
+                                        <i-option v-for="item in organizationList" :value="item.value" :label="item.label"
+                                            :key="item.value" />
+                                    </i-select> -->
+                                    <i-input class="ht-input-width" v-model="assetSubjectName" readonly="true"
+                                        @on-click="showSubjectVisable(1)" icon="ios-list-outline" type="text" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="累计折旧科目：">
+                                    <i-input class="ht-input-width" v-model="depreciationSubjectName"
+                                        readonly="true" @on-click="showSubjectVisable(2)" icon="ios-list-outline" type="text"
+                                        :disabled="managerType=='info'"></i-input>
+                                    <!--<i-select class="ht-input-width" v-model="formData.otherDepartments.for2">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :label="item.label"-->
+                                    <!--:key="item.value" />-->
+                                    <!--</i-select>-->
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <div class="ht-subtitle ml0">
+                            <div>使用部门及比例分配<span class="star"></span></div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="使用部门：">
+                                    <label>
+                                        <input type="radio" value="1" v-model="deptSingleMul" :disabled="managerType=='info'">
+                                        单一
+                                    </label>
+                                    <label class="ml20">
+                                        <input type="radio" value="2" v-model="deptSingleMul" :disabled="managerType=='info'">
+                                        多个
+                                    </label>
+                                </form-item>
+                                <p class="tips">
+                                    选择部门及比例结果：{{departmentTip}}
+                                </p>
+                            </i-col>
+                            <i-col span="8" v-if="deptSingleMul=='1'">
+                                <form-item label="使用部门：">
+                                    <i-input class="ht-input-width" icon="search" v-model="deptName" @on-click="showDepartmentTree(true,'showDepartment')"
+                                        :disabled="managerType=='info'" readonly="true"></i-input>
+                                    <div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                        <ht-input-tree :node-data="departmentTree" :setting="departmentTreeSetting"
+                                            :tid="bmId"></ht-input-tree>
+                                    </div>
+                                    <!--<i-select class="ht-input-width" v-model="formData.otherDepartments.for4">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :label="item.label"-->
+                                    <!--:key="item.value" />-->
+                                    <!--</i-select>-->
+                                </form-item>
+                            </i-col>
+                            <i-col span="8" v-if="deptSingleMul=='2'">
+                                <i-button @click="showSDARListModal(true)">选择部门及分配比例</i-button>
+                            </i-col>
+                        </row>
+                        <div class="ht-subtitle ml0">
+                            <div>折旧费用分配<span class="star"></span></div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="折旧费用分配：">
+                                    <label>
+                                        <input type="radio" value="1" v-model="subjectSingleMul" :disabled="managerType=='info'">
+                                        单一
+                                    </label>
+                                    <label class="ml20">
+                                        <input type="radio" value="2" v-model="subjectSingleMul" :disabled="managerType=='info'">
+                                        多个
+                                    </label>
+                                </form-item>
+                                <p class="tips">
+                                    折旧费用分配结果：{{subjectTip}}
+                                </p>
+                            </i-col>
+                            <i-col span="8" v-if="subjectSingleMul=='2'">
+                                <i-button @click="showMDCAListModal(true)">多个折旧费用分配</i-button>
+                            </i-col>
+                        </row>
+                        <row v-if="subjectSingleMul=='1'">
+                            <i-col :span="8" class="ht-lineHeight30">
+                                <form-item label="科目：">
+                                    <i-input class="ht-input-width" v-model="allotSubjectName" readonly="true"
+                                        @on-click="showSubjectVisable(3)" icon="ios-list-outline" type="text" :disabled="managerType=='info'"></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <row v-if="subjectSingleMul=='1'">
+                            <div class="ht-receivableW-table" style="width: 500px;">
+                                <div class="ht-wrapper-tbl">
+                                    <table class="table tablediv">
+                                        <thead>
+                                            <tr>
+                                                <td class="wt45">序号</td>
+                                                <td class="wt200">核算项目类别</td>
+                                                <td class="wt200">核算项目名称</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr lay-size="sm" v-for="(item,idx) in singleProjectList">
+                                                <td class="wt45">{{idx+1}} </td>
+                                                <td class="wt200 ht-padding3">{{item.itemClassName}}</td>
+                                                <td class="wt125 ht-padding3">
+                                                    <i-select v-model="item.itemId" clearable :disabled="managerType=='info'">
+                                                        <i-option v-for="item2 in item.itemList" :value="item2.itemId">{{item2.itemName}}</i-option>
+                                                    </i-select>
+                                                    </i-input>
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </row>
+
+                    </Tab-pane>
+                    <Tab-pane label="原值与折旧" name="name3">
+                        <div class="ht-subtitle ml0">
+                            <div>原值数据</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="原值币类型：">
+                                    <label>
+                                        <input type="radio" value="1" v-model="currencySingleMul" :disabled="managerType=='info'">
+                                        单币别
+                                    </label>
+                                    <label class="ml20">
+                                        <input type="radio" value="2" v-model="currencySingleMul" :disabled="managerType=='info'">
+                                        多币别
+                                    </label>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="">
+                                    <i-button :disabled="currencySingleMul==1" @click="showMMCDListModal(true)">维护多币别数据</i-button>
+                                    &nbsp;&nbsp;{{currencyTip}}
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="币别：">
+                                    <i-select class="ht-input-width" v-model="singleCurrency.currencyId" :disabled="currencySingleMul==2 || managerType=='info'">
+                                        <i-option v-for="item in currencyList" :value="item.id" :label="item.currencyName"
+                                            :key="item.id" />
+                                    </i-select>
+                                </form-item>
+                                <form-item label="综合本位币金额：">
+                                    <input-number v-if="currencySingleMul==1" :min="0" class="ht-input-width" v-model="singleCurrency.orgVal"
+                                        disabled></input-number>
+                                    <input-number v-else :min="0" class="ht-input-width" v-model="mulStandardAmount"
+                                        disabled></input-number>
+                                </form-item>
+                                <form-item label="原币调整：">
+                                    <input-number :min="0" class="ht-input-width" v-model="currencyAdjust" disabled></input-number>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="汇率：">
+                                    <input-number :min="0" class="ht-input-width" v-model="singleCurrency.exchangeRate"
+                                        disabled></input-number>
+                                </form-item>
+                                <form-item label="购进原值：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.buyOrgVal" :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="原币金额：">
+                                    <input-number :min="0" class="ht-input-width" v-model="singleCurrency.orgValFor"
+                                        :disabled="currencySingleMul==2 || managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="购进累计折旧：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.buyDepr" :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <div class="ht-subtitle ml0">
+                            <div>折旧相关数据</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="开始使用日期：">
+                                    <Date-picker transfer type="date" class="ht-input-width" v-model="card.beginUsedate"
+                                        placeholder="选择日期" :disabled="managerType=='info'">
+                                    </Date-picker>
+                                </form-item>
+                                <form-item label="累计折旧：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.deprService" :disabled="managerType=='info' || managerType=='change'"></input-number>
+                                </form-item>
+                                <form-item label="减值准备：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.devalPreparation"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="折旧方法：">
+                                    <!--  class="ht-star"-->
+                                    <i-select class="ht-input-width" v-model="card.deprMethod" :disabled="managerType=='info'">
+                                        <i-option v-for="item in deprMethodList" :value="item.value" :label="item.name"
+                                            :key="item.value" />
+                                    </i-select>
+                                    <!--<i-input class="ht-input-width" v-model="formData.discountOriginal.for13" disabled></i-input>-->
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="预计使用期数：" class="ht-star">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.expectUsePeriods"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="预计净残值：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.expectNetSalvage"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="净额：">
+                                    <input-number v-if="currencySingleMul==1" :min="0" class="ht-input-width" v-model="singleCurrency.orgValFor*singleCurrency.exchangeRate-card.deprService-card.devalPreparation"
+                                        disabled></input-number>
+                                    <input-number v-else :min="0" class="ht-input-width" v-model="mulStandardAmount-card.deprService-card.devalPreparation"
+                                        disabled></input-number>
+                                </form-item>
+                                <form-item v-if="managerType=='change'||(managerType=='info'&&(card.changeType==2||card.changType==3))"
+                                    label="累计折旧调整：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.deprServiceAdjust"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="已使用期数：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.usePeriodsBeforeservice"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="净值：">
+                                    <input-number v-if="currencySingleMul==1" :min="0" class="ht-input-width" v-model="singleCurrency.orgValFor*singleCurrency.exchangeRate-card.deprService"
+                                        disabled></input-number>
+                                    <input-number v-else :min="0" class="ht-input-width" v-model="mulStandardAmount-card.deprService"
+                                        disabled></input-number>
+                                </form-item>
+                                <form-item label="可抵扣税额：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.deductionAmount"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <!--<div class="ht-subtitle mt10 ml0">-->
+                        <!--<div>计算折旧</div>-->
+                        <!--</div>-->
+                        <!--<div class="pb20">-->
+                        <!--<i-button>计算折旧</i-button>-->
+                        <!--<span class="tips">计算结果：无</span>-->
+                        <!--</div>-->
+                    </Tab-pane>
+                    <Tab-pane v-if="managerType=='info'" label="期间数据" name="name4">
+                        <div class="ht-subtitle ml0">
+                            <div>当期数据</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="当前查询期间：">
+                                    <i-input class="ht-input-width" v-model="currentPeriodStr" disabled></i-input>
+                                </form-item>
+                                <form-item label="当前累计折旧：">
+                                    <i-input class="ht-input-width" v-model="card.currentDeprService" disabled></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="当前已使用期间数：">
+                                    <i-input class="ht-input-width" v-model="numberOfPreiodInUse" disabled></i-input>
+                                </form-item>
+                                <form-item label="当前净值：">
+                                    <i-input class="ht-input-width" v-model="card.totalVal-accumulatedDepreciation"
+                                        disabled></i-input>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="当前原值：">
+                                    <i-input class="ht-input-width" v-model="card.totalVal" disabled></i-input>
+                                </form-item>
+                            </i-col>
+                        </row>
+                    </Tab-pane>
+                    <Tab-pane v-if="(!startUsing && managerType!='info') || (managerType=='info' && card.changeType==0)"
+                        label="初始化数据" name="name5">
+                        <div class="ht-subtitle ml0">
+                            <div>本年数据</div>
+                        </div>
+                        <row>
+                            <i-col span="8">
+                                <form-item label="年初原值：">
+                                    <input-number v-if="currencySingleMul==1" :min="0" class="ht-input-width" v-model="singleCurrency.orgValFor*singleCurrency.exchangeRate+card.yearOriginalDecrease-card.yearOriginalIncrease"
+                                        disabled></input-number>
+                                    <input-number v-else :min="0" class="ht-input-width" v-model="mulStandardAmount+card.yearOriginalDecrease-card.yearOriginalIncrease"
+                                        disabled></input-number>
+                                    <!--<i-select class="ht-input-width" v-model="formData.initData.for1">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :label="item.label"-->
+                                    <!--:key="item.value" />-->
+                                    <!--</i-select>-->
+                                </form-item>
+                                <form-item label="本年原值调增：" class="cashier">
+                                    <!--<span class="star"></span>-->
+                                    <input-number v-if="" :min="0" class="ht-input-width" v-model="card.yearOriginalIncrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="本年原值调减：" class="cashier">
+                                    <!--<span class="star"></span>-->
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearOriginalDecrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="年初数量：" class="cashier departmentTreeWrap">
+                                    <!--<span class="star"></span>-->
+                                    <input-number :min="0" class="ht-input-width" v-model="card.num-card.yearAmountAdjust"
+                                        disabled></input-number>
+
+                                    <!--<i-input class="ht-input-width" icon="search" v-model="formData.basicInformation.for4"-->
+                                    <!--@on-click="showDepartmentTree(true)" :disabled="showAll"></i-input>-->
+                                    <!--<div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">-->
+                                    <!--<ht-input-tree :url=treeUrl :setting="treeSetting"></ht-input-tree>-->
+                                    <!--</div>-->
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="年初减值准备：" class="cashier">
+                                    <!--<span class="star"></span>-->
+                                    <input-number :min="0" class="ht-input-width" v-model="card.devalPreparation+card.yearImpairmentDecrease-card.yearImpairmentIncrease"
+                                        disabled></input-number>
+                                    <!--<i-input class="ht-input-width" icon="search" v-model="formData.basicInformation.for7"-->
+                                    <!--@on-click="showDepartmentTree(true)" :disabled="showAll"></i-input>-->
+                                    <!--<div v-show="showDepartment" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">-->
+                                    <!--<ht-input-tree :url=treeUrl :setting="treeSetting"></ht-input-tree>-->
+                                    <!--</div>-->
+                                </form-item>
+                                <form-item label="本年减值准备调增：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearImpairmentIncrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="本年减值准备调减：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearImpairmentDecrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                    <!--<i-select class="ht-input-width" v-model="card.yearImpairmentDecrease">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :key="item.value">{{item.label}}</i-option>-->
+                                    <!--</i-select>-->
+                                </form-item>
+                                <form-item label="本年数量调整：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearAmountAdjust"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                            <i-col span="8">
+                                <form-item label="年初累计折旧：" class="cashier">
+                                    <!--<span class="star"></span>-->
+                                    <input-number class="ht-input-width" v-model="card.deprService+card.yearAccumulatedDepreciationDecrease-card.yearAccumulatedDepreciationIncrease-card.yearDepreciationsAlreadyPrepared"
+                                        :disabled="true"></input-number>
+                                </form-item>
+                                <form-item label="本年累计折旧调增：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearAccumulatedDepreciationIncrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                                <form-item label="本年累计折旧调减：">
+                                    <input-number :min="0" class="ht-input-width" v-model="card.yearAccumulatedDepreciationDecrease"
+                                        :disabled="managerType=='info'"></input-number>
+                                    <!--<i-select class="ht-input-width" v-model="card.yearAccumulatedDepreciationDecrease">-->
+                                    <!--<i-option v-for="item in organizationList" :value="item.value" :key="item.value">{{item.label}}</i-option>-->
+                                    <!--</i-select>-->
+                                </form-item>
+                                <form-item label="本年已提折旧：">
+                                    <input-number class="ht-input-width" v-model="card.yearDepreciationsAlreadyPrepared"
+                                        :disabled="managerType=='info'"></input-number>
+                                </form-item>
+                            </i-col>
+                        </row>
+                        <row>
+                            <form-item label="" class="cashier">
+                                <input type="checkbox" value="1" v-model="card.cardScrap" :disabled="managerType=='info'">
+                                该固定资产现已报废
+                                <P class="tips">
+                                    入账原值=年初原值+本年原值调增-本年原值调减<br />
+                                    入账累计折旧=年初累计折旧+本年已提折旧+本年累计折旧调整-本年累计折旧调减
+                                </P>
+                            </form-item>
+                        </row>
+                    </Tab-pane>
+                </Tabs>
+            </i-form>
+        </div>
+
+        <!-- 卡片变动记录 -->
+        <Modal v-model="cardVisible" width="600px" title="卡片变动记录" class="filter vocher" :mask-closable="false">
+            <div class="jqGrid_wrapper pl20 pr20 mt10">
+                <table id="grid"></table>
+                <div id="page"></div>
+            </div>
+            <div slot="footer">
+                <i-button @click="" type="primary">打印</i-button>
+                <i-button @click="cancelModal('card')">取消</i-button>
+            </div>
+        </Modal>
+
+        <!-- 附属设备清单 -->
+        <Modal v-model="SEListVisible" width="600px" title="附属设备清单" class="filter vocher" :mask-closable="false">
+            <div class="ht-padding10">
+                <div class="pl20 pr20 mt10">
+                    <span class="mr20">{{card.assetName}}-附属设备清单</span>
+                    <span class="mr20" style="float:right;">金额：{{attachTotal}}</span>
+                </div>
+                <div class="btn-menu">
+                    <button class="ht-btn" @click="actionBtnMth('addNew')">新增行</button>
+                    <button class="ht-btn" @click="actionBtnMth('import')">插入行</button>
+                    <!-- <button class="ht-btn" @click="actionBtnMth('copye')">复制行</button> -->
+                    <button class="ht-btn" @click="actionBtnMth('delete')">删除行</button>
+                </div>
+                <div class="ht-receivableW-table">
+                    <div class="ht-wrapper-tbl">
+                        <table class="table tablediv">
+                            <thead>
+                                <tr>
+                                    <td class="wt45" @click="click_all">
+                                        <checkbox v-model="allShow"></checkbox>
+                                    </td>
+                                    <td class="wt200"> <span class="star"></span>设备编码</td>
+                                    <td class="wt200"> <span class="star"></span>设备名称</td>
+                                    <td class="wt200">型号</td>
+                                    <td class="wt200">登记日期</td>
+                                    <td class="wt100">存放地点</td>
+                                    <td class="wt200">计量单位</td>
+                                    <td class="wt100"> <span class="star"></span>数量</td>
+                                    <td class="wt125"> <span class="star"></span>金额</td>
+                                    <td class="wt125">备注</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr lay-size="sm" v-for="(item,idx) in dataList">
+                                    <td class="wt45" @click="change_tr(item)">
+                                        <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                    </td>
+                                    <td class="wt200 ht-padding3">
+                                        <i-input v-model="item.deviceCode" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                    <td class="wt200 ht-padding3">
+                                        <i-input v-model="item.deviceName" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                    <td class="wt200 ht-padding3">
+                                        <i-input v-model="item.specModel" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                    <td class="wt200 ht-padding3">
+                                        <!--<date-select v-model="item.recordDate" end="true"></date-select>-->
+                                        <Date-picker transfer type="date" v-model="item.recordDate" placeholder="选择日期"
+                                            :disabled="managerType=='info'">
+                                        </Date-picker>
+                                    </td>
+
+                                    <td class="wt100 ht-padding3">
+                                        <i-select v-model="item.locationId" clearable :disabled="managerType=='info'">
+                                            <i-option v-for="item in locationList" :value="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                    </td>
+                                    <td class="wt100 ht-padding3">
+                                        <i-select @on-change="listDeviceUnitByGroupId(idx)" v-model="item.unitGroupId"
+                                            clearable :disabled="managerType=='info'">
+                                            <i-option v-for="item in unitGroupList" :value="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                    </td>
+                                    <td class="wt100 ht-padding3">
+                                        <i-select v-model="item.unitId" clearable :disabled="managerType=='info'">
+                                            <i-option v-for="item in item.unitList" :value="item.id">{{item.name}}</i-option>
+                                        </i-select>
+                                    </td>
+                                    <td class="wt100 ht-padding3">
+                                        <input-number :min="0" v-model="item.num" type="text" :disabled="managerType=='info'"></input-number>
+                                    </td>
+                                    <td class="wt125 ht-padding3">
+                                        <input-number :min="0" v-model="item.amount" type="text" :disabled="managerType=='info'"></input-number>
+                                    </td>
+                                    <td class="wt125 ht-padding3">
+                                        <i-input v-model="item.remark" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button @click="saveAttach" type="primary">确定</i-button>
+                <i-button @click="cancelAttach">取消</i-button>
+            </div>
+        </Modal>
+        <!-- 选择部门及分配比例 -->
+        <Modal v-model="SDARListVisible" width="480px" title="选择部门及分配比例" class="filter vocher" :mask-closable="false">
+            <div class="ht-padding10">
+                <div class="btn-menu">
+                    <button class="ht-btn" @click="actionSDARListBtnMth('addNew')">新增行</button>
+                    <button class="ht-btn" @click="actionSDARListBtnMth('import')">插入行</button>
+                    <!-- <button class="ht-btn" @click="actionSDARListBtnMth('copye')">复制行</button> -->
+                    <button class="ht-btn" @click="actionSDARListBtnMth('delete')">删除行</button>
+                </div>
+                <div class="ht-receivableW-table">
+                    <div class="ht-wrapper-tbl">
+                        <table class="table tablediv">
+                            <thead>
+                                <tr>
+                                    <td class="wt45" @click="SDARclick_all">
+                                        <checkbox v-model="SDARallShow"></checkbox>
+                                    </td>
+                                    <td class="wt80">序号</td>
+                                    <td class="wt200">使用部门</td>
+                                    <td class="wt100">分配比例(%)</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr lay-size="sm" v-for="(item,idx) in SDARdataList">
+                                    <td class="wt45" @click="SDARchange_tr(item)">
+                                        <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                    </td>
+                                    <td class="wt80">{{idx+1}}</td>
+                                    <td class="wt200 ht-padding3">
+                                        <i-input icon="search" v-model="item.departmentName" @on-click="showDepartmentTree(true,'showMulDepartment',idx)"
+                                            :disabled="managerType=='info'" readonly="true"></i-input>
+                                        <div v-show="item.showChange" style="position: absolute;z-index: 8;background: #fff;border: 1px solid #ccc;">
+                                            <ht-input-tree :node-data="departmentTree" :setting="mulDepartmentTreeSetting"
+                                                :tid="code(bmId,idx)"></ht-input-tree>
+                                        </div>
+
+                                        <!--<i-select v-model="item.locationId" clearable>-->
+                                        <!--<i-option v-for="item in locationList" :value="item.id">{{item.name}}</i-option>-->
+                                        <!--</i-select>-->
+                                    </td>
+                                    <td class="wt100 ht-padding3">
+                                        <Input-number :min="0" v-model="item.rate" :disabled="managerType=='info'"></Input-number>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button @click="saveDept" type="primary">确定</i-button>
+                <i-button @click="showSDARListModal(false)">取消</i-button>
+            </div>
+        </Modal>
+        <!-- 多个折旧费用分配 -->
+        <Modal v-model="MDCAListVisible" width="600px" title="多个折旧费用分配" class="filter vocher" :mask-closable="false">
+            <div class="ht-padding10">
+                <div class="btn-menu">
+                    <button class="ht-btn" @click="actionMDCAListBtnMth('addNew')">新增行</button>
+                    <button class="ht-btn" @click="actionMDCAListBtnMth('import')">插入行</button>
+                    <!-- <button class="ht-btn" @click="actionMDCAListBtnMth('copye')">复制行</button> -->
+                    <button class="ht-btn" @click="actionMDCAListBtnMth('delete')">删除行</button>
+                </div>
+                <div class="ht-receivableW-table">
+                    <div class="ht-wrapper-tbl">
+                        <table class="table tablediv">
+                            <thead>
+                                <tr>
+                                    <td class="wt45" @click="MDCAclick_all">
+                                        <checkbox v-model="allShow"></checkbox>
+                                    </td>
+                                    <td class="wt80">序号</td>
+                                    <td class="wt150">使用部门</td>
+                                    <td class="wt150">科目</td>
+                                    <td class="wt150">核算项目</td>
+                                    <td class="wt150">分配比例(%)</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr lay-size="sm" v-for="(item,idx) in MDCAdataList">
+                                    <td class="wt45" @click="MDCAchange_tr(item)">
+                                        <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                    </td>
+                                    <td class="wt80">{{idx+1}}</td>
+                                    <td class="wt150 ht-padding3">
+                                        <template v-if="deptSingleMul==1">
+                                            <i-select v-model="item.deptId" :clearable="managerType!='info'" :disabled="managerType=='info'">
+                                                <i-option v-for="item in singleDepartmentList" :value="item.deptId">{{item.departmentName}}</i-option>
+                                            </i-select>
+                                        </template>
+                                        <template v-else>
+                                            <i-select v-model="item.deptId" :clearable="managerType!='info'" :disabled="managerType=='info'">
+                                                <i-option v-for="item in mulDepartmentList" :value="item.deptId">{{item.departmentName}}</i-option>
+                                            </i-select>
+                                        </template>
+
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <i-input v-model="item.expenseSubjectName" readonly="true" @on-click="showSubjectVisable(4,idx)"
+                                            icon="ios-list-outline" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <i-input v-model="item.assetSubjectName" readonly="true" @on-click="showaddSubjectListOptVisable(item,idx)"
+                                            icon="ios-search" type="text" :disabled="managerType=='info'"></i-input>
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <Input-number :min="0" v-model="item.rate" :disabled="managerType=='info'"></Input-number>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button @click="saveMulExpense" type="primary">确定</i-button>
+                <i-button @click="showMDCAListModal(false)">取消</i-button>
+            </div>
+        </Modal>
+        <!-- 维护多币别数据 -->
+        <Modal v-model="MMCDListVisible" width="600px" title="原值原币组成" class="filter vocher" :mask-closable="false">
+            <div class="ht-padding10">
+                <div class="btn-menu">
+                    <button class="ht-btn" @click="actionMMCDListBtnMth('addNew')">新增行</button>
+                    <button class="ht-btn" @click="actionMMCDListBtnMth('import')">插入行</button>
+                    <!-- <button class="ht-btn" @click="actionMMCDListBtnMth('copye')">复制行</button> -->
+                    <button class="ht-btn" @click="actionMMCDListBtnMth('delete')">删除行</button>
+                </div>
+                <div class="ht-receivableW-table">
+                    <div class="ht-wrapper-tbl">
+                        <table class="table tablediv">
+                            <thead>
+                                <tr>
+                                    <td class="wt45" @click="MMCDclick_all">
+                                        <checkbox v-model="allShow"></checkbox>
+                                    </td>
+                                    <td class="wt80">序号</td>
+                                    <td class="wt150">币别</td>
+                                    <td class="wt150">汇率</td>
+                                    <td class="wt150">原币金额</td>
+                                    <td class="wt150">本币金额</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr lay-size="sm" v-for="(item,idx) in MMCDdataList">
+                                    <td class="wt45" @click="MMCDchange_tr(item)">
+                                        <checkbox v-model="item.show" class="ht-no-margin"></checkbox>
+                                    </td>
+                                    <td class="wt80">{{idx+1}}</td>
+                                    <td class="wt150 ht-padding3">
+                                        <i-select @on-change="getExchangeRate(item.currencyId,idx)" v-model="item.currencyId"
+                                            clearable :disabled="managerType=='info'">
+                                            <i-option v-for="item in currencyList" :value="item.id">{{item.currencyName}}</i-option>
+                                        </i-select>
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <input-number :min="0" v-model="item.exchangeRate" type="text" disabled></input-number>
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <input-number :min="0" v-model="item.orgValFor" type="text" :disabled="managerType=='info'"></input-number>
+                                    </td>
+                                    <td class="wt150 ht-padding3">
+                                        <input-number :min="0" v-model="item.orgValFor*item.exchangeRate" type="text"
+                                            disabled></input-number>
+                                        <!--{{item.orgVal}}-->
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer">
+                <i-button @click="saveMulCurrency" type="primary">确定</i-button>
+                <i-button @click="showMMCDListModal(false)">取消</i-button>
+            </div>
+        </Modal>
+        <!-- 核算项目 -->
+        <Modal v-model="addSubjectListOptShow" @on-cancel="addSubjectListOptClose" width="360px" height="300px" title="核算项目输入"
+            class="filter vocher" :mask-closable="false">
+
+            <div class="ht-receivableW-table" style="width: 320px;">
+                <div class="ht-wrapper-tbl">
+                    <table class="table tablediv">
+                        <thead>
+                            <tr>
+                                <td class="wt45">序号</td>
+                                <td class="wt125">核算项目类别</td>
+                                <td class="wt125">核算项目名称</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr lay-size="sm" v-for="(item,idx) in testitemList.itemRelateDetailList">
+                                <td class="wt45">{{idx+1}} </td>
+                                <td class="wt125 ht-padding3">{{item.itemClassName}}</td>
+                                <td class="wt125 ht-padding3">
+                                    <i-select v-model="item.itemId" :clearable="managerType!='info'">
+                                        <i-option v-for="item2 in item.itemList" :value="item2.itemId" :disabled="managerType=='info'">{{item2.itemName}}</i-option>
+                                    </i-select>
+                                </td>
+
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+            <div slot="footer">
+
+            </div>
+        </Modal>
+
+        <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" @initidfn="initsubjectFn"
+            :initid="initSubjectList" ref="modalSubject1"></ht-modal-subject>
+    </div>
+    <script>
+        htLoadJs([
+            'ht-print-choose',
+            // '${rc.contextPath}/js/finance/FixedAssets/InitialFixedAssets/index.js'
+        ])
+    </script>
+    <script src='${rc.contextPath}/js/finance/util/decimal.js'></script>
+    <script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
+    <!--<script src="${rc.contextPath}/js/finance/components/ht-modal-subject.js"></script>-->
+    <script src="${rc.contextPath}/js/finance/components/ht-tree.js"></script>
+    <script src="${rc.contextPath}/js/finance/FixedAssets/InitialFixedAssets/index.js"></script>
+    <script src='${rc.contextPath}/js/quality/components/ht-btns.js'></script>
+    <script src='${rc.contextPath}/js/purchase/purchase-collectgoods/supplierSource-list.js'></script>
+    #parse("modules/public/footer.html")
+</body>
+
+</html>

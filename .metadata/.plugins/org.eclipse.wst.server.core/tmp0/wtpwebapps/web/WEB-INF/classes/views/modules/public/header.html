@@ -1,0 +1,136 @@
+
+## dev 为开发环境；prod 为生产环境
+## Todo: 后续从后端传环境变量给 $env
+
+#set($env = 'dev')
+#set($rootPath = ${rc.contextPath})
+#set($jsPath = $rootPath)
+
+## 如果是生产环境，引用压缩的并做过兼容处理的 js
+#if($env == 'prod')
+    #set($jsPath = $rootPath + '/dist')
+#end
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+<script type="text/javascript">
+  (function(){
+      var href = window.location.href;
+      var addCssLink = function(name){
+          var fragment = document.createElement("link");
+          fragment.setAttribute("rel", "stylesheet");
+          fragment.setAttribute("href", "${rootPath}/ktc/css/" + name + ".css?_=${sourceKey}");
+          document.head.appendChild(fragment);
+      };
+      if (href.indexOf('/finance/') === -1) {
+          ['base', 'inner_gold', 'gold'].forEach(function(ele){
+              addCssLink(ele);
+          });
+      }
+  })()
+</script>
+
+<link rel="stylesheet" href="${rootPath}/dist/css/vendors.min.css?_=${sourceKey}">
+<link rel="stylesheet" href="${rootPath}/css/main.css?_=${sourceKey}">
+<link rel="stylesheet" href="${rootPath}/ktc/css/common.css?_=${sourceKey}">
+<link rel="stylesheet" href="${rootPath}/ktc/css/print.css?_=${sourceKey}" media="print">
+
+<script>
+    window.HT_ENV = '${env}';
+    window.HT_ROOT = '${rootPath}';
+    var contextPath = '${rootPath}';
+    var rcContextPath = '${rootPath}';
+    ## sourceKey 为 uuid, 每次启动 web 服务时更新
+    var webInstance = '${sourceKey}';
+
+    #*
+    以下 js 文件路径通过 htLoadJs() 方法引入当前 html 文件
+    举例：
+    htLoadJs(['area-select', 'ht-btns', 'path/to/your/page.js']);
+    *#
+
+    var htComponentMap ={
+
+        ## 通用组件
+        'area-select':'/js/components/area-select.js',
+        'base-data-list':'/js/components/base-data-list.js',
+        'date-select':'/js/components/date-select.js',
+        'ht-approve-reject':'/js/components/ht-approve-reject.js',
+        'ht-btns':'/js/components/ht-btns.js',
+        'ht-file-upload':'/js/components/ht-file-upload.js',
+        'ht-img-magnifier':'/js/components/ht-img-magnifier.js',
+        'ht-print-choose':'/js/components/ht-print-choose.js',
+        'ht-product-detail':'/js/components/ht-product-detail.js',
+        'ht-review-steps':'/js/components/ht-review-steps.js',
+        'ht-select':'/js/components/ht-select.js',
+        'ht-selectsupplier':'/js/components/ht-selectsupplier.js',
+        'ht-toggle':'/js/components/ht-toggle.js',
+        'ht-tree':'/js/components/ht-tree.js',
+        'ht-barcode-select':'/js/components/ht-barcode-select.js',
+
+        ## 基础模块下的组件
+        'basedata/area-select':'/js/basedata/components/area-select.js',
+        'basedata/base-data-list':'/js/basedata/components/base-data-list.js',
+        'basedata/common-record-list':'/js/basedata/components/common-record-list.js',
+        'basedata/date-select':'/js/basedata/components/date-select.js',
+        'basedata/department-select':'/js/basedata/components/department-select.js',
+        'basedata/format-date':'/js/basedata/components/formatDate.js',
+        'basedata/ht-add-del-btn':'/js/basedata/components/ht-add-del-btn.js',
+        'basedata/ht-btns':'/js/basedata/components/ht-btns.js',
+        'basedata/ht-common-confirm':'/js/basedata/components/ht-common-confirm.js',
+        'basedata/ht-select':'/js/basedata/components/ht-select.js',
+        'basedata/ht-select-source-list':'/js/basedata/components/ht-selectSourceList.js',
+        'basedata/ht-tree':'/js/basedata/components/ht-tree.js',
+        'basedata/search-select-more':'/js/basedata/components/search-select-more.js',
+        'basedata/source-list':'/js/basedata/components/source-list.js',
+        'basedata/subject-tree':'/js/basedata/components/subject-tree.js',
+        'basedata/test-tree':'/js/basedata/components/test-tree.js'
+    }
+</script>
+
+<script src="${rootPath}/dist/js/vendors.min.js?_=${sourceKey}"></script>
+<script src="${rootPath}/plugins/layui/layui.all.js?_=${sourceKey}"></script>
+<script src='${jsPath}/js/common.js?_=${sourceKey}'></script>
+<script src='${rootPath}/ktc/js/app.js?_=${sourceKey}'></script>
+<script src="${jsPath}/js/utils.js?_=${sourceKey}"></script>
+<script type="text/javascript" src="${jsPath}/js/http.js?_=${sourceKey}"></script>
+
+## 打印 lodop 组件
+<script language="javascript" src="${rootPath}/plugins/Lodop/LodopFuncs.js?_=${sourceKey}"></script>
+<script language="javascript" src="${rootPath}/plugins/Lodop/LodopCommFun.js?_=${sourceKey}"></script>
+
+## 以下js 文件 应该按页面需求引入 待讨论是否这样全局引入
+<script src='${jsPath}/js/basedata/components/search-select-more.js'></script>
+<script src='${jsPath}/js/basedata/components/base-data-list.js'></script>
+<script src="${jsPath}/js/basedata/components/ht-btns.js"></script>
+<script src="${jsPath}/js/basedata/components/area-select.js"></script>
+<script src="${jsPath}/js/basedata/components/date-select.js"></script>
+<script src="${jsPath}/js/basedata/components/ht-add-del-btn.js"></script>
+<script src="${jsPath}/js/basedata/components/ht-tree.js"></script>
+<script src="${jsPath}/js/basedata/components/common-record-list.js"></script>
+#*
+以上 js 文件列表后续不再全局追加！
+各个 HTML 页面通过 htLoadJs() 方法，按需加载依赖的组件或者其它 js 文件。
+如果加载同名的组件，将会先删除上面加载的的组件。
+htLoadJs 传参的数组中最后一个 js 必须是当前页面的业务逻辑 js 的路径
+
+举例：
+    htLoadJS([
+        'base-data-list',
+        'ht-toggle',
+        'root/module/folder/page.js',
+    ]);
+
+开发时，可以加 debug 参数，方便在 console 的 sources 中追踪到
+
+举例：
+    htLoadJS([
+        'base-data-list',
+        'ht-toggle',
+        'root/module/folder/page.js',
+    ], 'debug');
+
+by LRT
+*#

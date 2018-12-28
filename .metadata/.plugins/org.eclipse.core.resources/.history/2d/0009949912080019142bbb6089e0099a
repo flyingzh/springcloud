@@ -1,0 +1,311 @@
+package com.htrfid.financeapp.service.impl;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.htrfid.finance.entity.WmCategoryEntity;
+import com.htrfid.finance.vo.CashierJournalResultVO;
+import com.htrfid.finance.vo.DetailAccountVo;
+import com.htrfid.finance.vo.WmTaxRateEntryFilterVo;
+import com.htrfid.finance.vo.WmTaxRateEntryResp;
+import com.htrfid.financeapp.common.Constant;
+import com.htrfid.financeapp.remote.WmEmployeeIncomeTaxRemoteService;
+import com.htrfid.financeapp.service.CommonService;
+import com.htrfid.financeapp.service.WmCategoryService;
+import com.htrfid.financeapp.service.WmEmployeeIncomeTaxService;
+import com.htrfid.financeapp.service.WmIncomeItemService;
+import com.htrfid.financeapp.service.WmItemsService;
+import com.htrfid.financeapp.service.WmPersonalTaxInitService;
+import com.htrfid.financeapp.service.WmTaxRateService;
+import com.htrfid.shiro.utils.UserUtils;
+import com.htrfid.sysmanager.entity.SysUser;
+import com.htrfid.util.JsonUtil;
+import com.htrfid.util.Result;
+
+@Service
+public class WmEmployeeIncomeTaxServiceImpl implements WmEmployeeIncomeTaxService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WmEmployeeIncomeTaxServiceImpl.class);
+	
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired
+	private WmIncomeItemService wmIncomeItemService;
+	@Autowired
+	private WmTaxRateService wmTaxRateService;
+	@Autowired
+	private WmPersonalTaxInitService wmPersonalTaxInitService;
+    @Autowired
+    private WmCategoryService wmCategoryService;
+    @Autowired
+    private WmItemsService wmItemsService;
+    @Autowired
+    private WmEmployeeIncomeTaxRemoteService wmEmployeeIncomeTaxRemoteService;
+    
+    
+	/**
+	 * 
+	 * @Title: initPage   
+	 * @Description: 页面初始化
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月11日 上午9:00:04
+	 * @return  
+	 * @throws
+	 */
+	@Override
+	public Result initPage(Long categoryId,Integer dataType){
+		Long sobId = UserUtils.getCurrentUser().getUserCurrentOrganId();
+		Map<String, Object> initMap = new HashMap<>(10);
+		if(categoryId==null||categoryId.longValue() == 0) {
+			//获取组织列表
+			Map<String, Object> orgEntity = commonService.getOrgEntity();
+			List<Map<String, Object>> orgList = new ArrayList<>();
+			orgList.add(orgEntity);
+			initMap.put("org", orgList);
+			//获取默认工资类别和工资类别列表
+			List<WmCategoryEntity> list = wmCategoryService.list(sobId);
+			initMap.put("categoryList", list);
+			for (WmCategoryEntity wmCategoryEntity : list) {
+				if(wmCategoryEntity.getSysDefault().intValue() == 1) {
+					categoryId = wmCategoryEntity.getId();
+					break;
+				}
+			}
+			
+			initMap.put("defCategoryId", categoryId);
+			
+			//获取会计年度会计期间 
+			Map<String, Integer> yearAndPeriod = commonService.getWmCurYearAndPeriod(sobId);
+			initMap.put("yearAndPeriod", yearAndPeriod);
+			
+		}
+		
+		Map<String, Object> map = wmEmployeeIncomeTaxRemoteService.initPage(sobId,categoryId);
+		initMap.put("incomeItemList", map.get("incomeItemList"));
+		initMap.put("taxRateList", map.get("taxRateList"));
+		initMap.put("taxinitList", map.get("taxinitList"));
+		initMap.put("currencyTypeList", map.get("currencyTypeList"));
+		
+		
+		/*//获取所得项计算列表
+		WmIncomeItemEntity itemEntity = new WmIncomeItemEntity();
+		itemEntity.setSobId(sobId);
+		itemEntity.setCategoryId(categoryId);
+		Result incomeItemResult = wmIncomeItemService.listIncomeItem(itemEntity);
+		initMap.put("incomeItemList", incomeItemResult.getData());
+		//获取税率列表
+		WmTaxRateEntity taxRateEntity = new WmTaxRateEntity();
+		taxRateEntity.setCategoryId(categoryId);
+		taxRateEntity.setSobId(sobId);
+		Result taxRateListResult = wmTaxRateService.listTaxRate(taxRateEntity);
+		initMap.put("taxRateList", taxRateListResult.getData());
+		//获取个人所得税初始设置
+		WmPersonalTaxEntity personalTaxEntity = new WmPersonalTaxEntity();
+		personalTaxEntity.setCategoryId(categoryId);
+		personalTaxEntity.setSobId(sobId);
+		Result taxInitListResult = wmPersonalTaxInitService.listInitTax(personalTaxEntity);
+		initMap.put("taxinitList", taxInitListResult.getData());*/
+		
+		
+		/*//获取所有的货币类型
+		WmItemsEntity wmItemsEntity = new WmItemsEntity();
+		wmItemsEntity.setCategoryId(categoryId);
+		wmItemsEntity.setSobId(sobId);
+		wmItemsEntity.setDataType(Constant.WM_DATA_TYPE_CURRENCY);
+		List<WmItemsEntity> wmItemsList = wmItemsService.list(wmItemsEntity);
+		initMap.put("currencyTypeList", wmItemsList);*/
+		
+		//发请求，设置为默认 工资类别
+		wmCategoryService.select(categoryId, sobId);
+		
+		return Result.ok(initMap);
+	}
+
+	
+	@Override
+	public Result listTaxRateEntry(WmTaxRateEntryFilterVo filterVo) {
+		//获取会计年度会计期间 
+		/*Map<String, Integer> yearAndPeriod = commonService.getWmCurYearAndPeriod(filterVo.getSobId());
+		filterVo.setYear(yearAndPeriod.get("curYear"));
+		filterVo.setPeriod(yearAndPeriod.get("curPeriod"));*/
+		return wmEmployeeIncomeTaxRemoteService.listTaxRateEntry(filterVo);
+	}
+
+
+	/**
+	 * 
+	 * @Title: saveCliTaxRate   
+	 * @Description: 保存页面录入的数据
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月13日 下午5:21:10
+	 * @param list
+	 * @return          
+	 * @throws
+	 */
+	@Override
+	public Result saveCliTaxRate(List<WmTaxRateEntryResp> list) {
+		SysUser currentUser = UserUtils.getCurrentUser();
+		for (WmTaxRateEntryResp wmTaxRateEntryResp : list) {
+			wmTaxRateEntryResp.setUpdateId(currentUser.getId());
+			wmTaxRateEntryResp.setUpdateName(currentUser.getUsername());
+			wmTaxRateEntryResp.setUpdateTime(new Date());
+		}
+		return wmEmployeeIncomeTaxRemoteService.saveCliTaxRate(list);
+	}
+
+	/**
+	 * 
+	 * @Title: cliTaxRate   
+	 * @Description: 计算工资数据或计算税率
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月13日 下午2:23:26
+	 * @param respList
+	 * @return          
+	 * @throws
+	 */
+	@Override
+	public Result cliTaxRate(List<WmTaxRateEntryResp> respList) {
+		return wmEmployeeIncomeTaxRemoteService.cliTaxRate(respList);
+	}
+
+
+	/**
+	 * 
+	 * @Title: exportExcel   
+	 * @Description: 导出
+	 * @author: zhengfei
+	 * @Email: 936864724@qq.com
+	 * @date: 2018年12月25日 下午2:34:46
+	 * @param filterVo
+	 * @param response  
+	 * @throws
+	 */
+	@Override
+	public void exportExcel(WmTaxRateEntryFilterVo filterVo, HttpServletResponse response) {
+
+        String[] arrayTitle = new String[]{"序号", "纳税义务人","身份证号码","所得项目","所得期间","收入人民币","减费用额",
+        		"应纳税所得额","税率项目","税率项目合计","税率计算值","税率","速算扣除数","扣缴所得税额"};
+        
+        List<WmCategoryEntity> list = wmCategoryService.list(filterVo.getSobId());
+        String categoryName = "";
+        list.stream().forEach(e->{
+        	if(e.getId().longValue() == filterVo.getCategoryId()) {
+        		categoryName = e.getCategoryName();
+        		return;
+        	}
+        });
+        String yearAndPeriod = filterVo.getYear()+"年第"+filterVo.getPeriod()+"期";
+        
+        
+        //生成Excel文件
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("个人所得税");
+        for (int i = 0; i < arrayTitle.length; i++) {
+            //每一列的宽度
+            sheet.setColumnWidth(i, 20 * 180);
+        }
+
+
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setWrapText(true);//强制使用POI样式
+        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);// 居中
+        //字体大小
+        XSSFFont font = workbook.createFont();
+        font.setFontName("宋体");
+        font.setFontHeightInPoints((short) 14);
+        font.setBold(true); //是否加粗
+        cellStyle.setFont(font);
+        //创建行 （第1行）
+        XSSFRow row = sheet.createRow(0);
+        row.setHeightInPoints(20);
+        XSSFCell cell = row.createCell(0);
+        cell.setCellValue("个人所得税");
+        cell.setCellStyle(cellStyle);
+
+        for (int i = 0; i < arrayTitle.length; i++) {
+            cell = row.createCell(i);
+            cell.setCellValue(arrayTitle[i]);
+            font = workbook.createFont();
+            font.setBold(true); //是否加粗
+            font.setFontName("Courier New");
+            font.setFontHeightInPoints((short) 12);
+            cellStyle.setFont(font);
+            cell.setCellStyle(cellStyle);
+        }
+        Result taxRateEntry = listTaxRateEntry(filterVo);
+        List<WmTaxRateEntryResp> dataList = JsonUtil.jsonToList(taxRateEntry.getData().toString(), WmTaxRateEntryResp.class);
+        
+        DecimalFormat df = new DecimalFormat("0.00");
+        for (int j = 0;j<dataList.size();j++){
+            row = sheet.createRow(j+1);
+            String[] fff = new String[]{"序号", "税率计算值","税率","速算扣除数","扣缴所得税额"};
+            
+            //所有币别
+            row.createCell((short) 0).setCellValue(j+1);
+            row.createCell((short) 1).setCellValue(dataList.get(j).getEmpName());
+            row.createCell((short) 2).setCellValue(dataList.get(j).getIdCard());
+            row.createCell((short) 3).setCellValue(dataList.get(j).getIncomeName());
+            row.createCell((short) 4).setCellValue(dataList.get(j).getIncomePeriod());
+            row.createCell((short) 5).setCellValue(df.format(dataList.get(j).getIncomeRmb()));
+            row.createCell((short) 6).setCellValue(df.format(dataList.get(j).getCostReduction()));
+            row.createCell((short) 7).setCellValue(df.format(dataList.get(j).getIncomeTax()));
+            row.createCell((short) 8).setCellValue(df.format(dataList.get(j).getTaxRateItems()));
+            row.createCell((short) 9).setCellValue(df.format(dataList.get(j).getTotalTaxRateItems()));
+            row.createCell((short) 10).setCellValue(df.format(dataList.get(j).getTaxRateCalcValue()));
+            row.createCell((short) 11).setCellValue(df.format(dataList.get(j).getTaxRate()));
+            row.createCell((short) 12).setCellValue(df.format(dataList.get(j).getQuickCalcDeduction()));
+            row.createCell((short) 13).setCellValue(df.format(dataList.get(j).getWithholdingIncomeTax()));
+
+        }
+        
+
+        try {
+            String name = "个人所得税_" +yearAndPeriod;
+            response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" +
+                    new String(name.getBytes("GBK"), "ISO8859-1") + ".xlsx");
+            workbook.write(response.getOutputStream());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+        }
+		
+	}
+
+
+
+}

@@ -1,0 +1,80 @@
+.ht-wrapper-tbl{width:100%;overflow-x:auto;}
+.ht-wrapper-tbl table.tablediv {
+    margin:0 auto;
+    border-collapse:collapse;
+    width:100%;
+    border: 1px solid #ccc;
+}
+.ht-wrapper-tbl table td{
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;}
+.ht-wrapper-tbl thead,tfoot {
+    background:#f2f2f2;
+    display:block
+}
+.ht-wrapper-tbl tbody {
+    height:150px;
+    overflow-y:scroll;
+    display:block;
+
+}
+.wt30{
+    width:30px;
+    min-width:30px;
+    max-width:30px;
+}
+.wt45{
+    width:45px;
+    min-width:45px;
+    max-width:45px;
+}
+.wt55{
+    width:55px;
+    min-width:55px;
+    max-width:55px;
+}
+.wt80{
+    width:80px;
+    min-width:80px;
+    max-width:80px;
+}
+.wt100{
+    width:100px;
+    min-width:100px;
+    max-width:100px;
+}
+.wt125{
+    width:125px;
+    min-width:125px;
+    max-width:125px;
+}
+.wt130{
+    width:130px;
+    min-width:130px;
+    max-width:130px;
+}
+.wt150{
+    width:150px;
+    min-width:150px;
+    max-width:150px;
+}
+.wt200{
+    width:200px;
+    min-width:200px;
+    max-width:200px;
+}
+
+.wt250{
+    width:250px;
+    min-width:250px;
+    max-width:250px;
+}
+
+.wt300{
+    width:300px;
+    min-width:300px;
+    max-width:300px;
+}
+
+
+

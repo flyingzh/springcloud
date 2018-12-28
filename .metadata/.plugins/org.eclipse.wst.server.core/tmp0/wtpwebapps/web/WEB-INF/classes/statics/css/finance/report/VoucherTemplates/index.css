@@ -1,0 +1,93 @@
+html, body {background-color: #fff; height: 100%;}
+#receivableWriteofflist{background-color: #fff !important;}
+.ht-commFloatLeft{ float: left;}
+.ht-commTxtLeft{text-align: left;}
+.ht-commTxtRight{text-align: right;text-align: -webkit-right;}
+.ht-commTxtContent{text-align: center;text-align: -webkit-center;}
+.ht-marginLeft10{margin-left: 10px;}
+.ht-paddingRight0{padding-right: 0px !important;}
+.ht-nopadding{padding: 0px !important;}
+.ht-fontWeight100{font-weight: 100}
+.ht-lineHeight30{line-height: 30px !important;;}
+.ht-title{    
+  height: 80px;
+  padding-top: 20px;
+}
+.ht-title .ht-titleName1{line-height: 35px;}
+.ht-title .ht-titleRefresh{border: 1px solid #dddee1;}
+.ht-title .ht-titleBtn{margin-right: 20px}
+.ht-tableList .ht-tabGooter{border-top: 1px solid #e9eaec;padding-right: 20px;}
+.pd-md {
+  padding: 20px;
+}
+
+
+.ht-voucherTemplates-content{
+  height: 400px;
+  /*padding: 20px 0px;*/
+}
+.ht-voucherTemplates-content .ht-voucherTemplates-content-menu{
+  float: left;
+  width: 20%;
+  height: 100%;
+  overflow: auto;
+}
+.ht-voucherTemplates-content .ht-tableList{
+  float: right;
+  width: 78%;
+  height: 100%;
+}
+
+.ht-tableList .ht-tableList-title{    
+  height: 48px;
+  line-height: 48px;
+  font-size: 14px;
+  color: #999;
+}
+.ht-voucherTemplates-content-menu .ivu-menu{
+  z-index: 100 !important;
+}
+
+.ht-detailModalContent .ht-detailModalContent-formData{
+
+}
+.ht-detailModalContent .ht-dc-table{
+  padding: 20px 0px;
+}
+.ht-detailModalContent .ht-dc-table{
+  padding: 20px 0px;
+}
+
+.ht-dc-table .table>tbody>tr>td, .ht-dc-table .table>tbody>tr>th, .ht-dc-table .table>tfoot>tr>td,
+ .ht-dc-table .table>tfoot>tr>th, .ht-dc-table .table>thead>tr>td, .ht-dc-table .table>thead>tr>th {
+  padding: 4px !important;
+}
+.ht-detailModalContent .ht-detailModalContent-formData h4{
+  padding: 20px 0px;
+}
+.ht-detailModalContent .ht-detailModalContent-formData h4 strong{
+  position: absolute;
+  right: 90px;
+  font-size: 12px;
+  color: #ed3f14;
+  font-weight: 100;
+}
+.ht-detailModalContent .ht-detailModalContent-formData .ht-dc-label{
+  font-weight: 100;
+}
+
+.ht-remark-1{
+  width: 50%;
+  float: left;
+  height: 140px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+.ht-remark-2{
+  width: 50%;
+  float: left;
+  height: 140px;
+  padding: 10px;
+  padding-left: 30px;
+}

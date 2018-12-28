@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/base.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/inner_gold.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/jqgrid/ui.jqgrid-bootstrap.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/iview/styles/iview.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/basedata/ht-list-common.css">
+    <link rel="stylesheet" href="${rc.contextPath}/plugins/ztree/css/zTreeStyle/zTreeStyle.css">
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/common.css">
+    <link rel="stylesheet" href="${rc.contextPath}/css/finance/voucherSummary/index.css" />
+    <link rel="stylesheet" href="${rc.contextPath}/ktc/css/ht-fixed-table.css" />
+    <title>凭证汇总表</title>
+    <script>var contextPath = '${rc.contextPath}';</script>
+</head>
+
+<body>
+<div id="voucher-summary" v-cloak>
+    <div class="btn-menu">
+        <button class="ht-btn" @click="refresh">刷新</button>
+        <button class="ht-btn" @click="openFun">过滤</button>
+        <button class="ht-btn" @click="htPrint()">打印</button>
+        <button class="ht-btn" @click="exportExcel()">导出</button>
+    </div>
+    <!-- 过滤 -->
+    <Modal v-model="filterVisible" class="filter" title="过滤条件" :mask-closable="false">
+        <i-form  :model="formData" label-width="90">
+            <form-item label="汇总日期：">
+                <date-picker type="date"
+                             data-date-format="yyyy-MM-dd"
+                             v-model="formData.startDate"
+                             placeholder="Select date"
+                             :clearable="false"
+                             style="width: 110px">
+                </date-picker>
+                至
+                <date-picker type="date"
+                             data-date-format="yyyy-MM-dd"
+                             v-model="formData.endDate"
+                             placeholder="Select date"
+                             :clearable="false"
+                             style="width: 110px">
+                </date-picker>
+            </form-item>
+            <form-item label="凭证字：">
+                <select v-model="formData.voucherId" class="form-control inline-block w80">
+                    <option v-for="item in formDataList" :value="item.id">{{item.name}}</option>
+                </select>
+            </form-item>
+            <form-item label="凭证号：">
+                <input v-model="formData.startVoucherNum" min=1
+                       @blur="blur($event,'startVoucherNum')"
+                       class="form-control inline-block w80"
+                       type="number"/>
+                至
+                <input v-model="formData.endVoucherNum" min=1
+                       @blur="blur($event,'endVoucherNum')"
+                       class="form-control inline-block w80"
+                       type="number"/>
+            </form-item>
+            <form-item label="科目级别：">
+                <input v-model="formData.subjctStartNum" min=1
+                       @blur="blur($event,'subjctStartNum')"
+                       class="form-control inline-block w80"
+                       type="number"/>
+                至
+                <input v-model="formData.subjctEndNum" min=1 max=9
+                       @blur="blur($event,'subjctEndNum')"
+                       class="form-control inline-block w80"
+                       type="number"/>
+            </form-item>
+        </i-form>
+        <div slot="footer">
+            <i-button @click="save" type="primary">确定</i-button>
+            <i-button @click="clear">取消</i-button>
+        </div>
+    </Modal>
+    <div class="mt10 ht-set-table pl20 pr20">
+        <div class="jqGrid_wrapper">
+            <table id="list"></table>
+            <div id="pager"></div>
+        </div>
+    </div>
+</div>
+
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/js/jquery-2.0.3.min.js'></script>
+<script src='${rc.contextPath}/js/vue.min.js'></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/jquery.validate.min.js'></script>
+<script src="${rc.contextPath}/plugins/jquery-validation-1.17/additional-methods.min.js"></script>
+<script src='${rc.contextPath}/plugins/jquery-validation-1.17/messages_zh.js'></script>
+<script src='${rc.contextPath}/plugins/jqgrid/jquery.jqGrid.min.js'></script>
+<script src="${rc.contextPath}/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="${rc.contextPath}/plugins/layui/layui.all.js"></script>
+<script src='${rc.contextPath}/plugins/ztree/jquery.ztree.all.min.js'></script>
+<script src='${rc.contextPath}/ktc/js/app.js'></script>
+<script src="${rc.contextPath}/plugins/iview/iview.min.js"></script>
+<!--<script src="../profitStatement/base-data-list.js"></script>-->
+<script src="${rc.contextPath}/js/utils.js"></script>
+<script src="${rc.contextPath}/js/finance/voucherSummary/utils.js"></script>
+<script src="${rc.contextPath}/js/finance/voucherSummary/formatDate.js"></script>
+<script src="${rc.contextPath}/js/finance/voucherSummary/index.js"></script>
+#parse("modules/public/footer.html") </body>
+
+</html>
