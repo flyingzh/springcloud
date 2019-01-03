@@ -14,7 +14,7 @@
 
         .ui-jqgrid tr.jqgrow td {
             white-space: normal !important;
-            height: auto;
+            height: 100px;
             vertical-align: text-top;
             padding-top: 2px;
             display: table-cell;
@@ -36,6 +36,26 @@
         .pageTitle1 {
             font-size: 20px;
             font-weight: bold;
+        }
+
+        .tablediv {
+            display: block;
+            margin-bottom: 3px;
+            overflow: auto;
+        }
+        .tablediv tr td {
+            vertical-align: middle !important;
+        }
+
+        .tablediv thead td {
+            background-color: #eee;
+        }
+
+        .wt100 {
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -59,15 +79,17 @@
         </div> -->
         <div class="pl20 pr20 mt10">
             <div v-for="(item,idx) in entityList">
-                <table class="table tablediv">
+                <table class="table tablediv" border="1">
                     <thead>
                         <tr>
-                            <td v-for="(item2,idx2) in colList">{{item2.itemName}}</td>
+                            <td class="wt100" v-for="(item2,idx2) in colList">{{item2.itemName}}</td>
                         </tr>
                     </thead>
                     <tbody>
                         <tr lay-size="sm">
-                            <td v-for="(item3,idx3) in colList">{{item[item3.itemCode]}}</td>
+                            <td class="wt100" v-for="(item3,idx3) in colList">{{item[item3.itemCode]==null
+                                ||item[item3.itemCode]==0
+                                ? '0.00': item[item3.itemCode]}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -86,7 +108,8 @@
             <row class="mt5">
                 <div>
                     <label class="w80">会计期间：</label>
-                    <i-select v-model="wmSheetParmas.filterYear" ref="sel1" @on-change="startYearMethod" style="width:80px" filterable>
+                    <i-select v-model="wmSheetParmas.filterYear" ref="sel1" @on-change="startYearMethod" style="width:80px"
+                        filterable>
                         <i-option v-for="item in accountYearList" :value="item" :key="'item'+1">
                             <slot>{{ item }}</slot>
                         </i-option>
@@ -97,16 +120,16 @@
                         </i-option>
                     </i-select> 期
                     <label class="w60 ml20">员工姓名：</label>
-                    <i-input class="inline-block w200" v-model="wmSheetParmas.empName"></i-input>
+                    <i-input class="inline-block w200" v-model="wmSheetParmas.empName" clearable></i-input>
                 </div>
             </row>
 
             <row class="mt5">
                 <div>
                     <label class="w80">员工工号：</label>
-                    <i-input class="inline-block w200" v-model="wmSheetParmas.empCode"></i-input>
+                    <i-input class="inline-block w200" v-model="wmSheetParmas.empCode" clearable></i-input>
                     <label class="w60 ml20">所属部门：</label>
-                    <i-input class="inline-block w200"  v-model="deptName" icon="search" disabled="false" @on-click="showDepartmentTree(true,'showDept')"></i-input>
+                    <i-input class="inline-block w200" v-model="deptName" icon="search" disabled="false" @on-click="showDepartmentTree(true,'showDept')" clearable></i-input>
                     <div v-show="showDept" style="position: absolute;top: 33px; left: 370px;z-index: 8;background: #fff;border: 1px solid #ccc;">
                         <ht-input-tree url="${rc.contextPath}/testDocument/getCurrentUserDeptInfo" :setting="showDepartmentTreeSetting"></ht-input-tree>
                     </div>
@@ -115,9 +138,9 @@
             <row class="mt5">
                 <div>
                     <label class="w80">身份证号码：</label>
-                    <i-input class="inline-block w200" v-model="wmSheetParmas.idCard"></i-input>
+                    <i-input class="inline-block w200" v-model="wmSheetParmas.idCard" clearable></i-input>
                     <label class="w60 ml20">职级：</label>
-                    <i-select class="inline-block w200" v-model="wmSheetParmas.rank">
+                    <i-select class="inline-block w200" v-model="wmSheetParmas.rank" clearable>
                         <i-option v-for="item in rankList" :value="item.value" :label="item.name" :key="item.value">
                             <slot>{{ item.name }}</slot>
                         </i-option>
@@ -127,13 +150,13 @@
             <row class="mt5">
                 <div>
                     <label class="w80">员工岗位：</label>
-                    <i-select class="inline-block w200" v-model="wmSheetParmas.station">
+                    <i-select class="inline-block w200" v-model="wmSheetParmas.station " clearable>
                         <i-option v-for="item in stationList" :value="item.value" :label="item.name" :key="item.value">
                             <slot>{{ item.name}}</slot>
                         </i-option>
                     </i-select>
                     <label class="w60 ml20">岗位级别：</label>
-                    <i-select class="inline-block w200" v-model="wmSheetParmas.stationLevel">
+                    <i-select class="inline-block w200" v-model="wmSheetParmas.stationLevel" clearable>
                         <i-option v-for="item in stationLevelList" :value="item.value" :label="item.name" :key="item.value">
                             <slot>{{ item.name}}</slot>
                         </i-option>
@@ -146,6 +169,7 @@
                 <i-button @click="cancel" type="primary">取消</i-button>
             </div>
         </Modal>
+        <iframe style="width:0;height:0;display:none;" name="exportIframe"></iframe>
         <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
         <ht-modal-subject v-model="subjectVisable" @close="subjectClose" @save="subjectData" ref="modalSubject1"></ht-modal-subject>
     </div>

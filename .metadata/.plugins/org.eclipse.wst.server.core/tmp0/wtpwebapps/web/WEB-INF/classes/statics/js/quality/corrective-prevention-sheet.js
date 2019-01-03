@@ -665,7 +665,7 @@ var correctiveVm = new Vue({
             }
         },
         handlerClose() {
-            if ((!this.release.orderStatus || this.release.orderStatus == 1) && (this.htHaveChange || accessVm.htHaveChange)) {
+            if ((!this.release.orderStatus || this.release.orderStatus == 1) && (this.htHaveChange)) {
                 this.$nextTick(() => {
                     this.$refs.closeModalRef.showCloseModal();
                 });

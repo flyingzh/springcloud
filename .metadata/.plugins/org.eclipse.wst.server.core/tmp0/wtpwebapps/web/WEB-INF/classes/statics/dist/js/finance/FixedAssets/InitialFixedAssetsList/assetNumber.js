@@ -1,1 +1,0 @@
-"use strict";Vue.component("assetNumber",{data:function(){return{for1:123}},methods:{},computed:{},template:"\n        <div>123</div>\n    "});

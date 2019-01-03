@@ -1,14 +1,16 @@
-[{
-  "itemName": "制表人",
-  "sortId": "1",
-  "currencyType": "1",
-  "itemCode": "FPreparerID",
-  "decimalDigit": "2",
-  "dataType": "3",
-  "status": "1",
-  "dataLength": "80",
-  "itemAttribute": "1"
-},
+[
+  {
+    "itemName": "制表人",
+    "sortId": "1",
+    "currencyType": "1",
+    "itemCode": "FPreparerID",
+    "decimalDigit": "2",
+    "dataType": "3",
+    "status": "1",
+    "dataLength": "80",
+    "itemAttribute": "1",
+    "signType": ""
+  },
   {
     "itemName": "审核人",
     "sortId": "2",
@@ -18,7 +20,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "职员代码",
@@ -29,7 +32,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "职员姓名",
@@ -40,7 +44,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "性别",
@@ -51,7 +56,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "8",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "部门代码",
@@ -62,7 +68,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "部门名称",
@@ -73,7 +80,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "部门全称",
@@ -84,7 +92,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "800",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "部门助记码",
@@ -95,7 +104,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "职员类别",
@@ -106,7 +116,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "职务",
@@ -117,7 +128,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "文化程度",
@@ -128,7 +140,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "银行名称",
@@ -139,7 +152,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "个人账号",
@@ -150,7 +164,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "职位名称",
@@ -161,7 +176,8 @@
     "dataType": "3",
     "status": "1",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "上次扣零结余",
@@ -172,7 +188,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "本次扣零",
@@ -183,7 +200,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "本次扣零结余",
@@ -194,7 +212,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "扣零发放",
@@ -205,7 +224,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "应发合计",
@@ -216,7 +236,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "扣款合计",
@@ -227,7 +248,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "实发合计",
@@ -238,7 +260,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "代扣税",
@@ -249,7 +272,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "基本工资",
@@ -260,7 +284,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "奖金",
@@ -271,7 +296,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "福利费",
@@ -282,7 +308,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "住房公积金",
@@ -293,7 +320,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "其它扣款",
@@ -304,7 +332,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "工时",
@@ -315,7 +344,8 @@
     "dataType": "5",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": "1"
   },
   {
     "itemName": "计件工资",
@@ -326,7 +356,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": ""
   },
   {
     "itemName": "计时工资",
@@ -337,7 +368,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "2"
+    "itemAttribute": "2",
+    "signType": ""
   },
   {
     "itemName": "个人社保金额",
@@ -348,7 +380,8 @@
     "dataType": "6",
     "status": "1",
     "dataLength": "12",
-    "itemAttribute": "1"
+    "itemAttribute": "1",
+    "signType": ""
   },
   {
     "itemName": "出生日期",
@@ -359,7 +392,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "电子邮件",
@@ -370,7 +404,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "地址",
@@ -381,7 +416,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "电话",
@@ -392,7 +428,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "证件号码",
@@ -403,7 +440,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "入职日期",
@@ -414,7 +452,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "离职日期",
@@ -425,7 +464,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "备注",
@@ -436,7 +476,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "255",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "曾用名",
@@ -447,7 +488,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "籍贯",
@@ -458,7 +500,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "出生地",
@@ -469,7 +512,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "邮政编码",
@@ -480,7 +524,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "20",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "手机号码",
@@ -491,7 +536,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "20",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "身份证号码",
@@ -502,7 +548,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "30",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "身份证地址",
@@ -513,7 +560,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "参加工作日期",
@@ -524,7 +572,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "入司日期",
@@ -535,7 +584,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "转正日期",
@@ -546,7 +596,8 @@
     "dataType": "2",
     "status": "0",
     "dataLength": "10",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "试用期",
@@ -557,7 +608,8 @@
     "dataType": "5",
     "status": "0",
     "dataLength": "18",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "入司前连续工作年限",
@@ -568,7 +620,8 @@
     "dataType": "5",
     "status": "0",
     "dataLength": "18",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "婚姻状况",
@@ -579,7 +632,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "血型",
@@ -590,7 +644,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "政治面目",
@@ -601,7 +656,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "民族",
@@ -612,7 +668,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "国籍",
@@ -623,7 +680,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "社会保险号码",
@@ -634,7 +692,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "40",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "户口所在地",
@@ -645,7 +704,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "现居住地址",
@@ -656,7 +716,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "工作所在地",
@@ -667,7 +728,8 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   },
   {
     "itemName": "工资代码",
@@ -678,7 +740,7 @@
     "dataType": "3",
     "status": "0",
     "dataLength": "80",
-    "itemAttribute": "0"
+    "itemAttribute": "0",
+    "signType": ""
   }
-
 ]

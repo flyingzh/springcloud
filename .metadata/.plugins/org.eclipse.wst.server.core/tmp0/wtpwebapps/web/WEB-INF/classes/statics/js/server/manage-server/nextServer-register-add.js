@@ -138,9 +138,6 @@ let vm = new Vue({
         }
     },
     methods: {
-        act(){
-            console.log(123);
-        },
         //校验号码
         clearPhone() {
             if (this.dataInfo.contactNumber !== null && this.dataInfo.contactNumber !== undefined) {
@@ -209,6 +206,7 @@ let vm = new Vue({
                     } else if (d.code == "-1") {
                         This.$Modal.warning({
                             scrollable: true,
+                            title:"提示",
                             content: msg + "不能重复"
                         });
                         //清空数据
@@ -243,6 +241,7 @@ let vm = new Vue({
             } else {
                 this.$Modal.warning({
                     scrollable: true,
+                    title:"提示",
                     content: '请先选择组织!'
                 })
             }
@@ -266,81 +265,10 @@ let vm = new Vue({
             if (keepTemp) {
                 this.$Modal.warning({
                     scrollable: true,
+                    title:"提示",
                     content: '请选择需要删除组织'
                 })
             }
-        },
-        //组织
-        searchOri() {
-            //判断选中组织
-            let keepTemp = true;
-            let index = "";
-            let This = this;
-            $.each(this.dataInfo.serverInfoEntity.ownOrgEntityList, (i, n) => {
-                if (n.temp == true) {
-                    keepTemp = false;
-
-                    //判断是否是空数据
-                    if (n.orgId == "" || n.orgId == null) {
-                        this.$Modal.warning({
-                            scrollable: true,
-                            content: '请选择其它组织'
-                        })
-                        return false;
-                    }
-                    //获取到需要查询的数据  以及需要插入的下标
-
-                    index = i;
-                    $.ajax({
-                        type: 'post',
-                        async: false,
-                        url: contextPath + '/organizationController/getEquityOrganInfo',
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            id: n.orgId,
-                            organType: "2"
-                        }),
-                        dataType: "json",
-                        success: function (d) {
-                            if (d.code == "100100") {
-                                //获取到所有占股组织
-                                let arr = [];
-                                d.data.map((item) => {
-                                    // orgCode: "",//组织编号
-                                    //     orgName:"",//组织名字
-                                    //     rootOrgCode: "",//来源组织根组织
-                                    //     orgId:"",//
-                                    let info = JSON.parse(JSON.stringify(This.rightInfo));
-                                    info.orgCode = item.orgCode;
-                                    info.orgName = item.orgName;
-                                    info.rootOrgCode = item.rootOrganCode;
-                                    info.orgId = item.id;
-                                    arr.push(info);
-                                })
-                                This.dataInfo.serverInfoEntity.ownOrgEntityList[index].sourceOrgEntityList = [].concat(arr);
-
-                                //铺上显示数据
-                                This.equityList = This.dataInfo.serverInfoEntity.ownOrgEntityList[index].sourceOrgEntityList;
-                            }
-                        },
-                        error: function (e) {
-                            console.log(e);
-                        }
-                    });
-
-                    return false;
-                }
-            })
-
-            if (keepTemp) {
-                this.$Modal.warning({
-                    scrollable: true,
-                    content: '请选择组织'
-                })
-            }
-        },
-        onfocus() {
-            return;
         },
         //选取组织
         checkStatus(index) {
@@ -380,6 +308,8 @@ let vm = new Vue({
             //获取到选中的数据
             if (this.treeInfo == "" || this.treeInfo == null) {
                 this.$Modal.warning({
+                    title:"提示",
+                    scrollable:true,
                     content: '请选择组织'
                 });
                 this.treeInfo = "";
@@ -395,6 +325,8 @@ let vm = new Vue({
                 console.log(item)
                 if (item.orgCode == this.treeInfo.orgCode) {
                     this.$Modal.warning({
+                        title:"提示",
+                        scrollable:true,
                         content: '请选择其它组织'
                     });
                     this.treeInfo = "";
@@ -422,6 +354,28 @@ let vm = new Vue({
                     success: function (d) {
                         if (d.code == "100100") {
                             //获取到所有占股组织
+
+                            //判断有无数据
+                            if(d.data.length<1){
+                                //清除所属组织
+                                This.$Modal.warning({
+                                    title:"提示",
+                                    scrollable:true,
+                                    content: '该组织无占股组织'
+                                })
+                                This.dataInfo.serverInfoEntity.ownOrgEntityList[This.clickIndex].orgName = "";
+                                This.dataInfo.serverInfoEntity.ownOrgEntityList[This.clickIndex].orgCode = "";
+                                This.dataInfo.serverInfoEntity.ownOrgEntityList[This.clickIndex].orgId = "";
+                                //将数据清空
+
+                                This.dataInfo.serverInfoEntity.ownOrgEntityList[This.clickIndex].sourceOrgEntityList = [];
+                                // //铺上显示数据
+                                This.equityList = [];
+
+                                This.treeInfo = "";
+                                This.clickIndex = "";
+                                return;
+                            };
                             let arr = [];
                             d.data.map((item) => {
                                 // orgCode: "",//组织编号
@@ -498,7 +452,8 @@ let vm = new Vue({
             }
             if (!orgTemp) {
                 this.$Modal.warning({
-                    scrollable: true,
+                    title:"提示",
+                    scrollable:true,
                     content: '请选择所属组织'
                 });
                 this.isSave =false;
@@ -555,7 +510,8 @@ let vm = new Vue({
             if (response.code === "100100") {
                 this.dataInfo.businessLicenseUrl = response.data.fdUrl;
                 this.$Modal.success({
-                    title: '提示信息',
+                    title:"提示",
+                    scrollable:true,
                     content: '图片上传成功！'
                 });
 
@@ -587,7 +543,8 @@ let vm = new Vue({
             let This = this;
             if(this.dataInfo.id==null||this.dataInfo.id==''){
                 This.$Modal.warning({
-                    title: "提示",
+                    title:"提示",
+                    scrollable:true,
                     content: "请先保存下级经营者服务器登记信息!"
                 });
                 return false;
@@ -604,26 +561,30 @@ let vm = new Vue({
                             if (data.code === "100100") {
                                 This.dataInfo.serverInfoEntity.serverLicenseUrl=data.data;
                                 This.$Modal.success({
-                                    title: "提示",
+                                    title:"提示",
+                                    scrollable:true,
                                     content: "生成许可文件成功!"
                                 });
                             } else {
                                 This.$Modal.error({
-                                    title: "提示",
+                                    title:"提示",
+                                    scrollable:true,
                                     content: "生成许可文件失败!"
                                 });
                             }
                         },
                         error() {
                             This.$Modal.error({
-                                title: "提示",
+                                title:"提示",
+                                scrollable:true,
                                 content: '网络错误，请联系技术人员',
                             });
                         }
                     })
                 }else {
                     This.$Modal.error({
-                        title: "提示",
+                        title:"提示",
+                        scrollable:true,
                         content: "请先保存已修改的信息!"
                     });
                 }
@@ -633,14 +594,16 @@ let vm = new Vue({
         downloadLicenseFile() {
             if(this.dataInfo.id==null||this.dataInfo.id==''){
                 this.$Modal.warning({
-                    title: "提示",
+                    title:"提示",
+                    scrollable:true,
                     content: "请先保存下级经营者服务器登记信息!"
                 });
                 return;
             }
             if (this.dataInfo.serverInfoEntity.serverLicenseUrl == undefined || !this.dataInfo.serverInfoEntity.serverLicenseUrl) {
                 this.$Modal.warning({
-                    title: "提示",
+                    title:"提示",
+                    scrollable:true,
                     content: "请先生成许可文件!"
                 });
                 return;

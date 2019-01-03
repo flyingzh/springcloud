@@ -27,7 +27,7 @@
                                     <i-input style="width: 200px;"  v-model="body.empCode" disabled></i-input>
                                 </form-item>
                                 <form-item label="身份证号码：" prop="idCard">
-                                    <i-input v-model="body.idCard" style="width: 200px" placeholder="请输入18位身份证号码" @on-change="htTestChange"></i-input>
+                                    <i-input v-model="body.idCard" style="width: 200px" placeholder="请输入18位身份证号码" @on-change="htTestChange" @on-blur="checkIdCard"></i-input>
                                 </form-item>
                                 <form-item label="性别：">
                                     <i-select v-model="body.sex"  style="width: 200px"  @on-change="htTestChange">
@@ -70,22 +70,22 @@
                                     </i-select>
                                 </form-item>
                                 <form-item label="邮箱：" prop="mailbox">
-                                    <i-input v-model="body.mailbox" style="width: 200px" @on-change="htTestChange"></i-input>
+                                    <i-input v-model="body.mailbox" style="width: 200px" @on-change="htTestChange" @on-blur="checkEmail"></i-input>
                                 </form-item>
                                 <form-item label="户口所在地：">
                                     <i-input v-model="body.domicilePlace" style="width: 200px" @on-change="htTestChange"></i-input>
                                 </form-item>
                                 <form-item label="联系电话：" prop="phone">
-                                    <i-input v-model="body.phone" style="width: 200px" @on-change="htTestChange"></i-input>
+                                    <i-input v-model="body.phone" style="width: 200px" @on-change="htTestChange" @on-blur="checkPhone()"></i-input>
                                 </form-item>
                                 <form-item label="紧急联系人联系电话：" label-width="110px" style="margin-left: -20px" prop="emergencyTelephone">
-                                    <i-input v-model="body.emergencyTelephone" style="width: 200px" @on-change="htTestChange"></i-input>
+                                    <i-input v-model="body.emergencyTelephone" style="width: 200px" @on-change="htTestChange" @on-blur="checkEmergencyPhone()"></i-input>
                                 </form-item>
                             </i-col>
                             <i-col span="8">
                                 <div class="upload-container">
                                     <div class="demo-upload">
-                                        <img class="photoShow upload" id="frontImg" :src="body.pictureUrl"/>
+                                        <img class="photoShow upload" id="frontImg" :src="body.pictureUrl" v-show="body.pictureUrl"/>
                                     </div>
                                     <upload action="${rc.contextPath}/fileUploadController/upload" :on-success="sideHandleSuccess" :show-upload-list="false"
                                             :format="['bmp','jpg','jpeg','png','tiff','gif','pcx','tga','exif','fpx','svg','psd','cdr','pcd','dxf','ufo','eps','ai','raw','WMF','webp']"
@@ -148,7 +148,7 @@
                                             <i-option v-for="(item,index) in selectJobNature" :value="item.value" :key="item.value">{{item.label}}</i-option>
                                         </i-select>
                                     </form-item>
-                                    <form-item label="入职日期：">
+                                    <form-item label="入职日期：" class="ht-star" prop="entryDate">
                                         <date-picker type="date"
                                                      placeholder="Select date"
                                                      style="width: 200px"

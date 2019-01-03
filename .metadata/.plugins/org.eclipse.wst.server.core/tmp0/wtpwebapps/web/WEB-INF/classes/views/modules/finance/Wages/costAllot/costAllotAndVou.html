@@ -84,7 +84,7 @@
                     </td>
                     <td class="w45 ht-padding3">{{idx+1}}</td>
                     <td class="wt100 ht-padding3" style="position: relative;">
-                        <i-input icon="search" v-model="row.tabel.planName"  @on-change="show(true,'showDepTree',idx)"
+                        <i-input icon="search" v-model="row.tabel.planName"  readonly  @on-change="show(true,'showDepTree',idx)"
                                  @on-click="showTrees(true,'showDepTree',idx)" clearable></i-input>
                         <div v-show="row.showChange"
                              style="position: absolute;top: 39px; left: 8px;z-index: 8;background: #fff;border: 1px solid #ccc;">

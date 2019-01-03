@@ -93,7 +93,8 @@ var pendingDeliverList = new Vue({
                     That.suppliers =  r.data;
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         context:"系统出现异常,请联系管理人员"
                     });
                 }
@@ -180,7 +181,7 @@ var pendingDeliverList = new Vue({
         generateReport() {
             let flag = true;
             if (this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '请先选择至少一条数据！'
                 });
@@ -190,7 +191,7 @@ var pendingDeliverList = new Vue({
                 for (let obj in this.selected) {
                     for (let v in this.selected) {
                         if (this.selected[obj].sourceType != this.selected[v].sourceType) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
                                 title: '提示信息',
                                 content: '源单类型不一致，请重新选择！'
                             });
@@ -198,7 +199,7 @@ var pendingDeliverList = new Vue({
                             break outLoop;
                         }
                         if (this.selected[obj].supplierName != this.selected[v].supplierName) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
                                 title: '提示信息',
                                 content: '供应商不一致，请重新选择！'
                             });
@@ -206,7 +207,7 @@ var pendingDeliverList = new Vue({
                             break outLoop;
                         }
                         if (this.selected[obj].goodsTypeName != this.selected[v].goodsTypeName) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
                                 title: '提示信息',
                                 content: '商品类型不一致，请重新选择！'
                             });
@@ -240,11 +241,20 @@ var pendingDeliverList = new Vue({
                                 params: {type: 'generate', goodsData: data.data}
                             });
                         } else {
-                            layer.alert(data.msg, {icon: 0});
+                            // layer.alert(data.msg, {icon: 0});
+                            pendingDeliverList.$Modal.warning({
+                                title: '提示信息',
+                                content: data.msg
+                            });
+
                         }
                     },
                     error: function (e) {
-                        layer.alert('生成采购送料单失败！', {icon: 0});
+                        // layer.alert('生成采购送料单失败！', {icon: 0});
+                        pendingDeliverList.$Modal.warning({
+                            title: '提示信息',
+                            content: '生成采购送料单失败！'
+                        });
                     }
                 });
 

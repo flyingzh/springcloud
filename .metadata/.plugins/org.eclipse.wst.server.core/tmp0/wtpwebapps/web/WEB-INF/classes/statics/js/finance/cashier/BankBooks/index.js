@@ -332,7 +332,11 @@ var vm = new Vue({
         bookDateChange(item) {
 
             if (!item) {
-                layer.alert("日期不能为空!");
+                vm.$Modal.error({
+                    title:'提示信息',
+                    scrollable:true,
+                    content:"日期不能为空!",
+                })
                 return;
             }
 
@@ -350,7 +354,11 @@ var vm = new Vue({
                         vm.editData.accountPeriod = result.data.month;
 
                     } else {
-                        layer.alert(result.msg)
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                     }
                 }
             });
@@ -389,7 +397,11 @@ var vm = new Vue({
                         if (result.hasOwnProperty("data")) {
                             _msg = result.msg;
                         }
-                        layer.alert(_msg);
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:_msg,
+                        })
                         return;
                     }
                     let dataInfo = result.data;
@@ -690,7 +702,7 @@ var vm = new Vue({
                         if (ret.hasOwnProperty("data")){
                             _msg  = ret.msg;
                         }
-                        _vm.$Modal.error({
+                        vm.$Modal.error({
                             title:'提示信息',
                             scrollable:true,
                             content:_msg,
@@ -849,8 +861,16 @@ var vm = new Vue({
             let tempFun3 = tempFun2.then(function (result) {
                 console.log(result.data);
                 if (result.code != '100100') {
-                    layer.alert(result.msg);
                     _vm.editVisible = false;
+                    let _msg = '页面初始化失败';
+                    if (result.hasOwnProperty("data")){
+                        _msg  = result.msg;
+                    }
+                    vm.$Modal.error({
+                        title:'提示信息',
+                        scrollable:true,
+                        content:_msg,
+                    })
                     return;
                 }
                 //在这里写tempFun2的success回调函数代码:
@@ -986,12 +1006,20 @@ var vm = new Vue({
                 dataType: 'json',
                 success: function (result) {
                     if (result.code == '100100') {
-                        layer.alert(result.msg)
+                        vm.$Modal.success({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                         _vm.editVisible = false;
                         Object.assign(_vm.editData, _vm.addData);
                         _vm.refresh();
                     } else {
-                        layer.alert(result.msg)
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                     }
                 }
             })
@@ -1009,11 +1037,19 @@ var vm = new Vue({
                 dataType: 'json',
                 success: function (result) {
                     if (result.code == '100100') {
-                        layer.alert(result.msg)
+                        vm.$Modal.success({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                         this.importVisible = false;
                         _vm.initMethod();
                     } else {
-                        layer.alert(result.msg)
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                     }
                 }
             })
@@ -1342,11 +1378,15 @@ var vm = new Vue({
                         url: _url,
                         success: function (result) {
                             if (result.code != '100100') {
-                                let _msg = "页面初始化失败!";
-                                if (result.msg) {
-                                    _msg = result.msg;
+                                let _msg = '页面初始化失败';
+                                if (result.hasOwnProperty("data")){
+                                    _msg  = result.msg;
                                 }
-                                layer.alert(_msg);
+                                vm.$Modal.error({
+                                    title:'提示信息',
+                                    scrollable:true,
+                                    content:_msg,
+                                })
                                 return;
                             }
                             that.addSubjectListOpt = result.data.opts;
@@ -1459,11 +1499,24 @@ var vm = new Vue({
                 url: _url,
                 success: function (result) {
                     if (result.code != '100100') {
-                        layer.alert('页面初始化失败');
+                        let _msg = '页面初始化失败';
+                        if (result.hasOwnProperty("data")){
+                            _msg  = result.msg;
+                        }
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:_msg,
+                        })
                         return;
                     }
+
                     if (!result.data.subjectId) {
-                        layer.alert('查询无数据');
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:"查无数据",
+                        })
                         return;
                     }
                     that.editData.relativeSubjectId = result.data.subjectId;
@@ -1746,10 +1799,18 @@ var vm = new Vue({
                 data: {'ids': _vm.selected},
                 success: function (ret) {
                     if (ret.code == '100100') {
-                        layer.alert(ret.msg);
+                        vm.$Modal.success({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:ret.msg,
+                        })
                         _vm.refresh();
                     } else {
-                        layer.alert(ret.msg)
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:ret.msg,
+                        })
                     }
                 }
             })

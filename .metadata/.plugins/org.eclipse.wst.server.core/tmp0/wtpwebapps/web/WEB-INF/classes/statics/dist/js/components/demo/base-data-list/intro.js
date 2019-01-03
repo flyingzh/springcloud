@@ -1,1 +1,0 @@
-"use strict";window.home.guide={props:[{name:"data_config",intro:"（必填）配置表头表体，colModel 配置表头，colName 配置表体",type:"Object",defaultVal:""},{name:"need-reload",intro:"",type:"",defaultVal:""},{name:"table_id",intro:"",type:"",defaultVal:""},{name:"pager_id",intro:"",type:"",defaultVal:""}],events:[],methods:[],slots:[]};

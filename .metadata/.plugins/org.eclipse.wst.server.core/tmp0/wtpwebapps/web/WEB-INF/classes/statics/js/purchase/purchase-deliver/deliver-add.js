@@ -260,8 +260,8 @@ var deliverOrder = new Vue({
         scavengingEntry() {
             if (!this.deliver.goodsTypePath) {
                 this.$Modal.warning({
+                    title:'提示信息',
                     content: '请先选择商品类型',
-                    title: "提示"
                 });
                 return false;
             }
@@ -283,13 +283,13 @@ var deliverOrder = new Vue({
 
             var codeStandard = /^[0-9]{8}$/;
             if(!codeStandard.test(This.inputBarCode)){
-                This.$Modal.warning({content: '扫描的商品条形码不合法，必须是8位整数！', title: "提示"});
+                This.$Modal.warning({content: '扫描的商品条形码不合法，必须是8位整数！', title:'提示信息'});
                 This.resetInputBarCode();
                 return false;
             }
 
             if(This.barCodeList.find(item => item.barCode === This.inputBarCode)){
-                This.$Modal.warning({content: '商品条形码已扫描！', title: "提示"});
+                This.$Modal.warning({content: '商品条形码已扫描！', title:'提示信息'});
                 This.resetInputBarCode();
                 return false;
             }
@@ -299,6 +299,7 @@ var deliverOrder = new Vue({
             let _res = usedCodeList.find((item) => item === This.inputBarCode);
             if (_res === This.inputBarCode) {
                 This.$Modal.warning({
+                    title:'提示信息',
                     content: '扫描的条码重复!',
                 });
                 This.resetInputBarCode();
@@ -322,12 +323,12 @@ var deliverOrder = new Vue({
                 success: function (data) {
                     if (data.code === "100100") {
                         if (!data.data || data.data.length <= 0) {
-                            This.$Modal.warning({content: '该商品类型下不存在此商品条形码！', title: "提示"});
+                            This.$Modal.warning({content: '该商品类型下不存在此商品条形码！', title:'提示信息'});
                             This.resetInputBarCode();
                             return false;
                         }else
                         if (data.data[0].isInStock && data.data[0].isInStock != 1) {
-                            This.$Modal.warning({content: '扫描的商品条形码不在库！', title: "提示"});
+                            This.$Modal.warning({content: '扫描的商品条形码不在库！', title:'提示信息'});
                             This.resetInputBarCode();
                             return false;
                         }
@@ -339,7 +340,7 @@ var deliverOrder = new Vue({
                         })
 
                         if(flag){
-                            This.$Modal.warning({content: '扫描的条码号不在业务类型规定的仓库范围内！', title: "提示"});
+                            This.$Modal.warning({content: '扫描的条码号不在业务类型规定的仓库范围内！', title:'提示信息'});
                             This.resetInputBarCode();
                             return ;
                         }
@@ -371,12 +372,12 @@ var deliverOrder = new Vue({
                         //清空商品条码
                         This.resetInputBarCode();
                     } else {
-                        This.$Modal.error({content: "服务器出错啦", title: "提示"})
+                        This.$Modal.error({content: "服务器出错啦", title:'提示信息'})
                         This.resetInputBarCode();
                     }
                 },
                 error: function () {
-                    This.$Modal.error({content: "服务器出错啦", title: "提示"})
+                    This.$Modal.error({content: "服务器出错啦", title:'提示信息'})
                 }
             })
 
@@ -384,7 +385,7 @@ var deliverOrder = new Vue({
         deleteBarCode(index){
             let _this = this;
             _this.$Modal.confirm({
-                title: '提示',
+                title:'提示信息',
                 content: '确定删除选中数据吗?',
                 onOk: function () {
                     _this.barCodeList.splice(index, 1);
@@ -634,6 +635,7 @@ var deliverOrder = new Vue({
             this.selectedIndex = index;
             if (!this.productDetailListTemp.goodsEntities[index].goodsBarcodeId) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -658,6 +660,7 @@ var deliverOrder = new Vue({
             this.selectedIndex = index;
             if (!this.productDetailList[index].commodityId) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -945,6 +948,7 @@ var deliverOrder = new Vue({
                         if(item.detailMark != 2){
                             flag = false;
                             This.$Modal.info({
+                                title:'提示信息',
                                 content: '第'+(i+1)+'行商品明细未选择，请先选择商品明细！',
                             });
                             return false;
@@ -1129,6 +1133,7 @@ var deliverOrder = new Vue({
         isHintShow(status) {
             if (status && this.typeValue && this.isHint && this.productDetailList && this.productDetailList.length > 0) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
                         this.isHint = false;
@@ -1436,12 +1441,14 @@ var deliverOrder = new Vue({
                 }
                 if (!bl) {
                     This.$Modal.info({
+                        title:'提示信息',
                         content: '请检查送料重量和送料数量是否正确输入！',
                     });
                     return;
                 }
                 if (!kingBl) {
                     This.$Modal.info({
+                        title:'提示信息',
                         content: '请检查金料的送料数量是否正确输入！',
                     });
                     return;
@@ -1463,6 +1470,7 @@ var deliverOrder = new Vue({
 
                 if (!d1) {
                     This.$Modal.info({
+                        title:'提示信息',
                         content: '请检查仓库是否输入！',
                     });
                     return;
@@ -1530,6 +1538,7 @@ var deliverOrder = new Vue({
                 }
             if (!goodsBarcodeBl) {
                 This.$Modal.info({
+                    title:'提示信息',
                     content: msg,
                 });
                 return;
@@ -1568,6 +1577,7 @@ var deliverOrder = new Vue({
 
             if (!d2) {
                 This.$Modal.info({
+                    title:'提示信息',
                     content: '请检查仓库是否输入！',
                 });
                 return;
@@ -1605,6 +1615,7 @@ var deliverOrder = new Vue({
 
                     } else {
                         This.$Modal.info({
+                            title:'提示信息',
                             content: data.msg,
                         });
                     }

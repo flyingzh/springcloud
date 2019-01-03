@@ -245,6 +245,7 @@ var purchaseOrderList = new Vue({
                                     if(data.code === '100100') {
                                         setTimeout(function(){
                                             This.$Modal.success({
+                                                title:'提示信息',
                                                 content:'删除成功！'
                                             })
                                         },300)
@@ -252,6 +253,7 @@ var purchaseOrderList = new Vue({
                                     } else {
                                         setTimeout(function(){
                                             This.$Modal.warning({
+                                                title:'提示信息',
                                                 content:'删除失败，请稍后再试！'
                                             })
                                         },300)

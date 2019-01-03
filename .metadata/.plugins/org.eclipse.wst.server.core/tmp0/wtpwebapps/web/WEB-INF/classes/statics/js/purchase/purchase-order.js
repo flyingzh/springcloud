@@ -142,6 +142,7 @@ var purchaseVm = new Vue({
         isHintShow(status){
             if( status && this.typeValue && this.isHint && this.purchase.goodList && this.purchase.goodList.length >0) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content:'温馨提示：改变商品类型将删除所有商品信息!',
                     onOk:()=>{
                          this.isHint = false;
@@ -260,12 +261,14 @@ var purchaseVm = new Vue({
 
                     } else {
                         _this.$Modal.info({
+                            title:'提示信息',
                             content:'服务器异常,请联系技术人员！'
                         })
                     }
                 },
                 error: function (err) {
                     _this.$Modal.info({
+                        title:'提示信息',
                         content:'网络异常,请联系技术人员！'
                     })
                 },
@@ -365,6 +368,7 @@ var purchaseVm = new Vue({
                 },
                 error: function () {
                     that.$Modal.info({
+                        title:'提示信息',
                         content:'服务器出错啦'
                     })
                 }
@@ -417,6 +421,7 @@ var purchaseVm = new Vue({
                 },
                 error: function () {
                     that.$Modal.info({
+                        title:'提示信息',
                         content:'服务器出错啦'
                     })
 
@@ -577,6 +582,7 @@ var purchaseVm = new Vue({
                     if(!item.tBaseBomEntity){
                         flag = false;
                         This.$Modal.info({
+                            title:'提示信息',
                             content: '第'+(i+1)+'行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -585,6 +591,7 @@ var purchaseVm = new Vue({
                     if(!item.assistAttrs){
                         flag = false;
                         This.$Modal.info({
+                            title:'提示信息',
                             content: '第'+(i+1)+'行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -615,6 +622,7 @@ var purchaseVm = new Vue({
                         // 调用方法保存附件
                         This.saveAccess(data.data.id,This.boeType);
                         This.$Modal.success({
+                            title:'提示信息',
                             content:type =='save'?'保存成功！':'提交成功！'
                         })
                         //查询附件
@@ -657,6 +665,7 @@ var purchaseVm = new Vue({
                         }
                     } else {
                         This.$Modal.info({
+                            title:'提示信息',
                             content:data.msg
                         })
                         This.isSaveDisable = false;
@@ -687,6 +696,7 @@ var purchaseVm = new Vue({
                         // 调用方法保存附件
                         This.saveAccess(data.data.id,This.boeType);
                         This.$Modal.success({
+                            title:'提示信息',
                             content:type =='save'?'保存成功！':'提交成功！'
                         })
                         //查询附件
@@ -720,6 +730,7 @@ var purchaseVm = new Vue({
                         }
                     } else {
                         This.$Modal.info({
+                            title:'提示信息',
                             content:data.msg
                         })
                         This.isSaveDisable = false;
@@ -899,6 +910,7 @@ var purchaseVm = new Vue({
             // console.log(this.purchase.goodList);
             if(!this.purchase.goodList[index].commodityId){//商品编码id，
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -1036,6 +1048,7 @@ var purchaseVm = new Vue({
             // console.log(this.purchase.goodsTypeName);
             if(!this.purchase.goodsTypeName){
                 this.$Modal.info({
+                    title:'提示信息',
                     content:'请先选择商品类型'
                 })
                 return false;
@@ -1095,6 +1108,7 @@ var purchaseVm = new Vue({
             }
             if(this.purchase.dataSources == 2 && this.purchase.goodList.length == 1){
                 this.$Message.warning({
+                    title:'提示信息',
                     content:'当前数据来源采购清单，不能全部删除！'
                 })
                 return;
@@ -1127,6 +1141,7 @@ var purchaseVm = new Vue({
                     },
                     error: function(err){
                         This.$Modal.info({
+                            title:'提示信息',
                             content:'服务器出错啦'
                         })
                     }

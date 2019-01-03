@@ -32,6 +32,7 @@ var vm = new Vue({
             isNextDisabled: false,
             yearList: [],
             periodList: [],
+            dataList:[],
             filterVisible: false,
             base_config: {
                 mtype: 'POST',
@@ -57,6 +58,7 @@ var vm = new Vue({
             selectAssets: '',
             showAssetType: false,
             showDepType: false,
+            printModal: false,
             assetTypeTreeSetting: {
                 callback: {
                     onClick: this.assetTypeTreeClickCallBack,
@@ -68,7 +70,8 @@ var vm = new Vue({
                     onClick: this.depTreeClickCallBack,
                     beforeClick: this.treeBeforeClick
                 }
-            }
+            },
+            printInfo: {},
         }
     },
     created: function () {
@@ -223,6 +226,120 @@ var vm = new Vue({
             this.delTable();
             this.setTableHeader();
         },
+        print(){
+            let that = this;
+            if (!that.dataList || !that.dataList.length) {
+                that.$Message.info({
+                    content: '无打印数据',
+                    duration: 3
+                });
+                return;
+            }
+            /*
+            $.each(that.dataList, function (idx, ele) {
+                if (ele.direction == '1') {
+                    ele.direction = '借'k;
+                } else if (ele.direction == '2') {
+                    ele.direction =  '贷';
+                } else {
+                    ele.direction = '平';
+                }
+                ele.debitMoney = that.formartMoney(ele.debitMoney);
+                ele.creditMoney = that.formartMoney(ele.creditMoney);
+                // ele.direction = that.formartMoney(ele.direction);
+            });
+*/
+            
+            //固定多表头
+            // 多表头固定打印
+            var _d = that.dataList;
+            var _thead = '', _tbody = '', _tfoot = '';
+
+            _thead = `
+                <tr class='thCs'>
+                    <th rowspan="2" style="width: 6%">日期</th>
+                    <th rowspan="2" style="width: 6%">凭证字号</th>
+                    <th rowspan="2" style="width: 6%">摘要</th>
+                    <th rowspan="2" style="width: 6%">资产编码</th>
+                    <th rowspan="2" style="width: 6%">资产名称</th>
+                    <th rowspan="2" style="width: 6%">币别</th>
+                    <th rowspan="2" style="width: 6%">原币金额</th>
+                    <th colspan="3" style="width: 18%">原值(综合本位币)</th>
+                    <th colspan="3" style="width: 18%">累计折旧(综合本位币)</th>
+                    <th rowspan="2" style="width: 6%">净值(综合本位币)</th>
+                    <th colspan="3" style="width: 18%">减值准备(综合本位币)</th>
+                    <th rowspan="2" style="width: 6%">净额(综合本位币)</th>
+                    <th rowspan="2" style="width: 6%">数量</th>
+                </tr>
+                <tr class='thCs'>
+                    <th style="width: 6%">借方金额</th>
+                    <th style="width: 6%">贷方金额</th>
+                    <th style="width: 6%">余额</th>
+                    <th style="width: 6%">借方金额</th>
+                    <th style="width: 6%">贷方金额</th>
+                    <th style="width: 6%">余额</th>
+                    <th style="width: 6%">借方金额</th>
+                    <th style="width: 6%">贷方金额</th>
+                    <th style="width: 6%">余额</th>
+                </tr>
+            `;
+
+            _d.forEach(row => {
+                _tbody += `
+                    <tr>
+                        <td>${that._nullData(row.dateStr)}</td>
+                        <td>${that._nullData(row.voucherData)}</td>
+                        <td>${that._nullData(row.summary)}</td>
+                        <td>${that._nullData(row.faCode)}</td>
+                        <td>${that._nullData(row.faName)}</td>
+                        <td>${that._nullData(row.currencyData)}</td>
+                        <td>${that.formartMoney(row.amountFor)}</td>
+                        <td>${that.formartMoney(row.orgDebit)}</td>
+                        <td>${that.formartMoney(row.orgCredit)}</td>
+                        <td>${that.formartMoney(row.orgBalance)}</td>
+                        <td>${that.formartMoney(row.deprDebit)}</td>
+                        <td>${that.formartMoney(row.deprCredit)}</td>
+                        <td>${that.formartMoney(row.deprBalance)}</td>
+                        <td>${that.formartMoney(row.netWorth)}</td>
+                        <td>${that.formartMoney(row.devalDebit)}</td>
+                        <td>${that.formartMoney(row.devalCredit)}</td>
+                        <td>${that.formartMoney(row.devalBalance)}</td>
+                        <td>${that.formartMoney(row.netCash)}</td>
+                        <td>${that.formartMoney(row.quantity)}</td>
+                        
+                    </tr>
+                `;
+            });
+
+            let data = {
+                'title': '固定资产明细账',  // 标题
+                'template': 12,  // 模板
+                'titleInfo': [       // title
+                    { 'name': '类别', 'val': that.formData.claType },
+                    { 'name': '期间', 'val': that.formData.dateStr }
+                ],
+                'colMaxLenght': 10,
+                'tbodyInfo': {
+                    'theadTX': _thead,
+                    'tbodyTX': _tbody,
+                    'tfootTX': _tfoot
+                }
+
+            }
+            htPrint(data);
+            
+
+        },
+        _nullData (_t) {
+            if (_t) {
+                return _t;
+            } else {
+                return '';
+            }
+        },
+        printModalShow (_t) {
+            this.printModal = _t;
+        },
         setTableHeader () {
             let that = this;
             that.colNames = ['id', '日期', '凭证字号', '摘要', '资产编码',
@@ -330,10 +447,12 @@ var vm = new Vue({
                         groupHeaders: headers
                     });
                     console.log(ret)
+                    
                     if (ret.code == '100100') {
                         let info = ret.data;
                         _vm.formData.index = info.index;
                         _vm.formData.indexLen = info.indexLen;
+                        _vm.dataList = ret.data.list;
 
                         if (_vm.formData.index == 0) {
                             _vm.isPreDisabled = true;
@@ -437,6 +556,28 @@ var vm = new Vue({
             this.filterVisible = false;
         },
         exportExcel () {
+            let data = this.formData;
+            let _url = contextPath+"/subsidiaryLedger/exportExcel?sobId="+data.sobId+
+            "&filterType="+data.filterType+
+            "&dateStr="+data.dateStr+
+            "&startYear="+data.startYear+
+            "&startPeriod="+data.startPeriod+
+            "&endYear="+data.endYear+
+            "&endPeriod="+data.endPeriod+
+            "&index="+data.index+
+            "&claType="+data.claType+
+            "&assetCode="+data.assetCode+
+            "&assetName="+data.assetName+
+            "&modelType="+data.modelType+
+            "&depValue="+data.depValue+
+            "&depId="+data.depId+
+            "&depName="+data.depName+
+            "&assetTypeValue="+data.assetTypeValue+
+            "&assetType="+data.assetType+
+            "&depRateCk="+data.depRateCk
+
+            console.log(_url)
+            window.open(_url);
         },
         exitPrevent () {
             window.parent.closeCurrentTab({ name: '固定资产明细账', openTime: this.openTime, exit: true })

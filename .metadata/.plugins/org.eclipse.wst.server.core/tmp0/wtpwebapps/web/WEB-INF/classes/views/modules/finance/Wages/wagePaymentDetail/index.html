@@ -29,9 +29,10 @@
         <div class="btn-menu">
             <button @click="refresh" class="ht-btn">刷新</button>
             <button @click="filterFun" class="ht-btn">过滤</button>
-            <button @click="" class="ht-btn">打印</button>
-            <button @click="" class="ht-btn">引出</button>
-            <button @click="" class="ht-btn">退出</button>
+            <button @click="mimeograph" class="ht-btn">打印</button>
+            <button @click="exports" class="ht-btn">引出</button>
+            <button @click="closeWindow" class="ht-btn">退出</button>
+            <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
         </div>
         <row class="mt10 ml20">
             <i-col span="8">
@@ -88,7 +89,7 @@
                                     <td>{{item.id}}</td>
                                 </tr>
                             </table> -->
-                                <i-table width="240" height="180" size="small" border :columns="columns1" :data="detail_table"
+                                <i-table ref="selection" width="240" height="180" size="small" border :columns="columns1" :data="detail_table"
                                     lay-size="sm" highlight-row @on-row-dblclick="rowDblclick" @on-selection-change="selectionChange">
                                 </i-table>
                             </div>
@@ -148,7 +149,7 @@
                     </i-col>
                     <i-col span="12">
                         <form-item label="所属部门：">
-                            <i-input class="ht-input-width" icon="search" v-model="planName" @on-click="showTrees(true,'showAssetType')"
+                            <i-input class="ht-input-width" icon="search" v-model="planName"  readonly @on-change="show(true)" @on-click="showTrees(true,'showAssetType')"
                                 clearable></i-input>
                             <div v-show="showAssetType" style="position: absolute;top: 33px; left: 0;z-index: 8;background: #fff;border: 1px solid #ccc;">
                                 <ht-input-tree url="${rc.contextPath}/dept/imported"
@@ -197,6 +198,8 @@
         </Modal>
 
     </div>
+    <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
+    <script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
     <script src="${rc.contextPath}/js/finance/Wages/wagePaymentDetail/index.js"></script>
     #parse("modules/public/footer.html")
 </body>

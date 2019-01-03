@@ -29,7 +29,7 @@
             <button @click="refresh" class="ht-btn">刷新</button>
             <!-- <button @click="open" class="ht-btn">打开</button> -->
             <button class="ht-btn" @click="exportExcel">引出</button>
-            <button class="ht-btn" @click="print">打印</button>
+            <button class="ht-btn" @click="print1">打印</button>
             <button class="ht-btn" @click="exitPrevent">退出</button>
         </div>
         <div class="pl20 pr20 mt10">
@@ -46,12 +46,12 @@
                     </i-select>
 
                     <label class="w60">会计期间：</label>
-                    <i-select v-model="formData.year" class="inline-block w120" filterable @on-change="selectionPeriod">
+                    <i-select v-model="formData.year" class="inline-block w120" filterable @on-change="selectionPeriod(0)">
                         <i-option v-for="item in yearAndPeriodList" :value="item.year" :key="item.year">
                             <slot>{{ item.year }}</slot>
                         </i-option>
                     </i-select> 年
-                    <i-select v-model="formData.period" class="inline-block w120" filterable>
+                    <i-select v-model="formData.period" class="inline-block w120" filterable @on-change="refresh">
                         <i-option v-for="item in periodList" :value="item" :key="item">
                             <slot>{{ item }}</slot>
                         </i-option>

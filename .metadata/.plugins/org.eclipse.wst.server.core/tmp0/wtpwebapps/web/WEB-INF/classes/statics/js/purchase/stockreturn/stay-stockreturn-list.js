@@ -161,7 +161,7 @@ var pendingStockList = new Vue({
         generateReport() {
             let flag = true;
             if (this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '请先选择至少一条数据！'
                 });
@@ -171,7 +171,7 @@ var pendingStockList = new Vue({
                 for (let obj in this.selected) {
                     for (let v in this.selected) {
                         if (this.selected[obj].goodsTypeName != this.selected[v].goodsTypeName) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
                                 title: '提示信息',
                                 content: '商品类型不一致，请重新选择！'
                             });

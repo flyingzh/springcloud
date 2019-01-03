@@ -388,6 +388,7 @@
                                             :disabled="body.orderStatus != 1"
                                             @input="clearNoNum(item, 'count', 2);calcMoney(item); numberChange('count');htTestChange()"
                                             v-model="item.count"
+                                            class="ivu-input text-center"
                                     />
                                 </td>
                                 <!--计重单位---->
@@ -396,7 +397,7 @@
                                 </td>
                                 <!--总重-->
                                 <td>
-                                    <input :disabled="body.orderStatus != 1"
+                                    <input :disabled="body.orderStatus != 1" class="ivu-input text-center"
                                            @input="clearNoNum(item, 'totalWeight', 2);calcMoney(item); numberChange('totalWeight');htTestChange()"
                                            v-model="item.totalWeight"/>
                                 </td>

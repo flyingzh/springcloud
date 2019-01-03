@@ -298,6 +298,7 @@ var vm = new Vue({
                 },
                 error: function (err) {
                     That.$Modal.warning({
+                        title:'提示信息',
                         content:'服务器出错啦'
                     })
                 },

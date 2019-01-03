@@ -140,12 +140,14 @@ var parvm = new Vue({
                     console.log(data)
                     if (data.code === "100100") {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: "保存成功！",
                         });
                         location.reload()
 
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: "保存失败！",
                         });
                     }
@@ -204,6 +206,7 @@ var parvm = new Vue({
         modifyUnitGroup() {
             if (parvm.tmpGroupId == '') {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '请先选择单位组!'
                 })
                 return;
@@ -233,11 +236,13 @@ var parvm = new Vue({
                 success: function (data) {
                     if (data.code === "100100") {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: "更新成功！",
                         });
                         location.reload()
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: "更新失败！",
                         });
                     }
@@ -326,12 +331,13 @@ var parvm = new Vue({
             console.log(groupId)
             if (groupId.length == 0) {
                 this.$Modal.warning({
+                    title:'提示信息',
                     content: "请先选择单位组！"
                 })
                 return;
             }
             this.$Modal.confirm({
-                title: '系统提示',
+                title: '提示',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -353,12 +359,14 @@ var parvm = new Vue({
                 success: function (data) {
                     if (data.code == "100100") {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: "删除成功！",
                         });
                         location.reload()
                         This.tmpUnit = ''
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: "系统出现异常,请联系管理人员！"
                         });
                     }
@@ -395,6 +403,7 @@ var parvm = new Vue({
             console.log('这是新增')
             if (parvm.tmpUnit === '') {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '请选择单位组'
                 })
                 return;
@@ -430,7 +439,7 @@ var parvm = new Vue({
             })
             console.log(ids)
             this.$Modal.confirm({
-                title: '系统提示',
+                title: '提示',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -447,12 +456,13 @@ var parvm = new Vue({
             console.log(This.selected)
             if (!ht.util.hasValue(ids, "array")) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '请先选择一条删除记录!'
                 })
                 return false;
             }
             this.$Modal.confirm({
-                title: '系统提示',
+                title: '提示',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -473,12 +483,14 @@ var parvm = new Vue({
                 success: function (data) {
                     if (data.code == "100100") {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: data.data,
                         });
                         This.reload = !This.reload;
                         This.selected = []
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: "系统出现异常,请联系管理人员!"
                         });
                     }
@@ -488,6 +500,7 @@ var parvm = new Vue({
         modify() {
             if (this.selected.length > 1) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '修改只能对单条数据进行操作！'
                 })
             } else {
@@ -497,6 +510,7 @@ var parvm = new Vue({
                 let ids = parvm.selected
                 if (!ht.util.hasValue(ids, "array")) {
                     this.$Modal.info({
+                        title:'提示信息',
                         content: '请选择单位！'
                     })
                     return false;
@@ -544,6 +558,7 @@ var parvm = new Vue({
             let This = this;
             if (!This.unitInfo.isDefault && !This.unitInfo.conversionRate) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '该单位为非默认单位，请输入换算率！'
                 })
                 return
@@ -568,6 +583,7 @@ var parvm = new Vue({
                                 // parvm.clearUnitInfo()
                                 parvm.unitInfo.createName = parvm.user.username
                                 This.$Modal.success({
+                                    title:'提示信息',
                                     content: "保存成功!",
                                 });
                                 This.isShow = false
@@ -576,12 +592,14 @@ var parvm = new Vue({
                                 This.reload = !This.reload
                             } else {
                                 This.$Modal.error({
+                                    title:'提示信息',
                                     content: data.msg,
                                 });
                             }
                         },
                         error: function (error) {
                             This.$Modal.error({
+                                title:'提示信息',
                                 content: "系统出现异常,请联系管理人员!"
                             });
                         }
@@ -602,6 +620,7 @@ var parvm = new Vue({
                                 // parvm.clearUnitInfo()
                                 parvm.unitInfo.createName = parvm.user.username
                                 This.$Modal.success({
+                                    title:'提示信息',
                                     content: "更新成功!",
                                 });
                                 This.isShow = false
@@ -610,6 +629,7 @@ var parvm = new Vue({
                                 This.reload = !This.reload
                             } else {
                                 This.$Modal.error({
+                                    title:'提示信息',
                                     content: result.msg,
                                 });
                             }
@@ -649,6 +669,7 @@ var parvm = new Vue({
             let ids = This.selected
             if (!ht.util.hasValue(ids, "array")) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '请先选择一条单位！'
                 })
                 return false;

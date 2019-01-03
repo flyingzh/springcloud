@@ -1,1 +1,0 @@
-"use strict";window.home.componentHtml('\n\t<area-select url="./area-select/data.json"></area-select>\n'),window.vm[window.home.nameEn]=new Vue({el:"#app"});

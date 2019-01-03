@@ -105,14 +105,14 @@ var purchaseOrderList = new Vue({
         approval(value) {
             let This = this;
             if (!ht.util.hasValue(this.selected, "array")) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: "提示",
                     content: "请先选择一条记录"
                 });
                 return false;
             }
             if (this.selected.length > 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: "提示",
                     content: "最多只能选择一条记录"
                 });
@@ -128,13 +128,13 @@ var purchaseOrderList = new Vue({
         reject(value) {
             let This = this;
             if (!ht.util.hasValue(this.selected, "array")) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: "提示",
                     content: "请先选择一条记录"
                 });
                 return false;
             } else if (this.selected.length > 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: "提示",
                     content: "最多只能选择一条记录"
                 });
@@ -234,7 +234,7 @@ var purchaseOrderList = new Vue({
                                     , 300);
                                 } else {
                                     setTimeout(() => {
-                                            This.$Modal.error({
+                                            This.$Modal.warning({
                                                 title: '删除失败！',
                                                 okText:'确定',
                                                 content: data.msg
@@ -245,6 +245,7 @@ var purchaseOrderList = new Vue({
                             },
                             error: function (e) {
                                 this.$Modal.error({
+                                    title:'提示信息',
                                     content:"网络异常,请联系技术人员！",
                                 })
                             }
@@ -293,7 +294,8 @@ var purchaseOrderList = new Vue({
                 dataType: "json",
                 success: function (res) {
                     if(res.code != "100100"){
-                        this.$Modal.error({
+                        this.$Modal.warning({
+                            title:'提示信息',
                             content:res.msg,
                         })
                         return ;
@@ -301,7 +303,8 @@ var purchaseOrderList = new Vue({
                     That.categoryType = That.initGoodCategory(res.data.cateLists)
                 },
                 error: function (err) {
-                    this.$Modal.error({
+                    this.$Modal.warning({
+                        title:'提示信息',
                         content:"网络异常,请联系技术人员！",
                     })
                 },

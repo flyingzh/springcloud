@@ -186,7 +186,8 @@ var retrieveReport = new Vue({
         },
         isHintShow(status) {
             if (status && this.typeValue && this.isHint && this.productDetailList && this.productDetailList.length > 0) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
                         this.isHint = false;
@@ -206,13 +207,15 @@ var retrieveReport = new Vue({
                     if (data.code === '100100') {
                         This.productTypeList = This.initGoodCategory(data.data.cateLists)
                     }else {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content:data.msg,
                         })
                     }
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content:"网络异常,请联系技术人员！",
                     })
                 }
@@ -340,6 +343,7 @@ var retrieveReport = new Vue({
                     success: function (res) {
                         if (res.code == '100100') {
                             This.$Modal.success({
+                                title:'提示信息',
                                 content: '保存成功',
                                 duration: 1.5,
                                 closable: true
@@ -371,7 +375,8 @@ var retrieveReport = new Vue({
                             This.saveCertiBackVo.auditor = res.data.auditor;
                             This.saveCertiBackVo.auditTime = res.data.auditTime;
                         } else {
-                            This.$Modal.error({
+                            This.$Modal.warning({
+                                title:'提示信息',
                                 content: res.msg,
                                 duration: 1.5,
                                 closable: true
@@ -380,7 +385,8 @@ var retrieveReport = new Vue({
                         }
                     },
                     error: function (err) {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！',
                             duration: 1.5,
                             closable: true
@@ -406,7 +412,8 @@ var retrieveReport = new Vue({
                 let certificateDetailList = That.saveCertiBackVo.certificateDetailList;
                 length = That.saveCertiBackVo.certificateDetailList.length;
                 if(length == 0) {
-                    That.$Modal.warning({
+                    That.$Modal.info({
+                        title:'提示信息',
                         content: '请填写订单明细信息',
                         duration: 1.5,
                         closable: true
@@ -416,7 +423,8 @@ var retrieveReport = new Vue({
                 }
                 for (var i = 0; i < length; i++) {
                     if ((certificateDetailList[i].certificateNumber === '') || (certificateDetailList[i].certificateNumber === undefined) || (certificateDetailList[i].certificateNumber === null) ) {
-                        That.$Modal.warning({
+                        That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i+1}行的证书数量`,
                             duration: 1.5,
                             closable: true
@@ -424,7 +432,8 @@ var retrieveReport = new Vue({
                         That.changeStatus(That.saveCertiBackVo.orderStatus);
                         return false;
                     } else if (certificateDetailList[i].certificateCost == '' || certificateDetailList[i].certificateCost == undefined || certificateDetailList[i].certificateCost == null) {
-                        That.$Modal.warning({
+                        That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i+1}行的证书费用`,
                             duration: 1.5,
                             closable: true
@@ -432,7 +441,8 @@ var retrieveReport = new Vue({
                         That.changeStatus(That.saveCertiBackVo.orderStatus);
                         return false;
                     } else if ((certificateDetailList[i].receiverWeight == '' || certificateDetailList[i].receiverWeight == null || certificateDetailList[i].receiverWeight == undefined )  && (certificateDetailList[i].receiverGoodsNumber == '' || certificateDetailList[i].receiverGoodsNumber == null || certificateDetailList[i].receiverGoodsNumber == undefined)) {
-                        That.$Modal.warning({
+                        That.$Modal.info({
+                            title:'提示信息',
                             content: `第${i+1}行的收货数量和收货重量至少填一个`,
                             duration: 1.5,
                             closable: true
@@ -451,6 +461,7 @@ var retrieveReport = new Vue({
                     success: function (res) {
                         if (res.code == '100100') {
                             That.$Modal.success({
+                                title:'提示信息',
                                 content: '提交成功',
                                 duration: 1.5,
                                 closable: true
@@ -486,7 +497,8 @@ var retrieveReport = new Vue({
                             That.isEdit("N");
                             That.getInitDataById();
                         } else {
-                            That.$Modal.error({
+                            That.$Modal.warning({
+                                title:'提示信息',
                                 content: res.msg,
                                 duration: 1.5,
                                 closable: true
@@ -496,7 +508,8 @@ var retrieveReport = new Vue({
                         }
                     },
                     error: function (err) {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！',
                             duration: 1.5,
                             closable: true
@@ -685,6 +698,7 @@ var retrieveReport = new Vue({
                         This.$refs.supplier.haveInitValue(This.saveCertiBackVo.supplier, This.saveCertiBackVo.supplier);
                     } else {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '显示失败',
                             duration: 1.5,
                             closable: true
@@ -693,7 +707,8 @@ var retrieveReport = new Vue({
                     }
                 },
                 error: function (err) {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错',
                         duration: 1.5,
                         closable: true
@@ -766,6 +781,7 @@ var retrieveReport = new Vue({
                         This.$refs.supplier.haveInitValue(This.saveCertiBackVo.supplier, This.saveCertiBackVo.supplier);
                     } else {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '生成失败',
                             closable: true
                         })
@@ -773,7 +789,8 @@ var retrieveReport = new Vue({
                     }
                 },
                 error: function (err) {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '生成失败',
                         closable: true
                     })
@@ -804,7 +821,8 @@ var retrieveReport = new Vue({
                 data: {id: id},
                 success: function (data) {
                     if (data.code !== '100100') {
-                        this.$Modal.warning({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错',
                         });
                         return
@@ -813,7 +831,11 @@ var retrieveReport = new Vue({
                     This.getAccess(data.data.id, This.P_CERTIBACK_APPREVAL);
                 },
                 error: function () {
-                    layer.alert('服务器出错啦');
+                    // layer.alert('服务器出错啦');
+                    This.$Modal.warning({
+                        title:'提示信息',
+                        content: '服务器出错',
+                    });
                 }
             })
         },
@@ -862,7 +884,8 @@ var retrieveReport = new Vue({
         remarkNumber(val) {
             console.log(val);
             if (val && val.length > 200) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content: '备注不能操作100个汉字',
                 })
                 return false;
@@ -876,7 +899,8 @@ var retrieveReport = new Vue({
             var reg = new RegExp(/^\d+$/);
             // var reg = /^[0-9]+.?[0-9]*$/;
             if (!reg.test(theObj)) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content: '请输入整数',
                 })
                 theObj = '';

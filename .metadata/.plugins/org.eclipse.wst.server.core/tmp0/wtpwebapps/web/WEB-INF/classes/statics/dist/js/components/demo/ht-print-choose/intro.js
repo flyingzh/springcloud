@@ -1,1 +1,0 @@
-"use strict";window.home.guide={props:[{name:"url, nodeData",intro:"url 跟 nodeData 有且只有一个是必须的，<br />\n                    详细配置看官方文档： http://www.treejs.cn/v3/api.php",type:"String",defaultVal:""},{name:"setting",intro:"",type:"Object",defaultVal:""}],events:[],methods:[],slots:[]};

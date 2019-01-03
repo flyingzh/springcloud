@@ -3,15 +3,33 @@ new Vue({
     data(){
         return {
             for1:'1',
-            openTime:''
+            openTime:'',
+            accountYearPeriod:'',
         }
     },
     created() {
+        this.init();
     },
     mounted() {
         this.openTime = window.parent.params && window.parent.params.openTime;
     },
     methods:{
+        init(){
+            let that = this;
+            $.ajax({
+                url:contextPath+'/wmSettleAccount/init',
+                type:'post',
+                dateType:'json',
+                success:function(res){
+                    if(res.code == '100100'){
+                       that.accountYearPeriod = res.data;
+                    }
+                },
+                error(res){
+
+                }
+            })
+        },
         beginFun() {
             let that = this;
             let _url='';
@@ -41,6 +59,7 @@ new Vue({
                     }
                 }
             })
+            that.init();
         },
         instance (type, title, content) {
             switch (type) {

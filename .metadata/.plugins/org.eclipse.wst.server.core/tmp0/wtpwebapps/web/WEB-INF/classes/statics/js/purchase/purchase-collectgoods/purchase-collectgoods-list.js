@@ -147,6 +147,7 @@ var pendingList = new Vue({
                 },
                 error: function () {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })
@@ -209,6 +210,7 @@ var pendingList = new Vue({
             var That = this;
 
                 That.$Modal.info({
+                    title:'提示信息',
                     scrollable:true,
                     content:"请选择数据生成收货订单"
                 });
@@ -242,6 +244,7 @@ var pendingList = new Vue({
                 error: function (err) {
                     That.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content:"系统异常,请联系技术人员！",
                     })
                 },
@@ -266,6 +269,7 @@ var pendingList = new Vue({
                     //如果单据状态不为1 那个就不让修改 给出提示
                     this.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content: "只能对暂存的数据进行修改！",
                     })
                     return;
@@ -283,6 +287,7 @@ var pendingList = new Vue({
                     error:function (r) {
                         That.$Modal.info({
                             scrollable:true,
+                            title:'提示信息',
                             content:"系统异常,请联系技术人员！",
                         })
                     }
@@ -290,6 +295,7 @@ var pendingList = new Vue({
             }else{
                 this.$Modal.info({
                     scrollable:true,
+                    title:'提示信息',
                     content: "请选择一条数据进行修改！",
                 })
             }
@@ -308,6 +314,7 @@ var pendingList = new Vue({
                     error:function (r) {
                         That.$Modal.info({
                             scrollable:true,
+                            title:'提示信息',
                             content:"系统异常,请联系技术人员！",
                         })
                     }
@@ -316,23 +323,37 @@ var pendingList = new Vue({
        del(){
             var That = this;
             if(That.selected.length>0){
-                var flag = false;
+                var flag = true;
                 var arr = [];
-                That.selected.forEach(v =>{
-                    arr.push(v.id);
-                });
-                this.$Modal.confirm({
-                    scrollable:true,
-                    content:"你确定要删除选中的数据？",
-                    okText:"确定",
-                    cancelText:"取消",
-                    onOk(){
-                        That.deleteMany(arr);
+                for(var i = 0;i<That.selected.length;i++){
+                    if(That.selected[i].orderStatus != 1) {
+                        That.$Modal.info({
+                            title:'提示信息',
+                            content:`编号为${That.selected[i].orderNo}的单据已经入审批流，无法删除！`
+                        })
+                        flag = false;
+                        break;
+                    }
                 }
-            })
+                if(flag){
+                    That.selected.forEach(v =>{
+                        arr.push(v.id);
+                    });
+                    this.$Modal.confirm({
+                        scrollable:true,
+                        title:'提示信息',
+                        content:"你确定要删除选中的数据？",
+                        okText:"确定",
+                        cancelText:"取消",
+                        onOk(){
+                            That.deleteMany(arr);
+                        }
+                    })
+                }
             }else{
                 this.$Modal.info({
                     scrollable:true,
+                    title:'提示信息',
                     content: "请选择一条数据进行删除！",
                 })
             }
@@ -351,6 +372,7 @@ var pendingList = new Vue({
                             That.$Modal.success({
                                 scrollable:true,
                                 content:r.data,
+                                title:'提示信息',
                                 onOk(){
                                     That.reload = !That.reload;
                                 }
@@ -359,6 +381,7 @@ var pendingList = new Vue({
                     }else {
                         That.$Modal.error({
                             scrollable:true,
+                            title:'提示信息',
                             content:"系统异常,请联系技术人员！",
                         })
                     }
@@ -366,6 +389,7 @@ var pendingList = new Vue({
                 error:function (r) {
                     That.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content:"系统异常,请联系技术人员！",
                     })
                 }

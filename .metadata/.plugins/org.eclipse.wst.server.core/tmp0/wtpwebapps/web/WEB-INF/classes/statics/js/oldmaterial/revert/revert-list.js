@@ -98,6 +98,7 @@ var vm = new Vue({
                 },
                 error: function (err) {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })
@@ -151,14 +152,14 @@ var vm = new Vue({
             let This = this;
             if (!ht.util.hasValue(this.selected, "array")) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "请先选择一条记录"
                 });
                 return false;
             }
             if (this.selected.length > 1) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "最多只能选择一条记录"
                 });
                 return false;
@@ -175,14 +176,14 @@ var vm = new Vue({
             let This = this;
             if (!ht.util.hasValue(this.selected, "array")) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "请先选择一条记录"
                 });
                 return false;
             }
             if (this.selected.length > 1) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "最多只能选择一条记录"
                 });
                 return false;
@@ -202,7 +203,7 @@ var vm = new Vue({
                 This.search();
             }else{
                 this.$Modal.info({
-                    title: "提示",
+                    title:'提示信息',
                     content: "审核失败，请联系相关技术人员"
                 });
             }
@@ -234,14 +235,14 @@ var vm = new Vue({
         ListSubmit(){
             if (!ht.util.hasValue(this.selected, "array")) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "请先选择一条记录"
                 });
                 return false;
             }
             if (this.selected.length > 1) {
                 this.$Modal.info({
-                    title: "提示",
+                    title: "提示信息",
                     content: "最多只能选择一条记录"
                 });
                 return false;
@@ -292,17 +293,18 @@ var vm = new Vue({
                                         , 300);
                                 } else {
                                     setTimeout(() => {
-                                            This.$Modal.error({
-                                                title: '删除失败！',
+                                            This.$Modal.warning({
+                                                title: '提示信息',
                                                 okText:'确定',
-                                                content: data.msg
+                                                content:data.msg
                                             });
                                         }
                                         , 300);
                                 }
                             },
                             error: function (e) {
-                                This.$Modal.error({
+                                This.$Modal.warning({
+                                    title: '提示信息',
                                     content:"网络异常,请联系技术人员！",
                                 })
                             }

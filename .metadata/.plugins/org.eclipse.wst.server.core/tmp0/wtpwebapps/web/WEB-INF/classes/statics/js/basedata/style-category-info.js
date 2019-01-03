@@ -83,6 +83,7 @@ var parvm = new Vue({
         addStyle() {
             if (!this.tree.id) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content:"请先选择一条款式类别!"
                 })
                 return
@@ -97,6 +98,7 @@ var parvm = new Vue({
         modifyStyle() {
             if (!this.tree.id) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content:"请先选择一条款式类别!"
                 })
                 return
@@ -137,6 +139,7 @@ var parvm = new Vue({
                     This.buttonFlag = true
                     if (data.code === "100100") {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: msg+"成功!",
                         });
                         if (parvm.body.id) {
@@ -149,6 +152,7 @@ var parvm = new Vue({
                         }
                     } else {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: data.msg
                         });
                     }
@@ -166,7 +170,7 @@ var parvm = new Vue({
             })
             console.log(ids)
             this.$Modal.confirm({
-                title: '系统提示',
+                title:'提示信息',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -181,6 +185,7 @@ var parvm = new Vue({
             let id = this.tree.id
             if (!this.tree.id) {
                 this.$Modal.info({
+                    title:'提示信息',
                     content:"请选择款式类别!"
                 })
                 return
@@ -193,13 +198,14 @@ var parvm = new Vue({
             var childrens = nodes[0].children;
             if( childrens != undefined && childrens.length>0){
                 this.$Modal.info({
+                    title:'提示信息',
                     content:"该类别下存在子类别，不能被删除!!"
                 })
                 return;
             }
 
             this.$Modal.confirm({
-                title: '系统提示',
+                title:'提示信息',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -212,6 +218,7 @@ var parvm = new Vue({
                         success: function (data) {
                             if (data.code == "100100") {
                                 This.$Modal.success({
+                                    title:'提示信息',
                                     content: "删除成功!",
                                 });
                                 treeObj.removeNode(nodes[0]);
@@ -220,6 +227,7 @@ var parvm = new Vue({
                                 parvm.tree.id = ''
                             } else {
                                 This.$Modal.warning({
+                                    title:'提示信息',
                                     content: "系统出现异常,请联系管理人员!"
                                 });
                             }

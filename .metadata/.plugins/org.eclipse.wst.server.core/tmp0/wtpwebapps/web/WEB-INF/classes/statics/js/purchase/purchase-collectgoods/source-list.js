@@ -263,6 +263,7 @@ Vue.component('source-list', {
                 if (this.selectedRows[i].resourceType != resourceType) {
                     this.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content: "请选择相同的源单类型进行收货",
                     });
                     flag = true;
@@ -271,6 +272,7 @@ Vue.component('source-list', {
                 if (this.selectedRows[i].goodsTypePath != goodsTypePath) {
                     this.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content: "请选择相同的商品类型进行收货",
                     });
                     flag = true;
@@ -280,6 +282,7 @@ Vue.component('source-list', {
                     if (customerId != this.selectedRows[i].customerId) {
                         this.$Modal.info({
                             scrollable:true,
+                            title:'提示信息',
                             content: "请选择相同的客户进行收料",
                         });
                         flag = true;
@@ -289,6 +292,7 @@ Vue.component('source-list', {
                     if (supplierId != this.selectedRows[i].supplierId) {
                         this.$Modal.info({
                             scrollable:true,
+                            title:'提示信息',
                             content: "请选择相同的供应商进行收料"
                         });
                         flag = true;
@@ -298,6 +302,7 @@ Vue.component('source-list', {
                 if (streamId.indexOf(this.selectedRows[i].streamId) > -1) {
                     this.$Modal.info({
                         scrollable:true,
+                        title:'提示信息',
                         content: "请勿选择相同的商品进行收货！"
                     });
                     flag = true;

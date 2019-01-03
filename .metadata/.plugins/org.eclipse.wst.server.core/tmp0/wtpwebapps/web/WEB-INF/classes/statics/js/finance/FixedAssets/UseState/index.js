@@ -180,7 +180,7 @@ var ve = new Vue({
         chk (val) {
             // var patrn =/^[1-9]\d*\.\d*|[1-9]\d*$/;
             var patrn = /^\d+(\.\d+)*$/;
-            //var patrn = /^\d+(\.\d+)*\s[_\u4e00-\u9fa5]+$/;
+            // var patrn = /^\d+(\.\d+)*\s[_\u4e00-\u9fa5]+$/;
             var result = true;
             if (!patrn.exec(val)) {
                 result = false;
@@ -196,7 +196,7 @@ var ve = new Vue({
             return result;
         },
         codeCheck (value) {
-            let newData = value.replace(/\./g, ".");
+            let newData = value.replace(/\./g, "");
             if (!isNaN(newData)) {
                 return true;
             }

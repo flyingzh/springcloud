@@ -465,12 +465,12 @@ function htValidateRow (data, filed, show = true, vueRef) {
             if (filed.hasOwnProperty(attr)) {
                 if (filed[attr].type === 'string' && (item[attr] === undefined || item[attr] === '' || item[attr] === null)) {
                     if (show) {
-                        if(vueRef){
+                        if (vueRef) {
                             vueRef.$Modal.info({
                                 title: "提示信息",
                                 content: `分录行第${index + 1}行${filed[attr].name}必填`
                             })
-                        }else {
+                        } else {
                             layer.alert(`分录行第${index + 1}行${filed[attr].name}必填`);
                         }
                     }
@@ -482,24 +482,24 @@ function htValidateRow (data, filed, show = true, vueRef) {
                         let reg = new RegExp(str);
                         if (!reg.test(item[attr])) {
                             if (show) {
-                                if(vueRef){
+                                if (vueRef) {
                                     vueRef.$Modal.info({
                                         title: "提示信息",
                                         content: `分录行第${index + 1}行${filed[attr].name}不符合要求`
                                     })
-                                }else {
+                                } else {
                                     layer.alert(`分录行第${index + 1}行${filed[attr].name}不符合要求`);
                                 }
                             }
                             return true;
                         }
                         if (filed[attr].plus && Number(item[attr]) === 0) {
-                            if(vueRef){
+                            if (vueRef) {
                                 vueRef.$Modal.info({
                                     title: "提示信息",
                                     content: `分录行第${index + 1}行${filed[attr].name}必须大于0`
                                 })
-                            }else {
+                            } else {
                                 layer.alert(`分录行第${index + 1}行${filed[attr].name}必须大于0`);
                             }
 
@@ -608,3 +608,55 @@ function verifySystem (sysType) {
         }
     });
 }
+
+//获取光标位置   
+//单行文本框   
+function getPositionForInput (ctrl) {
+    var CaretPos = 0;
+    if (document.selection) { // IE Support   
+        ctrl.focus();
+        var Sel = document.selection.createRange();
+        Sel.moveStart('character', -ctrl.value.length);
+        CaretPos = Sel.text.length;
+    } else if (ctrl.selectionStart || ctrl.selectionStart == '0') {// Firefox support   
+        CaretPos = ctrl.selectionStart;
+    }
+    return (CaretPos);
+}
+//多行文本框   
+function getPositionForTextArea (ctrl) {
+    var CaretPos = 0;
+    if (document.selection) {// IE Support   
+        ctrl.focus();
+        var Sel = document.selection.createRange();
+        var SelSel2 = Sel.duplicate();
+        Sel2.moveToElementText(ctrl);
+        var CaretPos = -1;
+        while (Sel2.inRange(Sel)) {
+            Sel2.moveStart('character');
+            CaretPos++;
+        }
+    } else if (ctrl.selectionStart || ctrl.selectionStart == '0') {// Firefox support   
+        CaretPos = ctrl.selectionStart;
+    }
+    return (CaretPos);
+}
+//设置光标位置函数   
+function setCursorPosition (ctrl, pos) {
+    if (ctrl.setSelectionRange) {
+        ctrl.focus();
+        ctrl.setSelectionRange(pos, pos);
+    }
+    else if (ctrl.createTextRange) {
+        var range = ctrl.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', pos);
+        range.moveStart('character', pos);
+        range.select();
+    }
+}
+//test   
+function htProcess (id, targetId) {
+    var no = document.getElementById(id).value;
+    setCursorPosition(document.getElementById(targetId), no);
+}   

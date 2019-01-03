@@ -488,7 +488,7 @@ var vmCommodity = new Vue({
             partAssistAttrAll: [],
             data_config_list: {
                 url: contextPath + '/tbasecommodity/list?ktcStatus=0',
-                colNames: ['图片', '商品编码', '商品名称', '商品类型', '款式类别', '金大祥编码', '规格', '状态'],
+                colNames: ['图片', '商品编码', '商品名称', '商品类型', '款式类别', /*'金大祥编码',*/ '规格', '状态'],
                 colModel: [
                     {
                         name: 'url', index: 'remark', width: 200, align: "center",
@@ -548,7 +548,7 @@ var vmCommodity = new Vue({
                     { name: 'name', index: 'name', width: 150, align: "left" },
                     { name: 'categoryName', index: 'exchangeRate', width: 200, align: "left" },
                     { name: 'styleName', index: 'status', width: 200, align: "left" },
-                    { name: 'jdxCode', index: 'jdxCode', width: 200, align: "left" },
+                    /*{ name: 'jdxCode', index: 'jdxCode', width: 200, align: "left" },*/
                     { name: 'specification', index: 'precisions', width: 200, align: "left" },
                     {
                         name: 'status', index: 'remark', width: 250, sortable: false, align: "left",

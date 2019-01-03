@@ -659,14 +659,14 @@ var vm = new Vue({
             this.htHaveChange = true;
             console.log(333)
         },
-        checkNumber(e){
-            var re= /^(\d|[1-9]\d|100)(\.\d{1,2})?$/
-            if(re.test(e.target.value)){
-                $(".out_scale").val(e.target.value);
-            }else{
-                this.$nextTick(()=>{
-                    $(".out_scale").val('');
-                })
+        checkNumber(e,index){
+            let re= /^\d\.([1-9]{1,2}|[0-9][1-9])$|^[1-9]\d{0,1}(\.\d{1,2}){0,1}$|^100(\.0{1,2}){0,1}$/;
+            if(!re.test(e.target.value)){
+                if(index !== -1){
+                    this.organizationEntity.equityInfoEntities[index].outScale = '';
+                }else{
+                    this.organizationEntity.taxRate = '';
+                }
             }
         }
 

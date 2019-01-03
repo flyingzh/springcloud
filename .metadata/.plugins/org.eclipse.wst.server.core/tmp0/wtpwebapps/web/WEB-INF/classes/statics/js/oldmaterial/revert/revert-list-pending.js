@@ -73,6 +73,7 @@ var returnPendingList = new Vue({
                 },
                 error: function (err) {
                     That.$Modal.info({
+                        title: '提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })

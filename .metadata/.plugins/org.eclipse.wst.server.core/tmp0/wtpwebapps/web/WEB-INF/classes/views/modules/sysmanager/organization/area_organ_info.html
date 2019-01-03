@@ -106,7 +106,7 @@
                                         </i-select>
                                     </form-item>
                                     <form-item label="税率（%）：">
-                                        <input v-model="organizationEntity.taxRate" style="width: 200px"  @change="htTestChange"  @blur="checkNumber($event)" class="ivu-input out_scale"/>
+                                        <input v-model="organizationEntity.taxRate" style="width: 200px"  @change="htTestChange"  @blur="checkNumber($event,-1)" class="ivu-input"/>
                                     </form-item>
                                 </i-col>
                                 <i-col span="8">
@@ -150,7 +150,7 @@
                                 </div>
                             </td>
                             <td>
-                                <i-input v-model="item.outScale" style="width: 200px;"  @on-change="htTestChange"></i-input>
+                                <input class="ivu-input" v-model="item.outScale" style="width: 200px;" @blur="checkNumber($event,index)" @on-change="htTestChange"></input>
                             </td>
                         </tr>
                     </table>

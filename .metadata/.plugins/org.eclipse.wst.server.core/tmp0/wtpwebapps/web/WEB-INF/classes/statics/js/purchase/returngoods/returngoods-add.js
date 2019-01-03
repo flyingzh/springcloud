@@ -252,13 +252,14 @@ var returnReport = new Vue({
                     if (r.code == "100100") {
                         That.wareHouse = r.data;
                     } else {
-                        That.$Modal.info({
+                        That.$Modal.warning({
+                            title: '提示信息',
                             content: r.msg
                         });
                     }
                 },
                 error: function () {
-                    That.$Modal.info({
+                    That.$Modal.warning({
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -309,13 +310,15 @@ var returnReport = new Vue({
                         console.log(_this.unitMap);
 
                     } else {
-                        _this.$Modal.info({
+                        _this.$Modal.warning({
+                            title: '提示信息',
                             content: '服务器异常，请稍后再试！'
                         });
                     }
                 },
                 error: function (err) {
-                    _this.$Modal.info({
+                    _this.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 },
@@ -338,12 +341,14 @@ var returnReport = new Vue({
                         });
                     }else{
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: rest.msg,
                         });
                     }
                 },
                 error:function(){
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！',
                     });
                 }
@@ -391,6 +396,7 @@ var returnReport = new Vue({
         isHintShow(status) {
             if (status && this.returnGoods.typeValue && this.isHint && this.productDetailList && this.productDetailList.length > 0) {
                 this.$Modal.warning({
+                    title: '提示信息',
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
                         this.isHint = false;
@@ -413,7 +419,8 @@ var returnReport = new Vue({
                 dataType: "json",
                 success: function (data) {
                     if (data.code != "100100") {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title: '提示信息',
                             content: data.msg,
                         })
                         This.commodityList = [];
@@ -422,7 +429,8 @@ var returnReport = new Vue({
                     This.commodityList = data.data;
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 }
@@ -502,7 +510,8 @@ var returnReport = new Vue({
                     This.handlerProductType(This.returnGoods.goodsTypePath);
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -570,13 +579,15 @@ var returnReport = new Vue({
                         This.isEdit(This.returnGoods.orderStatus == 1 ? "Y" : "N");
                     } else {
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: data.msg,
                         });
                     }
                 },
                 error: function () {
                     window.top.home.loading('hide');
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -587,56 +598,65 @@ var returnReport = new Vue({
             let This = this;
             var bl = false;
             if (This.returnGoods.goodsTypePath == null || This.returnGoods.goodsTypePath == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择商品类型！',
                 });
                 return bl;
             }
             if (This.returnGoods.supplierId == null || This.returnGoods.supplierId == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择供应商！',
                 });
                 return bl;
             }
             if (This.returnGoods.logisticsMode == null || This.returnGoods.logisticsMode == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择物流方式！',
                 });
                 return bl;
             }
             if (this.productDetailList == null || This.productDetailList.length == 0) {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '商品信息不能为空！',
                 });
                 return bl;
             }
             if (This.productDetailList.length > 0 && This.productDetailList[0].goodsCode == null) {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '商品信息不能为空！',
                 });
                 return bl;
             }
             for (var i = 0; i < this.productDetailList.length; i++) {
                 if (this.productDetailList[i].goodsMainType != 'attr_ranges_gold' && (this.productDetailList[i].returnWeight == null || this.productDetailList[i].returnWeight == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货重量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].goodsMainType != 'attr_ranges_gold' && (this.productDetailList[i].returnCount == null || this.productDetailList[i].returnCount == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货数量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].goodsMainType == 'attr_ranges_gold' && (this.productDetailList[i].returnWeight == null || this.productDetailList[i].returnWeight == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货重量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].warehouseId == null) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请选择第' + (i + 1) + '行的仓库信息！',
                     });
                     return bl;
@@ -670,7 +690,8 @@ var returnReport = new Vue({
             //新增行
             if (type === 'add') {
                 if (this.returnGoods.goodsTypePath == null || this.returnGoods.goodsTypePath == '') {
-                    this.$Modal.warning({
+                    this.$Modal.info({
+                        title: '提示信息',
                         content: '请选择商品类型！'
                     });
                     return;
@@ -679,7 +700,8 @@ var returnReport = new Vue({
                 if(this.productDetailList.length > 0){
                     for(var i=0;i<this.productDetailList.length;i++){
                         if(this.productDetailList[i].commodityId == undefined || this.productDetailList[i].commodityId == null){
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title: '提示信息',
                                 content: '请输输入第'+(i+1)+'行的商品信息！'
                             });
                             return;
@@ -691,7 +713,8 @@ var returnReport = new Vue({
                 //上游生成，不能全部删除
                 if (this.returnGoods.dataSource == 2) {
                     if (this.productDetailList.length == 1) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
+                            title: '提示信息',
                             content: '生成的商品明细不能全部删除！'
                         });
                         return;

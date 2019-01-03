@@ -32,7 +32,7 @@ var registerRef = new Vue({
                 colNames: ['id','单据编号','日期','单据状态', '业务状态', '客户', '商品类型','数量','总重', '业务员'],
                 colModel: [
                     {name: 'id', hidden:true},
-                    {name: 'orderNo', index: 'orderNo', width: 180, align: "left",
+                    {name: 'orderNo', index: 'orderNo', width: 200, align: "left",
                         formatter: function (value, grid, rows, state) {
                             let row = rows;
                             $(document).off('click',".detail"+ value).on('click',".detail"+ value,function(){
@@ -205,7 +205,8 @@ var registerRef = new Vue({
                     That.categoryType = That.initGoodCategory(res.data.cateLists)
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })
@@ -245,22 +246,37 @@ var registerRef = new Vue({
         del(){
             var That = this;
             if(That.selected.length>0){
-                var flag = false;
-                var arr = [];
-                That.selected.forEach(v =>{
-                    arr.push(v.id);
-                });
-                this.$Modal.confirm({
-                    scrollable:true,
-                    content:"你确定要删除选中的数据？",
-                    okText:"确定",
-                    cancelText:"取消",
-                    onOk(){
-                        That.deleteMany(arr);
+                var flag = true;
+                for(var i = 0;i<That.selected.length;i++){
+                    if(That.selected[i].orderStatus != 1) {
+                        That.$Modal.info({
+                            title:'提示信息',
+                            content:`编号为${That.selected[i].orderNo}的单据已进入审批流，无法删除！`
+                        })
+                        flag = false;
+                        break;
                     }
-                })
+                }
+                if(flag){
+                    var arr = [];
+                    That.selected.forEach(v =>{
+                        arr.push(v.id);
+                    });
+                    this.$Modal.confirm({
+                        title:'提示信息',
+                        scrollable:true,
+                        content:"你确定要删除选中的数据？",
+                        okText:"确定",
+                        cancelText:"取消",
+                        onOk(){
+                            That.deleteMany(arr);
+                        }
+                    })
+                }
+
             }else{
-                this.$Modal.confirm({
+                this.$Modal.info({
+                    title:'提示信息',
                     scrollable:true,
                     content: "请选择一条数据进行删除！",
                 })
@@ -278,7 +294,8 @@ var registerRef = new Vue({
                     console.log(r);
                     if(r.code == '100100'){
                         setTimeout(()=>{
-                            That.$Modal.info({
+                            That.$Modal.success({
+                                title:'提示信息',
                                 scrollable:true,
                                 content:r.data,
                                 onOk(){
@@ -289,7 +306,8 @@ var registerRef = new Vue({
                     };
                 },
                 error:function (r) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })
@@ -301,7 +319,8 @@ var registerRef = new Vue({
             if(That.selected.length == 1){
                 if(That.selected[0].orderStatus > 1){
                     //如果单据状态不为1 那个就不让修改 给出提示
-                    this.$Modal.confirm({
+                    this.$Modal.info({
+                        title:'提示信息',
                         scrollable:true,
                         content: "只能对暂存的数据进行修改！",
                     })
@@ -319,14 +338,16 @@ var registerRef = new Vue({
                         };
                     },
                     error:function (r) {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title:'提示信息',
                             scrollable:true,
                             content:"系统异常,请联系技术人员！",
                         })
                     }
                 });
             }else{
-                this.$Modal.confirm({
+                this.$Modal.info({
+                    title:'提示信息',
                     scrollable:true,
                     content: "请选择一条数据进行修改！",
                 })
@@ -355,7 +376,8 @@ var registerRef = new Vue({
                         };
                     },
                     error:function (r) {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title:'提示信息',
                             scrollable:true,
                             content:"系统异常,请联系技术人员！",
                         })

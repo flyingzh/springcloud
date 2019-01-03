@@ -4,15 +4,32 @@ new Vue({
         return {
             for1: 1,
             infoVisible:false,
+            accountYearPeriod:'',
         }
     },
     created(){
-
+        this.init();
     },
     mounted() {
         this.openTime = window.parent.params && window.parent.params.openTime;
     },
     methods:{
+        init(){
+            let that = this;
+            $.ajax({
+                url:contextPath+'/faInitEnableDisenable/init',
+                type:'post',
+                dateType:'json',
+                success:function(res){
+                    if(res.code == '100100'){
+                        that.accountYearPeriod = res.data;
+                    }
+                },
+                error(res){
+
+                }
+            })
+        },
         outHtml(){
             window.parent.closeCurrentTab({ openTime: this.openTime, exit: true });
         },

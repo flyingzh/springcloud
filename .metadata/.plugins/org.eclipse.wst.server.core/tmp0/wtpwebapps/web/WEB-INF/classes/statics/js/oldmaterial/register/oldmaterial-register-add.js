@@ -111,6 +111,7 @@ var registerRef = new Vue({
                 if (!this.registerArray[i].qualityResult) {
                     this.checkCommit = false;
                     this.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "商品信息第" + (i + 1) + "行的质检结果未填写,请先填写质检结果",
                     });
@@ -119,6 +120,7 @@ var registerRef = new Vue({
             }
             if (!this.checkCommit) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: "请先提交质检结果",
                 });
@@ -135,27 +137,35 @@ var registerRef = new Vue({
         },
         //审批回调
         approvalOrRejectCallBack(res) {
-            this.register.orderStatus = res.result.data.orderStatus;
-            this.register.auditor = res.result.data.auditor;
-            this.register.auditTime = res.result.data.auditTime;
-            this.isEdit(this.register.orderStatus == 1 ? "Y" : "N");
-            if (this.register.orderStatus == 1) {
-                this.showSave = false;
-                this.showModify = false;
-                this.showOld = false;
-                this.showCheck = true;
+            if (res.result.code == '100100') {
+                this.register.orderStatus = res.result.data.orderStatus;
+                this.register.auditor = res.result.data.auditor;
+                this.register.auditTime = res.result.data.auditTime;
+                this.isEdit(this.register.orderStatus == 1 ? "Y" : "N");
+                if (this.register.orderStatus == 1) {
+                    this.showSave = false;
+                    this.showModify = false;
+                    this.showOld = false;
+                    this.showCheck = true;
+                }
+
+                if (this.register.orderStatus == 4) {
+                    this.showCheck = true;
+                    this.showSave = true;
+                    this.showModify = true;
+                    this.showOld = true;
+                }
+
+                if (this.register.orderStatus == 2 || this.register.orderStatus == 3 || this.register.orderStatus == 5) {
+                    this.showCheck = false;
+                }
+            }else{
+                this.$Modal.error({
+                    content: res.result.msg,
+                    title: '警告'
+                })
             }
 
-            if (this.register.orderStatus == 4) {
-                this.showCheck = true;
-                this.showSave = true;
-                this.showModify = true;
-                this.showOld = true;
-            }
-
-            if (this.register.orderStatus == 2 || this.register.orderStatus == 3 || this.register.orderStatus == 5) {
-                this.showCheck = false;
-            }
         },
         exit(close) {
             if(close === true){
@@ -199,7 +209,8 @@ var registerRef = new Vue({
                     That.employees = r.data.employees; //加载当前公司下面所有的员工
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -218,7 +229,8 @@ var registerRef = new Vue({
                     That.categoryType = That.initGoodCategory(res.data.cateLists)
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统出现异常,请联系管理人员"
                     });
@@ -271,6 +283,7 @@ var registerRef = new Vue({
 
                 if (!This.register.processingMode) {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "请先选择处理方式！",
                     });
@@ -278,6 +291,7 @@ var registerRef = new Vue({
                 }
                 if (!This.register.processingResults) {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "请先选择处理结果！",
                     });
@@ -286,6 +300,7 @@ var registerRef = new Vue({
 
                 if (!This.register.customerId) {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "请先选择客户！",
                     });
@@ -293,6 +308,7 @@ var registerRef = new Vue({
                 }
                 if (!This.register.salesmanId) {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "请先选择业务员！",
                     });
@@ -302,21 +318,24 @@ var registerRef = new Vue({
                     let arr = this.registerArray;
                     for (var i = 0; i < arr.length; i++) {
                         if (!arr[i].goodsNo) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先选择商品编码'
                             });
                             return;
                         }
                         if (!arr[i].count) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先填写数量'
                             });
                             return;
                         }else{
                             if(arr[i].count <= 0){
-                                this.$Modal.warning({
+                                this.$Modal.info({
+                                    title:'提示信息',
                                     scrollable: true,
                                     content: '请先填写大于0的数量'
                                 });
@@ -324,14 +343,16 @@ var registerRef = new Vue({
                             }
                         }
                         if (!arr[i].totalWeight) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先填写总重'
                             });
                             return;
                         }else{
                             if(arr[i].totalWeight <= 0){
-                                this.$Modal.warning({
+                                this.$Modal.info({
+                                    title:'提示信息',
                                     scrollable: true,
                                     content: '请先填写大于0的总重'
                                 });
@@ -341,6 +362,7 @@ var registerRef = new Vue({
                     }
                 } else {
                     this.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: '请先新增商品信息'
                     });
@@ -409,18 +431,21 @@ var registerRef = new Vue({
                         }
 
                         This.$Modal.success({
+                            title:'提示信息',
                             scrollable: true,
                             content: r.msg
                         });
                     } else {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             scrollable: true,
                             content: "系统出现异常,请联系管理人员"
                         });
                     }
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -439,7 +464,8 @@ var registerRef = new Vue({
                     }
                 }
             }else{
-                That.$Modal.error({
+                That.$Modal.warning({
+                    title:'提示信息',
                     scrollable: true,
                     content: "系统出现异常,请联系管理人员"
                 });
@@ -465,18 +491,21 @@ var registerRef = new Vue({
                             }
                         }
                         That.$Modal.success({
+                            title:'提示信息',
                             scrollable: true,
                             content: "保存检验信息成功"
                         });
                     } else {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title:'提示信息',
                             scrollable: true,
                             content: "系统出现异常,请联系管理人员"
                         });
                     }
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统出现异常,请联系管理人员"
                     });
@@ -569,7 +598,8 @@ var registerRef = new Vue({
         },
         addOneRow() {
             if (!this.register.goodsTypePath) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: '请先选择商品类型'
                 });
@@ -579,21 +609,24 @@ var registerRef = new Vue({
                 let arr = this.registerArray;
                 for (var i = 0; i < arr.length; i++) {
                     if (!arr[i].goodsNo) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: '请先选择商品编码'
                         });
                         return;
                     }
                     if (!arr[i].count) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: '请先填写数量'
                         });
                         return;
                     }else{
                         if(arr[i].count <= 0){
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先填写大于0的数量'
                             });
@@ -601,14 +634,16 @@ var registerRef = new Vue({
                         }
                     }
                     if (!arr[i].totalWeight) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: '请先填写总重'
                         });
                         return;
                     }else{
                         if(arr[i].totalWeight <= 0){
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先填写大于0的总重'
                             });
@@ -709,14 +744,16 @@ var registerRef = new Vue({
                         });
 
                     } else {
-                        _this.$Modal.error({
+                        _this.$Modal.warning({
+                            title:'提示信息',
                             scrollable: true,
                             content: "系统异常,请联系技术人员！",
                         })
                     }
                 },
                 error: function (err) {
-                    _this.$Modal.error({
+                    _this.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -750,7 +787,8 @@ var registerRef = new Vue({
 
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -759,7 +797,8 @@ var registerRef = new Vue({
         },
         isHintShow(status) {
             if (status && this.typeValue && this.isHint && this.categoryType && this.register.goodsList.length > 0) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {

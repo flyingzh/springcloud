@@ -28,7 +28,7 @@
             <i-form label-width="120">
                 <row>
                     <i-col span="8">
-                        <form-item label="退库去向">
+                        <form-item label="退库去向：">
                             <i-select
                                     transfer
                                     class="ht-width-input"
@@ -38,22 +38,22 @@
                                 <i-option :value="3">转维修</i-option>
                             </i-select>
                         </form-item>
-                        <form-item label="单据编号">
+                        <form-item label="单据编号：">
                             <i-input class="ht-width-input" v-model="body.orderNo"></i-input>
                         </form-item>
                     </i-col>
                     <i-col span="8">
-                        <form-item label="商品类型">
+                        <form-item label="商品类型：">
                             <cascader class="ht-width-input" :data="categoryType" trigger="hover"
                                       v-model="body.goodsTypePath" @on-change="changeProductType"></cascader>
                         </form-item>
-                        <form-item label="日期">
+                        <form-item label="日期：">
                             <date-picker v-model="dateArr" format="yyyy/MM/dd" type="daterange" placement="bottom-end"
                                          placeholder="请选择日期" class="ht-width-input"></date-picker>
                         </form-item>
                     </i-col>
                     <i-col span="8">
-                        <form-item label="供应商">
+                        <form-item label="供应商：">
                             <!--<i-select class="ht-width-input" ref="supplier" filterable clearable-->
                                       <!--v-model="body.supplierId">-->
                                 <!--<i-option v-for="item in suppliers" :value="item.id">{{item.supplierCode}} |-->

@@ -11,7 +11,7 @@ var vm = new Vue({
             saveDisable: true,
             is_update: false,
             showModal: false,
-            addBorder:false,//控制校验边框颜色
+            addBorder: false,//控制校验边框颜色
             selectOrginId: [],
             imgList: [],
             // 配置表头
@@ -53,7 +53,7 @@ var vm = new Vue({
             },
             clientType: [],
             //列表页面
-            dataValue:[],
+            dataValue: [],
             body: {
                 name: "",
                 beforetime: "",
@@ -73,7 +73,7 @@ var vm = new Vue({
                 code: "",
                 name: "",
                 abbreviation: "",
-                pricingMethod:"",
+                pricingMethod: "",
                 level: "",
                 nature: "",
                 zipCode: "",
@@ -149,11 +149,11 @@ var vm = new Vue({
             change_log: {
                 colNames: ['变更信息', '变更前', '变更后', '变更日期', '变更人'],
                 colModel: [
-                    {name: 'changeInfo', index: '', width: 250, align: "center"},
-                    {name: 'operationBefore', index: '', width: 250, align: "center"},
-                    {name: 'operationAfter', index: '', width: 250, align: "center"},
-                    {name: 'operationTime', index: '', width: 250, align: "center"},
-                    {name: 'userName', index: '', width: 250, align: "center"},
+                    { name: 'changeInfo', index: '', width: 250, align: "center" },
+                    { name: 'operationBefore', index: '', width: 250, align: "center" },
+                    { name: 'operationAfter', index: '', width: 250, align: "center" },
+                    { name: 'operationTime', index: '', width: 250, align: "center" },
+                    { name: 'userName', index: '', width: 250, align: "center" },
                 ],
             },
             logUrl: contextPath + "/tbasecustomer/changeLog?type=customer&id=-1",
@@ -175,7 +175,7 @@ var vm = new Vue({
                             return myCode;
                         }
                     },
-                    {name: 'name', index: '', width: 350, align: "left"},
+                    { name: 'name', index: '', width: 350, align: "left" },
                     {
                         name: 'level ',
                         index: '',
@@ -192,7 +192,7 @@ var vm = new Vue({
                             return vl;
                         }
                     },
-                    {name: 'concreteAddress', index: 'address', width: 550, align: "left"},
+                    { name: 'concreteAddress', index: 'address', width: 550, align: "left" },
                     {
                         name: 'contactName',
                         index: '',
@@ -206,69 +206,71 @@ var vm = new Vue({
                         align: "left",
 
                     },
-                    {name: 'remark', width: 350, align: "left"},
-                    {name: 'createName', width: 350, align: "left"},
-                    {name: 'createTime', width: 600, align: "left"},
+                    { name: 'remark', width: 350, align: "left" },
+                    { name: 'createName', width: 350, align: "left" },
+                    { name: 'createTime', width: 600, align: "left" },
                 ]
             },
-            stoneNo:'',//石价表编码
-            stoneName:'',//石价表名称
-            stoneReload:true,
-            tabId:"tabId",
-            stoneSelected:[],
+            stoneNo: '',//石价表编码
+            stoneName: '',//石价表名称
+            stoneReload: true,
+            tabId: "tabId",
+            stoneSelected: [],
             stone_data_config:
-                {
-                    url: contextPath + "/saleStonePriceController/listByPage",
-                    colNames:
-                        ['选择', '石价表编号', '石价表名称', '创建日期', '创建人'],
-                    colModel:
-                        [
-                            {name: 'id', index: 'id', hidden: false,width: 50, align: "left",
-                                formatter: function (value, grid, rows, state) {
-                                    let cssClass = ".detail" + value;
-                                    $(document).off('click', cssClass).on('click', cssClass, function () {
-                                        This.detailClick({value, grid, rows, state})
-                                    });
-                                    let myCode = `<a class="detail${value}">选择</a>`;
-                                    return myCode;
-                                }
-                            },
-                            {name: 'stonePriceNo', index: 'stonePriceNo', width: 250, align: "left",},
-                            {name: 'name', index: 'name', width: 250, align: "left"},
-                            {name: 'createTime', index: 'createTime', width: 250, align: "left",
-                                formatter: function (value, grid, rows, state) {
-                                    return new Date(value).format("yyyy-MM-dd");
-                                }
-                            },
-                            {name: 'createName', index: 'createName', width: 250, align: "left"},
-                        ],
-                    multiselect: false,
-                }
+            {
+                url: contextPath + "/saleStonePriceController/listByPage",
+                colNames:
+                    ['选择', '石价表编号', '石价表名称', '创建日期', '创建人'],
+                colModel:
+                    [
+                        {
+                            name: 'id', index: 'id', hidden: false, width: 50, align: "left",
+                            formatter: function (value, grid, rows, state) {
+                                let cssClass = ".detail" + value;
+                                $(document).off('click', cssClass).on('click', cssClass, function () {
+                                    This.detailClick({ value, grid, rows, state })
+                                });
+                                let myCode = `<a class="detail${value}">选择</a>`;
+                                return myCode;
+                            }
+                        },
+                        { name: 'stonePriceNo', index: 'stonePriceNo', width: 250, align: "left", },
+                        { name: 'name', index: 'name', width: 250, align: "left" },
+                        {
+                            name: 'createTime', index: 'createTime', width: 250, align: "left",
+                            formatter: function (value, grid, rows, state) {
+                                return new Date(value).format("yyyy-MM-dd");
+                            }
+                        },
+                        { name: 'createName', index: 'createName', width: 250, align: "left" },
+                    ],
+                multiselect: false,
+            }
         }
     },
     created() {
         this.loadData();
     },
     methods: {
-        detailClick({value, grid, rows, state}){
-             this.customer.stonePriceCode = rows.stonePriceNo
-             this.showStoneList = false;
-             //this.customer = rows.id
+        detailClick({ value, grid, rows, state }) {
+            this.customer.stonePriceCode = rows.stonePriceNo
+            this.showStoneList = false;
+            //this.customer = rows.id
         },
         //点击搜索按钮
         searchCut() {
             let config = {
                 postData:
-                    {
-                        stonePriceNo: this.stoneNo,
-                        name: this.stoneName
-                    }
+                {
+                    stonePriceNo: this.stoneNo,
+                    name: this.stoneName
+                }
             }
             //根据单号请求数据
-            $("#"+this.tabId).jqGrid('setGridParam', config).trigger("reloadGrid");
+            $("#" + this.tabId).jqGrid('setGridParam', config).trigger("reloadGrid");
         },
         //点击清空按钮
-        searchClear(){
+        searchClear() {
 
             //将搜索框数据清空
             this.stoneNo = ""
@@ -276,14 +278,14 @@ var vm = new Vue({
 
             let info = {
                 postData:
-                    {
-                        stonePriceNo: this.stoneNo,
-                        name: this.stoneName
-                    }
+                {
+                    stonePriceNo: this.stoneNo,
+                    name: this.stoneName
+                }
             }
             //表格重新加载
             $("#" + this.tabId).jqGrid('clearGridData')
-            $("#"+this.tabId).jqGrid('setGridParam', info).trigger("reloadGrid");
+            $("#" + this.tabId).jqGrid('setGridParam', info).trigger("reloadGrid");
         },
         loadData() {
             let _this = this;
@@ -320,20 +322,22 @@ var vm = new Vue({
                         _this.colContent = orgnArr;
                     } else {
                         _this.$Modal.error({
+                            title: '提示',
                             content: "服务器异常，请联系技术人员"
                         });
                     }
                 },
                 error: function (err) {
                     _this.$Modal.error({
+                        title: '提示',
                         content: "服务器异常，请联系技术人员"
                     });
                 },
             })
         },
-          changeDate(value) {
-            this.body.beforetime = value[0]=="" ? "" : (value[0].replace(/\//g, '-') + ' 00:00:00');
-            this.body.aftertime = value[1]=="" ? "" : (value[1].replace(/\//g, '-') + ' 23:59:59');
+        changeDate(value) {
+            this.body.beforetime = value[0] == "" ? "" : (value[0].replace(/\//g, '-') + ' 00:00:00');
+            this.body.aftertime = value[1] == "" ? "" : (value[1].replace(/\//g, '-') + ' 23:59:59');
         },
         search() {
             var _vm = this;
@@ -344,14 +348,14 @@ var vm = new Vue({
                 _vm.body.ids = arr;
             }, 10);
         },
-        clearItem(name, ref){
-            if(this.$refs[ref]){
+        clearItem(name, ref) {
+            if (this.$refs[ref]) {
                 this.$refs[ref].reset();
             }
-            this.$nextTick(()=>{
+            this.$nextTick(() => {
                 this.body[name] = '';
             })
-          },
+        },
         clearbody() {
             // this.$refs.start.date = '';
             // this.$refs.end.date = '';
@@ -429,8 +433,8 @@ var vm = new Vue({
                     if (r.code == 100100) {
                         That.customer = r.data;
                         That.customer.registratDate = r.data.registratDate;
-                        if(r.data.billingMethod){
-                            let method =  JSON.parse(r.data.billingMethod);
+                        if (r.data.billingMethod) {
+                            let method = JSON.parse(r.data.billingMethod);
                             That.customer.billingMethod = method;
                         }
                         // That.$refs.start.date = r.data.registratDate.substr(0,10);
@@ -462,38 +466,41 @@ var vm = new Vue({
             var That = this;
             if (That.selected.length < 1) {
                 That.$Modal.info({
-                    content:"请选择要删除的数据"
+                    title: '提示信息',
+                    content: "请选择要删除的数据"
                 })
                 return;
             } else {
                 this.$Modal.confirm({
-                    title:'提示信息',
-                    content:'当前数据有可能被引用，会影响数据准确性，确认是否删除？',
-                    onOk:() => {
-                            $.ajax({
-                                type: "post",
-                                url: contextPath + "/tbasecustomer/delete",
-                                data: JSON.stringify(That.selected),
-                                contentType: 'application/json',
-                                success: function (r) {
-                                    That.selected = [];
-                                    if (r.code == "100100") {
-                                        setTimeout(function(){
-                                            That.$Modal.success({
-                                                content:"删除成功！"
-                                            });
-                                        },300)
-                                        That.reload = !That.reload;
-                                    } else {
-                                        setTimeout(function(){
-                                            vm.$Modal.info({
-                                                content:'删除失败，请稍后再试！'
-                                            })
-                                        },300)
-                                    }
+                    title: '提示信息',
+                    content: '当前数据有可能被引用，会影响数据准确性，确认是否删除？',
+                    onOk: () => {
+                        $.ajax({
+                            type: "post",
+                            url: contextPath + "/tbasecustomer/delete",
+                            data: JSON.stringify(That.selected),
+                            contentType: 'application/json',
+                            success: function (r) {
+                                That.selected = [];
+                                if (r.code == "100100") {
+                                    setTimeout(function () {
+                                        That.$Modal.success({
+                                            title: '提示信息',
+                                            content: "删除成功！"
+                                        });
+                                    }, 300)
+                                    That.reload = !That.reload;
+                                } else {
+                                    setTimeout(function () {
+                                        vm.$Modal.info({
+                                            title: '提示信息',
+                                            content: '删除失败，请稍后再试！'
+                                        })
+                                    }, 300)
                                 }
-                          });
-                      }
+                            }
+                        });
+                    }
                 })
             }
 
@@ -545,8 +552,8 @@ var vm = new Vue({
                             if (r.data.registratDate) {
                                 That.$refs.startTime.date = r.data.registratDate.substr(0, 10);
                             }
-                            if(r.data.billingMethod){
-                                let method =  JSON.parse(r.data.billingMethod);
+                            if (r.data.billingMethod) {
+                                let method = JSON.parse(r.data.billingMethod);
                                 That.customer.billingMethod = method;
                             }
                             //地址回显
@@ -566,7 +573,8 @@ var vm = new Vue({
             } else {
 
                 That.$Modal.info({
-                    content:"请选择一条数据进行更新!"
+                    title: '提示信息',
+                    content: "请选择一条数据进行更新!"
                 });
             }
         },
@@ -577,7 +585,8 @@ var vm = new Vue({
                 this.show(vl);
             } else {
                 this.$Modal.info({
-                    content:"请选择一条数据!"
+                    title: '提示信息',
+                    content: "请选择一条数据!"
                 });
             }
 
@@ -611,56 +620,65 @@ var vm = new Vue({
             }
             if (!That.customer.name) {
                 That.$Modal.info({
-                    content:"请填写客户名称!"
+                    title: '提示信息',
+                    content: "请填写客户名称!"
                 });
                 return;
             }
             if (!That.customer.abbreviation) {
                 That.$Modal.info({
-                    content:"请填写客户简称!"
+                    title: '提示信息',
+                    content: "请填写客户简称!"
                 });
                 return;
             }
             if (!That.customer.level) {
                 That.$Modal.info({
-                    content:"请选择客户等级!"
+                    title: '提示信息',
+                    content: "请选择客户等级!"
                 });
                 return;
             }
             if (!That.customer.nature) {
                 That.$Modal.info({
-                    content:"请选择客户性质!"
+                    title: '提示信息',
+                    content: "请选择客户性质!"
                 });
                 return;
             }
             if (!That.customer.payWay) {
                 That.$Modal.info({
-                    content:"请选择付款方式!"
+                    title: '提示信息',
+                    content: "请选择付款方式!"
                 });
                 return;
             }
             if (!That.customer.pricingMethod) {
                 That.$Modal.info({
-                    content:"请选择计价方式!"
+                    title: '提示信息',
+                    content: "请选择计价方式!"
                 });
                 return;
             }
             if (!That.customer.billingCurrency) {
                 That.$Modal.info({
-                    content:"请选择结算币种!"
+                    title: '提示信息',
+                    content: "请选择结算币种!"
                 });
                 return;
             }
             if (!That.customer.billingCurrency) {
                 That.$Modal.info({
-                    content:"请选择结算方式!"
+                    title: '提示信息',
+                    content: "请选择结算方式!"
                 });
                 return;
             }
-            if(That.customer.pricingMethod == 2){
-                if(!That.customer.stonePriceCode){
+            if (That.customer.pricingMethod == 2) {
+                if (!That.customer.stonePriceCode) {
                     That.$Modal.info({
-                        content:"请选择石价表!"
+                        title: '提示信息',
+                        content: "请选择石价表!"
                     });
                     return;
                 }
@@ -674,7 +692,8 @@ var vm = new Vue({
                     }
                     if (!contacts[i].name) {
                         That.$Modal.info({
-                            content:"请填写联系人姓名!"
+                            title: '提示信息',
+                            content: "请填写联系人姓名!"
                         });
                         return;
                     }
@@ -682,13 +701,15 @@ var vm = new Vue({
                         var reg = /^1(3|4|5|7|8)\d{9}$/;
                         if (!reg.test(contacts[i].phone)) {
                             That.$Modal.info({
-                                content:"请检查你的手机号是否正确!"
+                                title: '提示信息',
+                                content: "请检查你的手机号是否正确!"
                             });
                             return;
                         }
                     } else {
                         That.$Modal.info({
-                            content:"请填写联系人手机号!"
+                            title: '提示信息',
+                            content: "请填写联系人手机号!"
                         });
                         return;
                     }
@@ -696,52 +717,59 @@ var vm = new Vue({
                         var reg = /^[a-z0-9]+([._\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$/;
                         if (!reg.test(contacts[i].email)) {
                             That.$Modal.info({
-                                content:"请请检查你的邮箱是否正确!"
+                                title: '提示信息',
+                                content: "请请检查你的邮箱是否正确!"
                             });
                             return;
                         }
                     } else {
                         That.$Modal.info({
-                            content:"请填写联系人邮箱!"
+                            title: '提示信息',
+                            content: "请填写联系人邮箱!"
                         });
                         return;
                     }
                 }
                 if (!flag) {
                     That.$Modal.info({
-                        content:"请选择一个默认的联系人!"
+                        title: '提示信息',
+                        content: "请选择一个默认的联系人!"
                     });
                     return;
                 }
             } else {
                 That.$Modal.info({
-                    content:"请至少填写一位联系人的信息!"
+                    title: '提示信息',
+                    content: "请至少填写一位联系人的信息!"
                 });
                 return;
             }
-                if (That.customer.backCards && vm.customer.backCards.length > 0) {
-                    for (var i = 0; i < vm.customer.backCards.length; i++) {
-                        if (!That.customer.backCards[i].name) {
-                            That.$Modal.info({
-                                content:"请填写账户信息!"
-                            });
-                            return;
-                        }
-                        if (!That.customer.backCards[i].account) {
-                            That.$Modal.info({
-                                content:"请填写账户信息!"
-                            });
-                            return;
-                        }
-                        if (!That.customer.backCards[i].holder) {
-                            That.$Modal.info({
-                                content:"请填写开户人信息!"
-                            });
-                            return;
-                        }
+            if (That.customer.backCards && vm.customer.backCards.length > 0) {
+                for (var i = 0; i < vm.customer.backCards.length; i++) {
+                    if (!That.customer.backCards[i].name) {
+                        That.$Modal.info({
+                            title: '提示信息',
+                            content: "请填写账户信息!"
+                        });
+                        return;
                     }
-
+                    if (!That.customer.backCards[i].account) {
+                        That.$Modal.info({
+                            title: '提示信息',
+                            content: "请填写账户信息!"
+                        });
+                        return;
+                    }
+                    if (!That.customer.backCards[i].holder) {
+                        That.$Modal.info({
+                            title: '提示信息',
+                            content: "请填写开户人信息!"
+                        });
+                        return;
+                    }
                 }
+
+            }
 
             That.saveDisable = false;
             if ($('form').valid()) {
@@ -758,21 +786,24 @@ var vm = new Vue({
                     success: function (r) {
                         if (r.code == "100100") {
                             That.$Modal.success({
-                                content:r.data
+                                title: '提示信息',
+                                content: r.data
                             });
                             That.saveDisable = true;
                             That.exit();
                             That.reload = !That.reload;
                         } else if (r.code == "100101") {
                             That.$Modal.info({
-                                content:"保存失败,请检查你的参数是否重复!"
+                                title: '提示信息',
+                                content: "保存失败,请检查你的参数是否重复!"
                             });
                             That.saveDisable = true;
                         }
                     },
                     error: function (err) {
                         That.$Modal.error({
-                            content:"服务器出错,请联系技术人员!"
+                            title: '提示信息',
+                            content: "服务器出错,请联系技术人员!"
                         });
                         That.saveDisable = true;
                     },
@@ -786,7 +817,7 @@ var vm = new Vue({
         },
 
         openReceipt() {
-            if(this.isView){
+            if (this.isView) {
                 return;
             }
             this.showStoneList = true;
@@ -843,8 +874,8 @@ var vm = new Vue({
                                 fileType: "",
                                 fileDetails: []
                             };
-                            if(r.data.billingMethod){
-                                let method =  JSON.parse(r.data.billingMethod);
+                            if (r.data.billingMethod) {
+                                let method = JSON.parse(r.data.billingMethod);
                                 That.customer.billingMethod = method;
                             }
                             if (That.customer.fileId) {
@@ -879,15 +910,17 @@ var vm = new Vue({
                     },
                     error: function (err) {
                         That.$Modal.error({
-                            content:"服务器出错,请联系技术人员!"
+                            title: '提示信息',
+                            content: "服务器出错,请联系技术人员!"
                         });
                     },
                 })
             } else {
                 That.$Modal.info({
-                        content:"请选择一条数据进行复制!"
-                    });
-                    return;
+                    title: '提示信息',
+                    content: "请选择一条数据进行复制!"
+                });
+                return;
             }
         },
         contactChecked(index) {
@@ -988,8 +1021,8 @@ var vm = new Vue({
             //     }
             // });
             this.$Modal.confirm({
-                title:'提示信息',
-                content:'确认删除本条记录吗？',
+                title: '提示信息',
+                content: '确认删除本条记录吗？',
                 onOk: () => {
                     vm.customer.contacts.splice(i, 1);
                 }
@@ -1007,11 +1040,11 @@ var vm = new Vue({
             //     }
             // })
             this.$Modal.confirm({
-                title:'提示信息',
-                content:'确认删除本条记录吗？',
+                title: '提示信息',
+                content: '确认删除本条记录吗？',
                 onOk: () => {
                     vm.customer.backCards.splice(i, 1);
-                 }
+                }
             })
 
         },
@@ -1029,8 +1062,8 @@ var vm = new Vue({
             //     }
             // })
             this.$Modal.confirm({
-                title:'提示信息',
-                content:'确认删除本条记录吗？',
+                title: '提示信息',
+                content: '确认删除本条记录吗？',
                 onOk: () => {
                     var sysFiles = this.customer.sysFile.fileDetails[i];
                     sysFiles.del = true;
@@ -1052,7 +1085,8 @@ var vm = new Vue({
             this.selectOrginId = [];
             if (this.selected.length == 0) {
                 this.$Modal.warning({
-                    content:"请选择行!"
+                    title:'提示信息',
+                    content: "请选择行!"
                 });
                 return;
             }
@@ -1061,7 +1095,8 @@ var vm = new Vue({
         okModel() {
             if (this.selectOrginId.length == 0) {
                 this.$Modal.warning({
-                    content:"请选择分配组织!"
+                    title:'提示信息',
+                    content: "请选择分配组织!"
                 });
                 return;
             }
@@ -1083,17 +1118,20 @@ var vm = new Vue({
                 success: function (result) {
                     if (result.code === "100100") {
                         that.$Modal.success({
-                            content:"分配成功!"
+                            title:'提示信息',
+                            content: "分配成功!"
                         });
                         that.selectOrginId = [];
                     } else {
                         that.$Modal.info({
-                            content:result.msg
+                            title:'提示信息',
+                            content: result.msg
                         });
                     }
                 },
                 error: function (err) {
                     that.$Modal.info({
+                        title:'提示信息',
                         content: "服务器出错,请联系技术人员"
                     });
                 },
@@ -1129,6 +1167,7 @@ var vm = new Vue({
                             //obj.upload(index, file);
                             if (file.size > 2 * 1024 * 1024) {
                                 This.$Modal.info({
+                                    title:'提示信息',
                                     content: "请上传小于2M的文件"
                                 });
                                 layer.close(index);
@@ -1157,6 +1196,7 @@ var vm = new Vue({
                         if (res.code == 100100) {
                             //上传完毕回调
                             This.$Modal.info({
+                                title:'提示信息',
                                 content: "上传成功"
                             });
                             if (res.data != null) {
@@ -1173,6 +1213,7 @@ var vm = new Vue({
                             }
                         } else {
                             This.$Modal.error({
+                                title:'提示信息',
                                 content: "上传失败，请联系人员"
                             });
                         }
@@ -1181,6 +1222,7 @@ var vm = new Vue({
                     , error: function () {
                         //请求异常回调
                         This.$Modal.error({
+                            title:'提示信息',
                             content: "上传失败，请检查文件的大小"
                         });
                     }
@@ -1200,13 +1242,14 @@ var vm = new Vue({
             });
         },
         cancle() {
-            window.parent.closeCurrentTab({exit: true, openTime: this.openTime})
+            window.parent.closeCurrentTab({ exit: true, openTime: this.openTime })
         },
         validatephone(val) {
             if (val != "") {
                 var reg = /^1(3|4|5|7|8)\d{9}$/;
                 if (!reg.test(val)) {
                     this.$Modal.info({
+                        title:'提示信息',
                         content: "请填写正确手机号"
                     });
                 }
@@ -1217,6 +1260,7 @@ var vm = new Vue({
                 var reg = /^[a-z0-9]+([._\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$/;
                 if (!reg.test(val)) {
                     this.$Modal.info({
+                        title:'提示信息',
                         content: "请填写正确的邮箱"
                     });
                 }
@@ -1236,6 +1280,7 @@ var vm = new Vue({
                 vm.customer.sysFile.fileDetails.push(fileDetails);
             } else {
                 this.$Modal.error({
+                    title:'提示信息',
                     content: "上传失败"
                 });
             }
@@ -1248,7 +1293,7 @@ var vm = new Vue({
         },
         handleMaxSize(file) {
             this.$Notice.warning({
-                title: '提示',
+                title:'提示信息',
                 desc: '文件: ' + file.name + ' 的大小超过2M,请上传小于2M的文件'
             });
         },
@@ -1374,11 +1419,11 @@ var vm = new Vue({
             $("#customerForm").validate(validateOptions);
         }
     },
-    watch:{
-        'customer.billingMethod':function(newValue,oldValue){
-            if(!newValue || newValue.length === 0){
+    watch: {
+        'customer.billingMethod': function (newValue, oldValue) {
+            if (!newValue || newValue.length === 0) {
                 this.addBorder = true;
-            }else{
+            } else {
                 this.addBorder = false;
             }
         }

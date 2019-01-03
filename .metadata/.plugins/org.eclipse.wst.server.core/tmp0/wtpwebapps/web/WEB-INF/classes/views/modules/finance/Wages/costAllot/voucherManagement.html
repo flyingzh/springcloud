@@ -20,6 +20,7 @@
         <button @click="delFun" class="ht-btn">删除凭证</button>
         <button @click="mimeograph" class="ht-btn">打印</button>
         <button @click="closeWindow" class="ht-btn">退出</button>
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
     </div>
     <p class="mt10 ml20">
         <label>总账会计期间：</label>
@@ -36,8 +37,11 @@
     <div class="jqGrid_wrapper_parent pl20 pr20 mt10">
         <table id="grid"></table>
     </div>
+
 </div>
+<script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
 <script src="${rc.contextPath}/js/finance/Wages/costAllot/voucherManagement.js"></script>
-#parse("modules/public/footer.html") </body>
+#parse("modules/public/footer.html")
+</body>
 
 </html>

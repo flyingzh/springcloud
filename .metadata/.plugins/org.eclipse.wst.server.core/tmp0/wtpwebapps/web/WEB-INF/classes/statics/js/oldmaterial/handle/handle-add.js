@@ -94,7 +94,7 @@ var vm = new Vue({
             steplist: [],
             approvalTableData: [],
             //附件
-            boeType: 'P_ORDER',
+            boeType: 'O_MATERIALS_HANDLE',
 
         }
     },
@@ -228,12 +228,14 @@ var vm = new Vue({
 
                     } else {
                         _this.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器异常,请联系技术人员！'
                         })
                     }
                 },
                 error: function (err) {
                     _this.$Modal.warning({
+                        title:'提示信息',
                         content: '网络异常,请联系技术人员！'
                     })
                 },
@@ -242,25 +244,7 @@ var vm = new Vue({
         //根据商品编码
         getSelectedItem(data, index) {//获取选中的那条数据
             let This = this;
-            // $.ajax({
-            //     type: "post",
-            //     url: contextPath + '/tbasecommodity/getBriefById/' + params.id,
-            //     dataType: "json",
-            //     success: function (data) {
-            //
-            //
-            //     },
-            //     error: function () {
-            //         This.$Modal.warning({
-            //             content:'服务器出错啦'
-            //         })
-            //     }
-            // })
             let res = data.data;
-            //转换重量, 数量单位,计价单位
-            // res.countUnitId = This.unitMap[res.countUnitId];
-            // res.weightUnitId = This.unitMap[res.weightUnitId];
-            console.log(res);
             let newValue = {};
             Object.assign(newValue, {
                 goodsNo: res.code,//商品编码
@@ -346,6 +330,7 @@ var vm = new Vue({
                         // 调用方法保存附件
                         This.saveAccess(data.data.id, This.boeType);
                         This.$Modal.success({
+                            title:'提示信息',
                             content: type == 'save' ? '保存成功！' : '提交成功'
                         });
                         //查询附件
@@ -365,6 +350,7 @@ var vm = new Vue({
                         }
                     } else {//保存失败
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: data.msg
                         })
                         This.isSaveDisable = false;
@@ -393,6 +379,7 @@ var vm = new Vue({
                         // 调用方法保存附件
                         This.saveAccess(data.data.id, This.boeType);
                         This.$Modal.success({
+                            title:'提示信息',
                             content: type == 'save' ? '保存成功！' : '提交成功！'
                         });
                         //查询附件
@@ -411,6 +398,7 @@ var vm = new Vue({
                         }
                     } else {//保存失败
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: data.msg
                         })
                         This.isSaveDisable = false;
@@ -653,6 +641,7 @@ var vm = new Vue({
                 },
                 error: function () {
                     that.$Modal.info({
+                        title:'提示信息',
                         content: '服务器出错，请稍后再试！'
                     })
 
@@ -705,6 +694,7 @@ var vm = new Vue({
                 error: function () {
                     // console.log('服务器出错，请稍后再试');
                     vm.$Modal.info({
+                        title:'提示信息',
                         content: '服务器出错，请稍后再试！'
                     })
                 }
@@ -753,6 +743,7 @@ var vm = new Vue({
                     },
                     error: function (err) {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！'
                         })
                     }
@@ -803,6 +794,7 @@ var vm = new Vue({
                     },
                     error: function (err) {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！'
                         })
                     }

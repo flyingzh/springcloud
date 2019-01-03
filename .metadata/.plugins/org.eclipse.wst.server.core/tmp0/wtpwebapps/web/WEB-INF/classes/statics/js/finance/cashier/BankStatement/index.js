@@ -467,12 +467,20 @@ var ve = new Vue({
                 dataType: 'json',
                 success: function (result) {
                     if (result.code == '100100') {
-                        layer.alert(result.msg);
+                        ve.$Modal.success({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                         _vm.addVisible = false;
                         Object.assign(_vm.editData, _vm.addData);
                         _vm.initMethod();
                     } else {
-                        layer.alert(result.msg)
+                        ve.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:result.msg,
+                        })
                     }
                 }
             })
@@ -813,7 +821,11 @@ var ve = new Vue({
                 loadComplete: function (xhr) {
 
                     if (xhr.code != '100100') {
-                        layer.alert(xhr.msg);
+                        ve.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:xhr.msg,
+                        })
                         return;
                     }
 
@@ -852,7 +864,11 @@ var ve = new Vue({
                             }
                         });
                     } else {
-                        layer.alert('请求错误')
+                        ve.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:"请求错误!",
+                        })
                     }
                 }
             });
@@ -873,7 +889,11 @@ var ve = new Vue({
                             }
                         });
                     } else {
-                        layer.alert('请求错误')
+                        ve.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:"请求错误!",
+                        })
                     }
                 }
             });

@@ -2022,11 +2022,10 @@ var testDocumentVm = new Vue({
             $(".chevron").css("top","")
         },
         handlerClose(){
-            if((!this.documentStatus || this.documentStatus == "temporary_save") && (this.htHaveChange || accessVm.htHaveChange)){
+            if((!this.documentStatus || this.documentStatus == "temporary_save") && (this.htHaveChange)){
                 this.$nextTick(()=>{
                     this.$refs.closeModalRef.showCloseModal();
                 });
-
                 return false;
             }
 

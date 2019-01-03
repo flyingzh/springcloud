@@ -3,6 +3,7 @@ let UserListVM = new Vue({
     data() {
         let This = this;
         return {
+            SUCCESS_CODE: "100100",
             isShow: false,
             reload: false,
             selected: [],
@@ -15,20 +16,26 @@ let UserListVM = new Vue({
                     index: "loginName",
                     width: 200,
                     align: "center"
-                }, {name: "username", index: "username", width: 200, align: "center"}, {
-                    name: "userCode",
-                    index: "userCode",
+                }, {
+                    name: "username",
+                    index: "username",
                     width: 200,
                     align: "center"
-                }, {name: "email", index: "email", width: 200, align: "center"}, {
-                    name: "status",
-                    index: "status",
-                    width: 200,
-                    align: "center",
-                    formatter: function (e, r, t, n) {
-                        return 1 == e ? "正常" : "禁用"
-                    }
-                }],
+                },
+                    {
+                        name: "empCode",
+                        index: "empCode",
+                        width: 200,
+                        align: "center"
+                    }, {name: "email", index: "email", width: 200, align: "center"}, {
+                        name: "status",
+                        index: "status",
+                        width: 200,
+                        align: "center",
+                        formatter: function (e, r, t, n) {
+                            return 1 == e ? "正常" : "禁用"
+                        }
+                    }],
                 multiselect: true,
                 multiboxonly: true,
             }
@@ -75,17 +82,18 @@ let UserListVM = new Vue({
             // 判断所选行有且仅有一条
             if (!this.checkRowNum()) return;
             var id = this.selected[0];
+            var ids = new Array(id);
             let This = this;
             $.ajax({
                 type: 'POST',
                 url: contextPath + '/user/delete',
                 contentType: 'application/json',
-                data: id,
+                data: JSON.stringify(ids),
                 dataType: '',
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {
-                        This.messageTip('info', '删除用户成功');
-                        This.reload = !This.reload;
+                        This.messageTip('success', '删除用户成功');
+                        This.refresh();
                     } else {
                         This.messageTip('error', res.msg);
                     }
@@ -136,6 +144,13 @@ let UserListVM = new Vue({
             }
             if (type === 'error') {
                 this.$Modal.error({
+                    title: "提示",
+                    okText: "确定",
+                    content: message
+                });
+            }
+            if (type === 'success') {
+                this.$Modal.success({
                     title: "提示",
                     okText: "确定",
                     content: message

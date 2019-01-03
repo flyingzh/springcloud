@@ -46,7 +46,7 @@
         <button @click="refresh" class="ht-btn">刷新</button>
         <button @click="open" class="ht-btn">打开</button>
         <button class="ht-btn" @click="exportExcel">引出</button>
-        <button class="ht-btn" @click="print">打印</button>
+        <button class="ht-btn" @click="printV">打印</button>
         <button class="ht-btn" @click="exitPrevent">退出</button>
     </div>
     <div class="pl20 pr20 mt10">
@@ -142,7 +142,7 @@
                     </i-option>
                 </i-select>
                 <label class="w60 ml20">所属部门：</label>
-                <i-input class="inline-block w200" icon="search" v-model="formData.deptName" @on-click="showDepartmentTree(true,'showDept')"></i-input>
+                <i-input readonly class="inline-block w200" icon="search" v-model="formData.deptName" @on-click="showDepartmentTree(true,'showDept')"></i-input>
                 <div v-show="showDept" style="position: absolute;top: 33px; left: 370px;z-index: 8;background: #fff;border: 1px solid #ccc;">
                     <ht-input-tree url="${rc.contextPath}/testDocument/getCurrentUserDeptInfo" :setting="showDepartmentTreeSetting"></ht-input-tree>
                 </div>

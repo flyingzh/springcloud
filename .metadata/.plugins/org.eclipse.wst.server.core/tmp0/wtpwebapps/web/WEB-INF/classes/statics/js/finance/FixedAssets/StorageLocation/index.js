@@ -181,7 +181,7 @@ var ve = new Vue({
             })
         },
         codeCheck(value) {
-            let newData = value.replace(/\./g,".");
+            let newData = value.replace(/\./g,"");
             if(!isNaN(newData)){
                 return true;
             }

@@ -6,26 +6,26 @@ var parvm = new Vue({
             isEdit: false,
             isView: false,
             reload: false,
-            disabledFlag : false,
-            typeNameFlag:true,
+            disabledFlag: false,
+            typeNameFlag: true,
             subjectFlag: true,
-            showSourceModal:true,
-            cateFlag:false,
-            buttonFlag:true,
+            showSourceModal: true,
+            cateFlag: false,
+            buttonFlag: true,
             subjectSelected: [],
             childNodes: 1,
-            openTime:"",
+            openTime: "",
             isSearchHide: true, //搜索栏
             categoryFlag: false,
-            codeFlag:false,
+            codeFlag: false,
             showView: false,
             supplierReload: false,
             showModal: false,
-            supplier_selected:[],
-            organizationInfo:{
+            supplier_selected: [],
+            organizationInfo: {
                 id: ''
             },
-            tmp:'',
+            tmp: '',
             status: [
                 {
                     value: 2,
@@ -36,50 +36,50 @@ var parvm = new Vue({
                     label: '借方'
                 }
             ],
-            inputorder:{
-                stocktCode:{
-                    id:'',
-                    name:''
+            inputorder: {
+                stocktCode: {
+                    id: '',
+                    name: ''
                 },
-                saleRevenue:{
-                    id:'',
-                    name:''
+                saleRevenue: {
+                    id: '',
+                    name: ''
                 },
-                saleCostCode:{
-                    id:'',
-                    name:''
+                saleCostCode: {
+                    id: '',
+                    name: ''
                 },
-                costDiffCode:{
-                    id:'',
-                    name:''
+                costDiffCode: {
+                    id: '',
+                    name: ''
                 },
             },
             cashSelected: [],
-            selected:[],
+            selected: [],
             banks: [],
-            searchBody:{
+            searchBody: {
                 name: '',
                 code: ''
             },
-            subjectEntity:{
+            subjectEntity: {
                 id: '',
                 subjectCode: '',
                 subjectName: '',
                 balanceDirection: '',
-                subjectCategoryName:''
+                subjectCategoryName: ''
             },
-            subjectSearchBody:{
+            subjectSearchBody: {
                 id: '',
-                fullSubjectCode:'',
+                fullSubjectCode: '',
                 treeHeight: '',
                 subjectName: '',
                 balanceDirection: ''
             },
-            modalType:'',
-            titleName:'',
-            openAddCommodity:false,
-            ruleCommodity:{name:[{required:true}]},
-            treeName:'',
+            modalType: '',
+            titleName: '',
+            openAddCommodity: false,
+            ruleCommodity: { name: [{ required: true }] },
+            treeName: '',
             nodeData: [
                 // { id: 1, parentId: 0, name: "分类", open: true },//一级科目，默认展开
                 // { id: 11, parentId: 1, name: "分类2" },
@@ -92,8 +92,8 @@ var parvm = new Vue({
             setting1: {
                 //注意：如果使用如上简单Json数据，以下data.simpleData.enable必须设置为true。
                 data: {
-                    view:{
-                        dblClickExpand:false
+                    view: {
+                        dblClickExpand: false
                     },
                     simpleData: {
                         enable: true,
@@ -110,8 +110,8 @@ var parvm = new Vue({
                 }
 
             },
-            treeUrl:contextPath+"/tbasecommoditycategory/list",
-            subjectUrl:contextPath+"/tbaseAccountSubject/accountSubjectTree",
+            treeUrl: contextPath + "/tbasecommoditycategory/list",
+            subjectUrl: contextPath + "/tbaseAccountSubject/accountSubjectTree",
             subjectSetting: {
                 //注意：如果使用如上简单Json数据，以下data.simpleData.enable必须设置为true。
                 data: {
@@ -136,11 +136,11 @@ var parvm = new Vue({
                 },
             },
             receiveDate: [],
-            superiorCategory:[],
-            body:{
+            superiorCategory: [],
+            body: {
                 code: '',
                 name: '',
-                customCode:''
+                customCode: ''
             },
             commodityInfo: {
                 id: '',
@@ -167,54 +167,58 @@ var parvm = new Vue({
                 remark: "",
                 pricingType: ""
             },
-            parentCategory:{
+            parentCategory: {
                 id: '',
                 name: '',
-                code:'',
+                code: '',
                 customCode: '',
                 sort: '',
                 parentId: '',
                 organizationId: ''
             },
-            unitWeightGroup:[],
-            unitWeight:[],
-            unitCountGroup:[],
-            unitCount:[],
+            unitWeightGroup: [],
+            unitWeight: [],
+            unitCountGroup: [],
+            unitCount: [],
 
-            data_config:{
-                url: contextPath+'/tbasecommoditycategotyinfo/list',
-                colNames : [ '类型编码', '类型名称', '上级类型', '有效状态', '描述','称差下限值', '称差上限值','分类名称'],
-                colModel : [
-                    {name : 'code',width : 200, align : "left",
-                        formatter:function (value, grid, rows, state) {
+            data_config: {
+                url: contextPath + '/tbasecommoditycategotyinfo/list',
+                colNames: ['类型编码', '类型名称', '上级类型', '有效状态', '描述', '称差下限值', '称差上限值', '分类名称'],
+                colModel: [
+                    {
+                        name: 'code', width: 200, align: "left",
+                        formatter: function (value, grid, rows, state) {
 
                             console.log(rows)
-                            $(document).off('click', ".detail" + rows.id).on('click',".detail"+ rows.id,
-                                function(){
-                                        This.detailClick({value, grid, rows, state})
-                                    });
-                            let myCode =  `<a class="detail${rows.id}">${value}</a>`;
-                               return  myCode;
-                        }},
-                    {name : 'name',width : 200,align : "left"},
-                    {name : 'superiorTypeName',width : 150,align : "left"},
-                    {name : 'status',width : 150, align : "left",sortable : false,formatter:function (value) {
-                        if(value == 1){
-                            return "有效"
+                            $(document).off('click', ".detail" + rows.id).on('click', ".detail" + rows.id,
+                                function () {
+                                    This.detailClick({ value, grid, rows, state })
+                                });
+                            let myCode = `<a class="detail${rows.id}">${value}</a>`;
+                            return myCode;
                         }
-                        return "无效" ;
-                    }},
-                    {name : 'remark',width : 200,align : "left"},
-                    {name : 'minRatingDifference',width : 130,align : "right"},
-                    {name : 'maxRatingDifference',width : 130,sortable : false, align : "right"},
-                    {name : 'crategoryId',width : 130,sortable : false, align : "left",hidden:true},
+                    },
+                    { name: 'name', width: 200, align: "left" },
+                    { name: 'superiorTypeName', width: 150, align: "left" },
+                    {
+                        name: 'status', width: 150, align: "left", sortable: false, formatter: function (value) {
+                            if (value == 1) {
+                                return "有效"
+                            }
+                            return "无效";
+                        }
+                    },
+                    { name: 'remark', width: 200, align: "left" },
+                    { name: 'minRatingDifference', width: 130, align: "right" },
+                    { name: 'maxRatingDifference', width: 130, sortable: false, align: "right" },
+                    { name: 'crategoryId', width: 130, sortable: false, align: "left", hidden: true },
                 ]
             },
             base_config: {
                 colNames: ['操作', '科目代码', '科目名称', '科目类别', '余额方向'],
                 colModel: [
                     {
-                        name: 'codes', index: 'invdate', width: 50, align : "left",
+                        name: 'codes', index: 'invdate', width: 50, align: "left",
                         formatter: function (value, grid, rows, state) {
                             $(document).on("click", ".select" + rows.id, function () {
                                 This.doSelect(value, grid, rows, state)
@@ -223,14 +227,14 @@ var parvm = new Vue({
                             return btns
                         }
                     },
-                    { name: 'subjectCode', index: 'subjectCode', width: 100, align : "left" },
-                    { name: 'subjectName', index: 'subjectName', width: 100, align : "left" },
-                    { name: 'tBaseSubjectBalanceEntity.subjectCategory', index: 'subjectCategoryName', width: 80, align : "left" },
+                    { name: 'subjectCode', index: 'subjectCode', width: 100, align: "left" },
+                    { name: 'subjectName', index: 'subjectName', width: 100, align: "left" },
+                    { name: 'tBaseSubjectBalanceEntity.subjectCategory', index: 'subjectCategoryName', width: 80, align: "left" },
                     {
                         name: 'balanceDirection',
                         index: 'balanceDirection',
                         width: 80,
-                        align : "left",
+                        align: "left",
                         formatter: function (value, grid, rows, state) {
                             if (value == 1) {
                                 return '借方';
@@ -250,7 +254,7 @@ var parvm = new Vue({
                     page: "page",
                     rows: "limit",
                     sort: "sidx",
-                    order:"order"
+                    order: "order"
                 },
                 mtype: "POST",//向后台请求数据的ajax的类型。可选post,get
                 contentType: 'application/json',
@@ -264,7 +268,7 @@ var parvm = new Vue({
                 rowList: [10, 30, 50],
                 pager: "#my_pager_id",
                 //url: "./chenxiaotian.json",
-                url: contextPath+"/tbaseAccountSubject/list",
+                url: contextPath + "/tbaseAccountSubject/list",
                 onPaging() {
 
                 },
@@ -272,13 +276,13 @@ var parvm = new Vue({
         }
     },
     methods: {
-        keyDown(){},
+        keyDown() { },
         hideSearch() {
             this.isSearchHide = !this.isSearchHide;
-            $(".chevron").css("top","")
+            $(".chevron").css("top", "")
         },
-        clickEvent(event,treeId,treeNode){
-            console.log(treeId,treeNode);
+        clickEvent(event, treeId, treeNode) {
+            console.log(treeId, treeNode);
             this.parentCategory.id = treeNode.id;
             this.body.customCode = treeNode.customCode;
             this.parentCategory.parentId = treeNode.parentId;
@@ -286,7 +290,7 @@ var parvm = new Vue({
             // this.parentCategory.code = treeNode.code;
             // this.parentCategory.name = treeNode.name;
             this.parentCategory.sort = treeNode.sort;
-            if(treeNode.parentId == 0){
+            if (treeNode.parentId == 0) {
                 this.commodityInfo.customCode = '';
             }
             this.treeName = treeNode.name;
@@ -298,68 +302,69 @@ var parvm = new Vue({
         },
 
 
-        findNodes(treeNode)
-        {
+        findNodes(treeNode) {
             var count;
             /*判断是不是父节点,是的话找出子节点个数，加一是为了给新增节点*/
-            if(treeNode.isParent) {
-                count = treeNode.children.length + 1 ;
+            if (treeNode.isParent) {
+                count = treeNode.children.length + 1;
             } else {
                 /*如果不是父节点,说明没有子节点,设置为1*/
                 count = 1;
             }
             return count;
         },
-        addCancel(){
+        addCancel() {
             this.openAddCommodity = false;
             this.parentCategory.code = '';
             this.parentCategory.name = '';
         },
-        addSure(){
+        addSure() {
             //校验
-            let isFormPass,This = this;
-            this.$refs['addCommodity'].validate((valid)=>{
-                if(valid){
+            let isFormPass, This = this;
+            this.$refs['addCommodity'].validate((valid) => {
+                if (valid) {
                     isFormPass = true;
                 } else {
                     isFormPass = false;
                 }
-             })
-            if(!isFormPass) {
+            })
+            if (!isFormPass) {
                 return;
             }
-            if(this.modalType == 'add'){
+            if (this.modalType == 'add') {
                 parvm.parentCategory.parentId = parvm.parentCategory.id;
                 parvm.codeFlag = false;
             }
-            let url = this.modalType == 'add'?'/tbasecommoditycategory/save':'/tbasecommoditycategory/update';
+            let url = this.modalType == 'add' ? '/tbasecommoditycategory/save' : '/tbasecommoditycategory/update';
             $.ajax({
                 type: "POST",
-                url: contextPath+url,
+                url: contextPath + url,
                 contentType: 'application/json',
                 data: JSON.stringify(parvm.parentCategory),
                 success: function (data) {
                     console.log(data);
                     if (data.code === "100100") {
                         This.$Modal.success({
-                            content: This.modalType == 'add'?'新增成功！':'修改成功！',
-                            onOk:() => {
+                            title: '提示',
+                            content: This.modalType == 'add' ? '新增成功！' : '修改成功！',
+                            onOk: () => {
                                 This.buttonFlag = true;
                                 //待定 刷新
                                 location.reload();
                             }
                         });
-                    }else{
+                    } else {
                         This.$Modal.warning({
-                            content:data.msg
+                            title: '提示',
+                            content: data.msg
                         })
                     }
                 }
             })
         },
-        showCategory(para){
+        showCategory(para) {
             this.modalType = para;
-            this.titleName = para == 'add'?'新增商品分类':'修改商品分类';
+            this.titleName = para == 'add' ? '新增商品分类' : '修改商品分类';
             this.openAddCommodity = true;
         },
         addCategoty() {
@@ -370,7 +375,8 @@ var parvm = new Vue({
             if (ids == '' || ids == 'undefined') {
                 // layer.alert("请先选择一条商品分类!");
                 this.$Modal.info({
-                    content:"请先选择一条商品分类!"
+                    title: '提示',
+                    content: "请先选择一条商品分类!"
                 })
                 return false;
             }
@@ -426,12 +432,12 @@ var parvm = new Vue({
             })
             */
         },
-        queryCategory(){
+        queryCategory() {
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbasecommoditycategory/infoById',
-                data: {id: this.parentCategory.id},
-                success:function (result) {
+                url: contextPath + '/tbasecommoditycategory/infoById',
+                data: { id: this.parentCategory.id },
+                success: function (result) {
                     console.log(result)
                     parvm.parentCategory.name = result.data.name
                     parvm.parentCategory.code = result.data.code
@@ -448,7 +454,8 @@ var parvm = new Vue({
             parvm.disabledFlag = false
             if (ids == '' || ids == 'undefined') {
                 this.$Modal.info({
-                    content:'请先选择一条商品分类!'
+                    title: '提示',
+                    content: '请先选择一条商品分类!'
                 })
                 return false;
             }
@@ -502,12 +509,13 @@ var parvm = new Vue({
 
 
 
-        delCategory(){
+        delCategory() {
             let This = this;
             console.log(parvm.parentCategory.id)
-            if(!parvm.parentCategory.id){
+            if (!parvm.parentCategory.id) {
                 this.$Modal.info({
-                    content:"请选择商品类别!"
+                    title: '提示',
+                    content: "请选择商品类别!"
                 })
                 return
             }
@@ -523,31 +531,33 @@ var parvm = new Vue({
                 },
             })
         },
-        deleteCategoryTmp(id){
+        deleteCategoryTmp(id) {
             let This = this
             $.ajax({
                 type: "POST",
-                url: contextPath+"/tbasecommoditycategory/delete",
-                data: {id: id},
+                url: contextPath + "/tbasecommoditycategory/delete",
+                data: { id: id },
                 success: function (data) {
-                    if(data.code == "100100"){
+                    if (data.code == "100100") {
                         // layer.closeAll('dialog');  //加入这个信息点击确定 会关闭这个消息框
                         // layer.alert(data.msg);
-                     setTimeout(function(){
-                         This.$Modal.success({
-                             content:"删除成功！",
-                             onOk: () => {
-                                location.reload();
-                                parvm.parentCategory.id = ''
-                            }
-                         })
-                     },300)
-                    }else{
-                      setTimeout(function(){
-                          This.$Modal.warning({
-                              content:data.msg
-                          })
-                      },300)
+                        setTimeout(function () {
+                            This.$Modal.success({
+                                title: '提示',
+                                content: "删除成功！",
+                                onOk: () => {
+                                    location.reload();
+                                    parvm.parentCategory.id = ''
+                                }
+                            })
+                        }, 300)
+                    } else {
+                        setTimeout(function () {
+                            This.$Modal.warning({
+                                title:'提示信息',
+                                content: data.msg
+                            })
+                        }, 300)
                     }
                 },
                 error: function (err) {
@@ -556,21 +566,23 @@ var parvm = new Vue({
 
             })
         },
-        add_click(){
+        add_click() {
             let that = this
             that.clear()
             parvm.codeFlag = false
-            if(that.parentCategory.id == ''){
+            if (that.parentCategory.id == '') {
                 // layer.alert("请先选择一条商品分类!");
                 this.$Modal.info({
-                    content:'请先选择一条商品分类!'
+                    title:'提示信息',
+                    content: '请先选择一条商品分类!'
                 })
                 return false;
             }
-            if(that.childNodes > 1){
+            if (that.childNodes > 1) {
                 // layer.alert("该商品分类下存在下级分类，禁止添加商品分类明细！");
                 this.$Modal.info({
-                    content:'该商品分类下存在下级分类，禁止添加商品分类明细!'
+                    title:'提示信息',
+                    content: '该商品分类下存在下级分类，禁止添加商品分类明细!'
                 })
                 return false;
             }
@@ -582,10 +594,10 @@ var parvm = new Vue({
             this.isEdit = true;
             this.buttonFlag = true
         },
-        copy(){
+        copy() {
             console.log("进复制了。。。")
             this.buttonFlag = true
-            var rowData = jQuery("#mytable").jqGrid('getRowData',this.selected[0]);
+            var rowData = jQuery("#mytable").jqGrid('getRowData', this.selected[0]);
             console.log(rowData)
             parvm.treeName = rowData.superiorTypeName
             parvm.commodityInfo.crategoryId = rowData.crategoryId
@@ -593,10 +605,11 @@ var parvm = new Vue({
             console.log(this.isEdit)
             this.commodityInfo.id = this.selected[0]
             parvm.codeFlag = false
-            if(this.selected.length != 1){
+            if (this.selected.length != 1) {
                 // layer.alert("请先勾选一行商品分类详情!");
                 this.$Modal.info({
-                    content:'请先勾选一行商品分类详情!'
+                    title:'提示信息',
+                    content: '请先勾选一行商品分类详情!'
                 })
                 return false;
             }
@@ -623,7 +636,7 @@ var parvm = new Vue({
             })
             console.log(ids)
             this.$Modal.confirm({
-                title: '系统提示',
+                title: '提示',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -633,18 +646,19 @@ var parvm = new Vue({
             })
         },
 
-        del_click(){
+        del_click() {
             let This = this;
             let ids = This.selected
             if (!ht.util.hasValue(ids, "array")) {
                 This.$Modal.info({
-                    content:'请先选择一条记录!'
+                    title:'提示信息',
+                    content: '请先选择一条记录!'
                 })
                 return false;
             }
 
             this.$Modal.confirm({
-                title: '系统提示',
+                title: '提示',
                 content: '<p>删除的摘要将不能恢复，请确认是否删除？</p>',
                 okText: '确定',
                 cancelText: '取消',
@@ -653,27 +667,29 @@ var parvm = new Vue({
                 },
             })
         },
-        deleteInfoTmp(ids){
+        deleteInfoTmp(ids) {
             let This = this
             $.ajax({
                 type: "POST",
-                url: contextPath+"/tbasecommoditycategotyinfo/delete",
+                url: contextPath + "/tbasecommoditycategotyinfo/delete",
                 contentType: 'application/json',
                 data: JSON.stringify(ids),
                 dataType: "json",
                 success: function (data) {
-                    if(data.code == "100100"){
-                        setTimeout(function(){
+                    if (data.code == "100100") {
+                        setTimeout(function () {
                             This.$Modal.success({
-                                content:data.data
+                                title:'提示信息',
+                                content: data.data
                             })
                             This.reload = !This.reload;
                             This.selected = []
-                        },300)
-                    }else{
+                        }, 300)
+                    } else {
                         // layer.alert(data.msg)
                         This.$Modal.warning({
-                            content:data.msg
+                            title:'提示信息',
+                            content: data.msg
                         })
                     }
 
@@ -681,44 +697,44 @@ var parvm = new Vue({
             })
         },
 
-        getUnitWeightByGroupId(){
+        getUnitWeightByGroupId() {
             let that = this
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbaseunit/list',
-                data:{groupId: that.commodityInfo.weightGroupId},
-                success:function (result) {
+                url: contextPath + '/tbaseunit/list',
+                data: { groupId: that.commodityInfo.weightGroupId },
+                success: function (result) {
                     console.log(result)
                     that.unitWeight = result.data;
                 }
             })
         },
-        getUnitCountByGroupId(){
+        getUnitCountByGroupId() {
             let that = this
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbaseunit/list',
-                data:{groupId: that.commodityInfo.countGroupId},
-                success:function (result) {
+                url: contextPath + '/tbaseunit/list',
+                data: { groupId: that.commodityInfo.countGroupId },
+                success: function (result) {
                     console.log(result)
                     that.unitCount = result.data;
                 }
             })
         },
-        sure(){
+        sure() {
             this.reload = !this.reload;
         },
-        categoryClear(){
+        categoryClear() {
             this.parentCategory = {
                 id: '',
                 name: '',
-                code:'',
+                code: '',
                 customCode: '',
                 parentId: '',
                 organizationId: ''
             }
         },
-        clear(){
+        clear() {
             this.commodityInfo = {
                 id: '',
                 crategoryId: "",
@@ -744,67 +760,69 @@ var parvm = new Vue({
                 remark: "",
                 pricingType: ""
             },
-                this.body={
+                this.body = {
                     code: '',
                     name: '',
-                    customCode:parvm.body.customCode
+                    customCode: parvm.body.customCode
                 }
         },
-        bodyClear(){
-            this.body={
+        bodyClear() {
+            this.body = {
                 code: '',
                 name: '',
-                customCode:parvm.body.customCode
+                customCode: parvm.body.customCode
             }
         },
-        subjectClear(){
-            this.inputorder={
-                stocktCode:{
-                    id:'',
-                        name:''
+        subjectClear() {
+            this.inputorder = {
+                stocktCode: {
+                    id: '',
+                    name: ''
                 },
-                saleRevenue:{
-                    id:'',
-                        name:''
+                saleRevenue: {
+                    id: '',
+                    name: ''
                 },
-                saleCostCode:{
-                    id:'',
-                        name:''
+                saleCostCode: {
+                    id: '',
+                    name: ''
                 },
-                costDiffCode:{
-                    id:'',
-                        name:''
+                costDiffCode: {
+                    id: '',
+                    name: ''
                 },
             }
         },
-        modify(){
+        modify() {
             let This = this;
             let ids = This.selected
             this.buttonFlag = true
             parvm.disabledFlag = false
-            if (this.selected.length>1){
+            if (this.selected.length > 1) {
                 // layer.msg('修改只能对单条数据进行操作！')
                 This.$Modal.info({
-                    content:'修改只能对单条数据进行操作！'
+                    title:'提示信息',
+                    content: '修改只能对单条数据进行操作！'
                 })
                 return false
             }
             if (!ht.util.hasValue(ids, "array")) {
                 This.$Modal.info({
-                    content:"请先选择一条记录!"
+                    title:'提示信息',
+                    content: "请先选择一条记录!"
                 })
                 // layer.alert("请先选择一条记录!");
                 return false;
-            }else{
+            } else {
                 parvm.codeFlag = true
                 parvm.commodityInfo.id = this.selected[0];
                 let $obj = $("#my_from #categoryCode")
                 console.log($obj)
                 $.ajax({
                     type: 'POST',
-                    url: contextPath+'/tbasecommoditycategotyinfo/info',
-                    data: {id: parvm.commodityInfo.id},
-                    success:function (result) {
+                    url: contextPath + '/tbasecommoditycategotyinfo/info',
+                    data: { id: parvm.commodityInfo.id },
+                    success: function (result) {
                         parvm.commodityInfo = result.data
                         console.log(result)
                         parvm.copySubject(result)
@@ -817,7 +835,7 @@ var parvm = new Vue({
             //请求详情信息
         },
 
-        copySubject(result){
+        copySubject(result) {
             parvm.inputorder.stocktCode.id = result.data.stocktCodeId
             parvm.inputorder.saleRevenue.id = result.data.saleRevenueId
             parvm.inputorder.saleCostCode.id = result.data.saleCostCodeId
@@ -843,7 +861,7 @@ var parvm = new Vue({
         subClear() {
             this.subjectSearchBody = {
                 id: '',
-                fullSubjectCode:'',
+                fullSubjectCode: '',
                 treeHeight: '',
                 subjectName: '',
                 balanceDirection: ''
@@ -861,20 +879,21 @@ var parvm = new Vue({
             this.buttonFlag = true
             this.subjectSearchBody = {
                 id: '',
-                fullSubjectCode:'',
+                fullSubjectCode: '',
                 treeHeight: '',
                 subjectName: '',
                 balanceDirection: ''
             }
         },
         exit() {
-            window.parent.closeCurrentTab({exit: true, openTime: this.openTime});
+            window.parent.closeCurrentTab({ exit: true, openTime: this.openTime });
         },
-        test(order){
-            this.tmp = order ;
+        test(order) {
+            if(disabledFlag) return;
+            this.tmp = order;
             this.showModal = true;
         },
-        subjectClickEvent(event,treeId,treeNode){
+        subjectClickEvent(event, treeId, treeNode) {
 
             console.log(treeNode)
             this.subjectSearchBody.fullSubjectCode = treeNode.fullSubjectCode
@@ -882,25 +901,26 @@ var parvm = new Vue({
             this.search()
         },
 
-        view(){
+        view() {
             let This = this;
             let ids = This.selected
             if (!ht.util.hasValue(ids, "array")) {
                 // layer.alert("请先选择一条记录!");
                 This.$Modal.info({
-                    content:"请先选择一条记录!"
+                    title:'提示信息',
+                    content: "请先选择一条记录!"
                 })
                 return false;
-            }else{
+            } else {
                 this.commodityInfo.id = this.selected[0];
                 this.isEdit = true;
             }
             parvm.codeFlag = true
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbasecommoditycategotyinfo/info',
-                data: {id: parvm.commodityInfo.id},
-                success:function (result) {
+                url: contextPath + '/tbasecommoditycategotyinfo/info',
+                data: { id: parvm.commodityInfo.id },
+                success: function (result) {
                     parvm.commodityInfo = result.data
                     console.log(result)
                 }
@@ -908,12 +928,12 @@ var parvm = new Vue({
             parvm.getUnitWeightByGroupId()
             parvm.getUnitCountByGroupId()
         },
-        queryCommodityInfo(){
+        queryCommodityInfo() {
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbasecommoditycategotyinfo/info',
-                data: {id: parvm.commodityInfo.id},
-                success:function (result) {
+                url: contextPath + '/tbasecommoditycategotyinfo/info',
+                data: { id: parvm.commodityInfo.id },
+                success: function (result) {
                     parvm.commodityInfo = result.data
                     parvm.commodityInfo.id = ''
                     parvm.commodityInfo.code = ''
@@ -926,7 +946,7 @@ var parvm = new Vue({
             parvm.getUnitWeightByGroupId()
             parvm.getUnitCountByGroupId()
         },
-        save(){
+        save() {
             let This = this;
             This.commodityInfo.stocktCodeId = This.inputorder.stocktCode.id
             This.commodityInfo.saleCostCodeId = This.inputorder.saleCostCode.id
@@ -939,7 +959,8 @@ var parvm = new Vue({
                     if (This.commodityInfo.pricingType == '' || This.commodityInfo.pricingType == 'undefined') {
                         // layer.alert("请勾选计价类型!");
                         This.$Modal.info({
-                            content:"请勾选计价类型!"
+                            title:'提示信息',
+                            content: "请勾选计价类型!"
                         })
                         return false;
                     }
@@ -947,12 +968,13 @@ var parvm = new Vue({
 
                     $.ajax({
                         type: "POST",
-                        url: contextPath+"/tbasecommoditycategotyinfo/save",
+                        url: contextPath + "/tbasecommoditycategotyinfo/save",
                         contentType: 'application/json',
                         data: JSON.stringify(This.commodityInfo),
                         success: function (data) {
                             if (data.code === "100100") {
                                 This.$Modal.success({
+                                    title:'提示信息',
                                     content: "保存成功!",
                                 });
                                 parvm.clear()
@@ -963,6 +985,7 @@ var parvm = new Vue({
 
                             } else {
                                 This.$Modal.warning({
+                                    title:'提示信息',
                                     content: "系统出现异常,请联系管理人员!"
                                 });
                             }
@@ -973,13 +996,14 @@ var parvm = new Vue({
                 } else {
                     $.ajax({
                         type: 'POST',
-                        url: contextPath+'/tbasecommoditycategotyinfo/update',
+                        url: contextPath + '/tbasecommoditycategotyinfo/update',
                         contentType: 'application/json',
                         data: JSON.stringify(parvm.commodityInfo),
                         success: function (result) {
                             console.log(result)
                             if (result.code === "100100") {
                                 This.$Modal.success({
+                                    title:'提示信息',
                                     content: "更新成功!",
                                 });
                                 This.buttonFlag = true
@@ -990,6 +1014,7 @@ var parvm = new Vue({
 
                             } else {
                                 This.$Modal.warning({
+                                    title:'提示信息',
                                     content: "系统出现异常,请联系管理人员!"
                                 });
 
@@ -1000,35 +1025,35 @@ var parvm = new Vue({
                 This.buttonFlag = true
             }
         },
-        queryWeightUnitById(){
+        queryWeightUnitById() {
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbaseunit/infoUnitById',
-                data: {id: parvm.commodityInfo.weightUnitId},
-                success:function (result) {
+                url: contextPath + '/tbaseunit/infoUnitById',
+                data: { id: parvm.commodityInfo.weightUnitId },
+                success: function (result) {
                     console.log(result)
                     parvm.commodityInfo.weightUnitId = result.data.name
                 }
             })
         },
-        queryCountUnitById(){
+        queryCountUnitById() {
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbaseunit/infoUnitById',
-                data: {id: parvm.commodityInfo.countUnitId},
-                success:function (result) {
+                url: contextPath + '/tbaseunit/infoUnitById',
+                data: { id: parvm.commodityInfo.countUnitId },
+                success: function (result) {
                     console.log(result)
                     parvm.commodityInfo.countUnitId = result.data.name
                 }
             })
         },
-        initFormValidate(){
+        initFormValidate() {
             var validateOptions = {
                 rules: {
                     categoryCode: {
                         required: true,
-                        remote:{
-                            url: contextPath+"/tbasecommoditycategory/info",  //后台处理程序
+                        remote: {
+                            url: contextPath + "/tbasecommoditycategory/info",  //后台处理程序
                             type: "post",  //数据发送方式
                             dataType: "json",  //接受数据格式
                             data: {  //要传递的数据
@@ -1050,11 +1075,11 @@ var parvm = new Vue({
                     },
                     categoryName: {
                         required: true,
-                        remote:{
-                            url: contextPath+"/tbasecommoditycategory/info",  //后台处理程序
-                                type: "post",  //数据发送方式
-                                dataType: "json",  //接受数据格式
-                                data: {  //要传递的数据
+                        remote: {
+                            url: contextPath + "/tbasecommoditycategory/info",  //后台处理程序
+                            type: "post",  //数据发送方式
+                            dataType: "json",  //接受数据格式
+                            data: {  //要传递的数据
                                 name: function () {
                                     return parvm.parentCategory.name;
                                 }
@@ -1071,10 +1096,10 @@ var parvm = new Vue({
                             }
                         }
                     },
-                    infoCode:{
+                    infoCode: {
                         required: true,
-                        remote:{
-                            url: contextPath+"/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
+                        remote: {
+                            url: contextPath + "/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
                             type: "post",  //数据发送方式
                             dataType: "json",  //接受数据格式
                             data: {  //要传递的数据
@@ -1083,7 +1108,7 @@ var parvm = new Vue({
                                 },
                                 id: function () {
                                     // return parvm.commodityInfo.id;
-                                    if(parvm.commodityInfo.id == 'undefined'){
+                                    if (parvm.commodityInfo.id == 'undefined') {
                                         parvm.commodityInfo.id == ''
                                     }
                                     return parvm.commodityInfo.id;
@@ -1103,8 +1128,8 @@ var parvm = new Vue({
                     },
                     infoName: {
                         required: true,
-                        remote:{
-                            url: contextPath+"/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
+                        remote: {
+                            url: contextPath + "/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
                             type: "post",  //数据发送方式
                             dataType: "json",  //接受数据格式
                             data: {  //要传递的数据
@@ -1114,7 +1139,7 @@ var parvm = new Vue({
                                 id: function () {
                                     // return parvm.commodityInfo.id;
                                     console.log(parvm.commodityInfo.id)
-                                    if(parvm.commodityInfo.id == 'undefined'){
+                                    if (parvm.commodityInfo.id == 'undefined') {
                                         parvm.commodityInfo.id == ''
                                     }
                                     return parvm.commodityInfo.id;
@@ -1135,10 +1160,10 @@ var parvm = new Vue({
                     infoCodingCodeRules: {
                         required: true,
                         // TEST: true,
-                        validCode:true,
+                        validCode: true,
 
-                        remote:{
-                            url: contextPath+"/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
+                        remote: {
+                            url: contextPath + "/tbasecommoditycategotyinfo/infoByCodeAndNameAndRule",  //后台处理程序
                             type: "post",  //数据发送方式
                             dataType: "json",  //接受数据格式
                             data: {  //要传递的数据
@@ -1150,7 +1175,7 @@ var parvm = new Vue({
                                 },
                                 id: function () {
                                     // return parvm.commodityInfo.id;
-                                    if(parvm.commodityInfo.id == 'undefined'){
+                                    if (parvm.commodityInfo.id == 'undefined') {
                                         parvm.commodityInfo.id == ''
                                     }
                                     return parvm.commodityInfo.id;
@@ -1170,12 +1195,12 @@ var parvm = new Vue({
                     }, minRatingDifferenceName: {
                         required: false,
                         // TEST: true,
-                        validMinRatingName:true,
+                        validMinRatingName: true,
 
                     }, maxRatingDifferenceName: {
                         required: false,
                         // TEST: true,
-                        validMaxRatingName:true,
+                        validMaxRatingName: true,
 
                     },
                     infoStocktCode: {
@@ -1184,10 +1209,10 @@ var parvm = new Vue({
                     infoSaleRevenue: {
                         required: true,
                     },
-                    infoCaleCostCode:{
+                    infoCaleCostCode: {
                         required: true,
                     },
-                    infoCostDiffCode:{
+                    infoCostDiffCode: {
                         required: true,
                     },
 
@@ -1195,23 +1220,23 @@ var parvm = new Vue({
                 messages: {
                     categoryCode: {
                         required: "请填写编码!",
-                        remote:"商品分类编码已存在!"
+                        remote: "商品分类编码已存在!"
                     },
                     categoryName: {
                         required: "请填写名称!",
-                        remote:"商品分类名称已存在!"
+                        remote: "商品分类名称已存在!"
                     },
-                    infoCode:{
+                    infoCode: {
                         required: "请填写编码!",
-                        remote:"商品分类详情编码已存在!"
+                        remote: "商品分类详情编码已存在!"
                     },
                     infoName: {
                         required: "请填写名称!",
-                        remote:"商品分类详情名称已存在!"
+                        remote: "商品分类详情名称已存在!"
                     },
                     infoCodingCodeRules: {
                         required: "请填写编码取码规则!",
-                        remote:"商品分类详情编码已存在!"
+                        remote: "商品分类详情编码已存在!"
                     },
                     infoStocktCode: {
                         required: "请填写存货科目代码!",
@@ -1219,10 +1244,10 @@ var parvm = new Vue({
                     infoSaleRevenue: {
                         required: "请填写销售收入科目代码!",
                     },
-                    infoCaleCostCode:{
+                    infoCaleCostCode: {
                         required: "请填写销售成本科目代码!",
                     },
-                    infoCostDiffCode:{
+                    infoCostDiffCode: {
                         required: "请填写销售成本科目代码!",
                     },
                 }
@@ -1231,7 +1256,7 @@ var parvm = new Vue({
             $("#my_from").validate(validateOptions);
 
         },
-        cancel(){
+        cancel() {
             this.selected = []
             this.isEdit = false;
             parvm.categoryClear()
@@ -1240,12 +1265,12 @@ var parvm = new Vue({
             $("form").validate().resetForm();
             this.reload = !this.reload
         },
-        closeCancel(){},
+        closeCancel() { },
 
-        getUser(){
+        getUser() {
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbaseunit/findUser',
+                url: contextPath + '/tbaseunit/findUser',
                 success: function (result) {
                     console.log(result)
                     // parvm.unitInfo.createName = result.data.username
@@ -1255,7 +1280,7 @@ var parvm = new Vue({
                 }
             })
         },
-        detailClick(rows){
+        detailClick(rows) {
             console.log("金电极时间了。。。")
             let code = rows.value
             console.log(rows)
@@ -1263,9 +1288,9 @@ var parvm = new Vue({
             this.buttonFlag = false
             $.ajax({
                 type: 'POST',
-                url: contextPath+'/tbasecommoditycategotyinfo/info',
-                data: {code: code},
-                success:function (result) {
+                url: contextPath + '/tbasecommoditycategotyinfo/info',
+                data: { code: code },
+                success: function (result) {
                     console.log(result)
                     parvm.commodityInfo = result.data
                     parvm.inputorder.stocktCode.name = result.data.stocktCodeName
@@ -1284,17 +1309,17 @@ var parvm = new Vue({
 
         },
     },
-    created(){
+    created() {
         //this.getUser()
     },
-    watch:{
-        'isEdit':function(value){
-            if(value == true){
+    watch: {
+        'isEdit': function (value) {
+            if (value == true) {
                 $.ajax({
                     type: 'POST',
-                    url: contextPath+'/tbaseunitgroup/list',
-                    success:function (result) {
-                        parvm.unitWeightGroup=result.data
+                    url: contextPath + '/tbaseunitgroup/list',
+                    success: function (result) {
+                        parvm.unitWeightGroup = result.data
                         parvm.unitCountGroup = result.data
                         console.log(result)
                     }
@@ -1303,7 +1328,7 @@ var parvm = new Vue({
 
         }
     },
-    mounted(){
+    mounted() {
         this.initFormValidate();
 
         this.init()
@@ -1312,27 +1337,27 @@ var parvm = new Vue({
             var chrnum = /^([a-zA-Z0-9]{1})$/;
             return chrnum.test(value);
         }, "只能输入一位数字和字母(字符A-Z, a-z, 0-9)")
- jQuery.validator.addMethod("validMinRatingName", function (value, element) {
-            var chrnum =  /^((\-)\d+(\.\d+)? |0)$/;
+        jQuery.validator.addMethod("validMinRatingName", function (value, element) {
+            var chrnum = /^((\-)\d+(\.\d+)? |0)$/;
             console.log(value);
-            if( value > 0 || isNaN(value)){
+            if (value > 0 || isNaN(value)) {
                 return false;
-            }else{
+            } else {
                 return true;
             }
             // return chrnum.test(value);
-        }, "称差下限值只能输入负数或者0！") ,
-     jQuery.validator.addMethod("validMaxRatingName", function (value, element) {
-            var chrnum =  /^[1-9]\d*$/;
-            console.log(value);
-            if( value < 0 || isNaN(value)){
-                return false;
-            }else{
-                return true;
-            }
-            // return chrnum.test(value);
-        }, "称差上限值只能输入正数或者0！")
+        }, "称差下限值只能输入负数或者0！"),
+            jQuery.validator.addMethod("validMaxRatingName", function (value, element) {
+                var chrnum = /^[1-9]\d*$/;
+                console.log(value);
+                if (value < 0 || isNaN(value)) {
+                    return false;
+                } else {
+                    return true;
+                }
+                // return chrnum.test(value);
+            }, "称差上限值只能输入正数或者0！")
 
-        this.openTime=window.parent.params.openTime;
+        this.openTime = window.parent.params.openTime;
     }
 })

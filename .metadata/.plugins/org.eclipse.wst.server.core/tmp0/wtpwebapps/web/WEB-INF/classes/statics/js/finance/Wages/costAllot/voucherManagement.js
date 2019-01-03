@@ -14,6 +14,8 @@ new Vue({
             organizationList: [],
             periodList: [],
             selecteId:0,
+            printInfo: {},
+            printModal:false,
         }
     },
     created() {
@@ -173,7 +175,42 @@ new Vue({
         },
         //打印
         mimeograph() {
+            var that = this;
+            console.log(that.tableList, '=========that.tableList');
+            if (!that.tableList || !that.tableList.length) {
+                that.$Message.info({
+                    content: '无打印数据',
+                    duration: 3
+                });
+                return;
+            }
 
+            // 但表头选择打印
+            var _info = {
+                'title': '凭证管理',  // 标题
+                'template': 1,  // 模板
+                'titleInfo': [],      // title
+                'colNames': [       // 列名与对应字段名
+                    { 'name': '序号', 'col': 'id' },
+                    { 'name': '年份', 'col': 'accountingYear' },
+                    { 'name': '期间', 'col': 'accountingPeriod' },
+                    { 'name': '凭证号', 'col': 'voucherNumber' },
+                    { 'name': '摘要', 'col': 'summary' },
+                    { 'name': '分录数', 'col': 'entryCount' },
+                    { 'name': '借方金额', 'col': 'totalDebit' ,'formatNub':true },
+                    { 'name': '贷方方金额', 'col': 'totalCredit' ,'formatNub':true },
+                ],
+                'styleCss': '',   // 自定义样式 例：  thead{text-align: center;font-size: 14px;font-weight: 100;}
+                'colMaxLenght': 9,  // 显示最大长度， 默认为7
+                'data': that.tableList,  // 打印数据  list
+            }
+            // 弹窗选择列 模式
+            that.printInfo = _info;
+            that.printModalShow(true);
+
+        },
+        printModalShow (_t) {
+            this.printModal = _t;
         },
         closeWindow: function () {
             //关闭当前页签

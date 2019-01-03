@@ -231,7 +231,7 @@
                                 </label>
                                 <div class="col-xs-9">
 
-                                    <i-input name="infoStocktCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('stocktCode')"
+                                    <i-input name="infoStocktCode" :disabled="disabledFlag" class="ht-width-lg" icon="ios-search" @on-click.prevent="test('stocktCode')"
                                         v-model=inputorder.stocktCode.name></i-input>
 
                                 </div>
@@ -243,7 +243,7 @@
                                 </label>
                                 <div class="col-xs-9">
 
-                                    <i-input name="infoSaleRevenue" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('saleRevenue')"
+                                    <i-input name="infoSaleRevenue" :disabled="disabledFlag" class="ht-width-lg" icon="ios-search" @on-click.prevent="test('saleRevenue')"
                                         v-model=inputorder.saleRevenue.name></i-input>
                                 </div>
                             </div>
@@ -254,7 +254,7 @@
                                 </label>
                                 <div class="col-xs-9">
 
-                                    <i-input name="infoCaleCostCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('saleCostCode')"
+                                    <i-input name="infoCaleCostCode" :disabled="disabledFlag" class="ht-width-lg" icon="ios-search" @on-click.prevent="test('saleCostCode')"
                                         v-model=inputorder.saleCostCode.name></i-input>
                                 </div>
                             </div>
@@ -264,7 +264,7 @@
                                     成本差异科目代码：
                                 </label>
                                 <div class="col-xs-9">
-                                    <i-input name="infoCostDiffCode" :readonly="subjectFlag" class="ht-width-lg" icon="search" @on-click.prevent="test('costDiffCode')"
+                                    <i-input name="infoCostDiffCode" :disabled="disabledFlag" class="ht-width-lg" icon="ios-search" @on-click.prevent="test('costDiffCode')"
                                         v-model=inputorder.costDiffCode.name></i-input>
                                 </div>
                             </div>

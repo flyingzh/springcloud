@@ -249,14 +249,15 @@ var vm = new Vue({
         del(){
             let ids = [],flag = true;
             if(this.selected.length<1){
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content:'请至少选择一笔数据！'
                 });
                 return;
             } else {
                 for(let sub of this.selected) {
                     if(sub.orderStatus !== 1) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
                             title:'提示信息',
                             content:`编号为${sub.orderNo}的单据已进入审批流，不能删除！`
                         });
@@ -282,6 +283,7 @@ var vm = new Vue({
                                     if(data.code === '100100') {
                                         setTimeout(function(){
                                             vm.$Modal.success({
+                                                title:'提示信息',
                                                 content:'删除成功！'
                                             })
                                         },300)
@@ -289,13 +291,15 @@ var vm = new Vue({
                                     } else {
                                         setTimeout(function(){
                                             vm.$Modal.warning({
+                                                title:'提示信息',
                                                 content:'删除失败，请稍后再试！'
                                             })
                                         },300)
                                     }
                                 },
                                 error: function (e) {
-                                    vm.$Modal.error({
+                                    vm.$Modal.warning({
+                                        title:'提示信息',
                                         content: '系统出现异常，请稍后再试!',
                                         duration: 1.5,
                                         closable: true
@@ -337,6 +341,7 @@ var vm = new Vue({
                 },
                 error: function (err) {
                     That.$Modal.warning({
+                        title:'提示信息',
                         content:'服务器出错啦'
                     })
                 },

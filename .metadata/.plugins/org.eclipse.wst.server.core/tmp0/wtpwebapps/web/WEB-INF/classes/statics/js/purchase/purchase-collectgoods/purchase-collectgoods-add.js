@@ -190,6 +190,7 @@ var purchaseOrderList = new Vue({
                 },
                 error() {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -198,33 +199,41 @@ var purchaseOrderList = new Vue({
         },
         //审核或驳回组件返回数据回调函数
         approvalOrRejectCallBack(res) {
-            this.receive.orderStatus = res.result.data.orderStatus;
-            this.receive.auditor = res.result.data.auditor;
-            this.receive.auditTime = res.result.data.auditTime;
-            this.isEdit(this.receive.orderStatus == 1 ? "Y" : "N");
-            if (this.receive.orderStatus == 1) {
-                this.showSave = false;
-                this.showModify = false;
-                this.showSource = false;
-                this.isFromList = false;
-                if (this.receive.dataSource == 1) {
-                    this.showReceive = false;
-                    this.isShowGoodsCode = false;
-                } else {
+            if (res.result.code == '100100') {
+                this.receive.orderStatus = res.result.data.orderStatus;
+                this.receive.auditor = res.result.data.auditor;
+                this.receive.auditTime = res.result.data.auditTime;
+                this.isEdit(this.receive.orderStatus == 1 ? "Y" : "N");
+                if (this.receive.orderStatus == 1) {
+                    this.showSave = false;
+                    this.showModify = false;
+                    this.showSource = false;
+                    this.isFromList = false;
+                    if (this.receive.dataSource == 1) {
+                        this.showReceive = false;
+                        this.isShowGoodsCode = false;
+                    } else {
+                        this.isFromList = true;
+                        this.showReceive = true;
+                    }
+
+                }else{
+                    this.showSave = true;
+                    this.showModify = true;
+                    this.showSource = true;
                     this.isFromList = true;
-                    this.showReceive = true;
                 }
 
+                if(this.receive.orderStatus == 4){
+                    this.showApp = true;
+                }
             }else{
-                this.showSave = true;
-                this.showModify = true;
-                this.showSource = true;
-                this.isFromList = true;
+                this.$Modal.error({
+                    content: res.result.msg,
+                    title: '警告'
+                })
             }
 
-            if(this.receive.orderStatus == 4){
-                    this.showApp = true;
-            }
         },
 
         //获取所有单位
@@ -238,6 +247,7 @@ var purchaseOrderList = new Vue({
                 },
                 error() {
                     This.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -249,6 +259,7 @@ var purchaseOrderList = new Vue({
 
             if (this.receive.orderStatus == 4) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: "该单据已审核"
                 });
@@ -278,6 +289,7 @@ var purchaseOrderList = new Vue({
                 },
                 error: function () {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -330,6 +342,7 @@ var purchaseOrderList = new Vue({
         addOneRow() {
             if (!this.receive.goodsTypePath) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: '请先选择商品类型'
                 });
@@ -339,6 +352,7 @@ var purchaseOrderList = new Vue({
                 for (var i = 0; i < this.receive.collectGoods.length; i++) {
                     if (!this.receive.collectGoods[i].goodsCode) {
                         this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: '请先选择商品编码'
                         });
@@ -346,6 +360,7 @@ var purchaseOrderList = new Vue({
                     }
                     if (!this.receive.collectGoods[i].warehouseId) {
                         this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: '请先选择仓库'
                         });
@@ -354,6 +369,7 @@ var purchaseOrderList = new Vue({
                     if (this.receive.collectGoods[i].goodsMainType == 'attr_ranges_gold') {
                         if (!this.receive.collectGoods[i].actualWeight) {
                             this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请填写收货重量'
                             });
@@ -362,6 +378,7 @@ var purchaseOrderList = new Vue({
                     } else {
                         if (!this.receive.collectGoods[i].actualWeight) {
                             this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请填写收货重量'
                             });
@@ -369,6 +386,7 @@ var purchaseOrderList = new Vue({
                         }
                         if (!this.receive.collectGoods[i].actualCount) {
                             this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请填写收获数量'
                             });
@@ -474,6 +492,7 @@ var purchaseOrderList = new Vue({
                 },
                 error: function (err) {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统出现异常,请联系管理人员"
                     });
@@ -604,6 +623,7 @@ var purchaseOrderList = new Vue({
                     },
                     error: function () {
                         That.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: "系统异常,请联系技术人员！",
                         })
@@ -696,6 +716,7 @@ var purchaseOrderList = new Vue({
                 // }
                 if (That.receive.collectGoods.length == 0) {
                     this.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "单据无效,请选择商品进行添加!",
                     })
@@ -706,6 +727,7 @@ var purchaseOrderList = new Vue({
 
                         if (!good.goodsCode) {
                             this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先选择商品编码'
                             });
@@ -714,6 +736,7 @@ var purchaseOrderList = new Vue({
                         if (good.goodsMainType == 'attr_ranges_gold') {
                             if (!good.actualWeight) {
                                 this.$Modal.info({
+                                    title:'提示信息',
                                     scrollable: true,
                                     content: "您的收货重量还没有填写!",
                                 });
@@ -721,6 +744,7 @@ var purchaseOrderList = new Vue({
                             } else {
                                 if (good.actualWeight <= 0) {
                                     this.$Modal.info({
+                                        title:'提示信息',
                                         scrollable: true,
                                         content: "收货重量必须大于0!",
                                     });
@@ -730,6 +754,7 @@ var purchaseOrderList = new Vue({
                         } else {
                             if (!good.actualWeight) {
                                 this.$Modal.info({
+                                    title:'提示信息',
                                     scrollable: true,
                                     content: "您的收货重量还没有填写!",
                                 });
@@ -737,6 +762,7 @@ var purchaseOrderList = new Vue({
                             } else {
                                 if (good.actualWeight <= 0) {
                                     this.$Modal.info({
+                                        title:'提示信息',
                                         scrollable: true,
                                         content: "收货重量必须大于0!",
                                     });
@@ -746,6 +772,7 @@ var purchaseOrderList = new Vue({
 
                             if (!good.actualCount) {
                                 this.$Modal.info({
+                                    title:'提示信息',
                                     scrollable: true,
                                     content: "您的收货数量还没有填写!",
                                 });
@@ -753,6 +780,7 @@ var purchaseOrderList = new Vue({
                             } else {
                                 if (good.actualCount <= 0) {
                                     this.$Modal.info({
+                                        title:'提示信息',
                                         scrollable: true,
                                         content: "收货数量必须大于0!",
                                     });
@@ -763,6 +791,7 @@ var purchaseOrderList = new Vue({
 
                         if (!good.warehouseId) {
                             this.$Modal.info({
+                                title:'提示信息',
                                 scrollable: true,
                                 content: '请先选择仓库'
                             });
@@ -801,6 +830,7 @@ var purchaseOrderList = new Vue({
                     That.htHaveChange = false;
                     if (r.code == 100100) {
                         That.$Modal.success({
+                            title:'提示信息',
                             scrollable: true,
                             content: r.msg,
                         });
@@ -824,6 +854,7 @@ var purchaseOrderList = new Vue({
                         That.isEdit(That.receive.orderStatus == 1 ? "Y" : "N");
                     } else if (r.code == 100101) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: r.msg,
                         });
                         That.showSave = false;
@@ -836,6 +867,7 @@ var purchaseOrderList = new Vue({
                 },
                 error: function () {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -849,6 +881,7 @@ var purchaseOrderList = new Vue({
         isHintShow(status) {
             if (status && this.typeValue && this.isHint && this.categoryType && this.receive.collectGoods.length > 0) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
@@ -1029,6 +1062,7 @@ var purchaseOrderList = new Vue({
             if (!this.addShowOne) {
                 if (this.receive.collectGoods.length > 0) {
                     this.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: '已新增行,不能选取源单数据！',
                     });
@@ -1037,6 +1071,7 @@ var purchaseOrderList = new Vue({
             }
             if (!this.receive.businessType) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: "请选择业务类型"
                 });
@@ -1044,6 +1079,7 @@ var purchaseOrderList = new Vue({
             }
             if (!this.receive.sourceType) {
                 this.$Modal.info({
+                    title:'提示信息',
                     scrollable: true,
                     content: "请选择源单类型"
                 });
@@ -1119,6 +1155,7 @@ var purchaseOrderList = new Vue({
 
                     } else {
                         _this.$Modal.info({
+                            title:'提示信息',
                             scrollable: true,
                             content: "系统异常,请联系技术人员！",
                         })
@@ -1126,6 +1163,7 @@ var purchaseOrderList = new Vue({
                 },
                 error: function (err) {
                     _this.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })

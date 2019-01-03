@@ -116,7 +116,8 @@ var reportList = new Vue({
                     That.suppliers =  r.data;
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title: '提示信息',
                         context:"系统出现异常,请联系管理人员"
                     });
                 }
@@ -146,13 +147,13 @@ var reportList = new Vue({
         //点击修改
         modify() {
             if(this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '<p>请先选择至少一笔数据！</p>'
                 });
                 return;
             } else if(this.selected.length > 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '<p>只能选择一笔数据进行修改！</p>'
                 });
@@ -171,11 +172,19 @@ var reportList = new Vue({
                                 params: {type: 'detail',goodsData:data.data,activeType:'detail'}
                             });
                         }else{
-                            layer.alert(data.msg, {icon: 0});
+                            // layer.alert(data.msg, {icon: 0});
+                            reportList.$Modal.warning({
+                                title: '提示信息',
+                                content: data.msg
+                            });
                         }
                     },
                     error:function(){
-                        layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                        // layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                        reportList.$Modal.warning({
+                            title: '提示信息',
+                            content: '服务器异常，请稍后再试！'
+                        });
                     }
                 });
             }
@@ -195,11 +204,19 @@ var reportList = new Vue({
                             params: {type: 'detail',goodsData:data.data,activeType:'detail'}
                         });
                     }else{
-                        layer.alert(data.msg, {icon: 0});
+                        // layer.alert(data.msg, {icon: 0});
+                        reportList.$Modal.warning({
+                            title: '提示信息',
+                            content: data.msg
+                        });
                     }
                 },
                 error:function(){
-                    layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                    // layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                    reportList.$Modal.warning({
+                        title: '提示信息',
+                        content: '服务器异常，请稍后再试！'
+                    });
                 }
             });
         },
@@ -297,7 +314,7 @@ var reportList = new Vue({
                 ids.push(this.selected[i].id);
             }
             if (this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '<p>请先选择至少一条数据！</p>'
                 });
@@ -325,11 +342,19 @@ var reportList = new Vue({
                                         This.refresh();
                                     }, 300);
                                 } else {
-                                    layer.alert(data.msg, {icon: 0});
+                                    // layer.alert(data.msg, {icon: 0});
+                                    reportList.$Modal.warning({
+                                        title: '提示信息',
+                                        content: data.msg
+                                    });
                                 }
                             },
                             error: function (e) {
-                                layer.alert('删除失败！', {icon: 0});
+                                // layer.alert('删除失败！', {icon: 0});
+                                reportList.$Modal.warning({
+                                    title: '提示信息',
+                                    content: '删除失败！'
+                                });
                             }
                         });
                     },

@@ -107,6 +107,7 @@ var unSourceDocument = new Vue({
             if (!ht.util.hasValue(items, "array")) {
                 // layer.alert("请先选择一条记录!");
 				that.$Modal.info({
+                    title:'提示信息',
 					content: "请先选择一条记录!"
 				});
                 return ;
@@ -116,6 +117,7 @@ var unSourceDocument = new Vue({
                     if(i <= items.length -2){
                         if(items[i]['goodsTypeName']!=items[i+1]['goodsTypeName']){
 							that.$Message.info({
+                                title:'提示信息',
 								content: '所有行的商品类型必须一致才能合成一张单！！',
 							});
                             boolean = false;
@@ -145,12 +147,14 @@ var unSourceDocument = new Vue({
             if (!ht.util.hasValue(items, "array")) {
                 //layer.alert("请先选择一条记录!");
 				that.$Modal.info({
+                    title:'提示信息',
 					content: "请先选择一条记录!"
 				});
                 return ;
             }
 
 			this.$Modal.confirm({
+                title:'提示信息',
 				content: '选中单据中的所有商品都不需要制作证书，单据将跳过证书流程，是否确定？',
 				onOk: () => {
                     //提取勾选数据的id
@@ -171,16 +175,19 @@ var unSourceDocument = new Vue({
 								that.search(); //刷新界面
 								//页面提示操作结果，显示三秒钟
 								that.$Modal.success({
+                                    title:'提示信息',
 									content: data.msg
 								});
 							} else {
 								that.$Modal.warning({
+                                    title:'提示信息',
 									content: data.msg
 								});
 							}
 						},
 						error: function () {
-							that.$Modal.error({
+							that.$Modal.warning({
+                                title:'提示信息',
 								content: '服务器出错，请联系技术人员！'
 							});
 						}
@@ -224,7 +231,8 @@ var unSourceDocument = new Vue({
                     That.categoryType = That.initGoodCategory(data.data.cateLists)
                 },
                 error: function () {
-					That.$Modal.error({
+					That.$Modal.warning({
+                        title:'提示信息',
 						content: "初始化商品类型失败!"
 					});
                 }

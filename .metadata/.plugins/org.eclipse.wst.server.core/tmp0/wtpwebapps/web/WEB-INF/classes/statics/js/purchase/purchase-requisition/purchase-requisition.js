@@ -212,6 +212,7 @@ var purchaseRequisition = new Vue({
         isHintShow(status) {
             if (status && this.applyOrder.typeValue && this.isHint && this.productDetailList && this.productDetailList.length > 0) {
                 this.$Modal.warning({
+                    title:'提示信息',
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
                         this.isHint = false;
@@ -266,12 +267,14 @@ var purchaseRequisition = new Vue({
                         _this.buyers = r.data;
                     } else {
                         _this.$Modal.error({
+                            title:'提示信息',
                             content: r.msg,
                         })
                     }
                 },
                 error: function (err) {
                     _this.$Modal.error({
+                        title:'提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 },
@@ -310,12 +313,14 @@ var purchaseRequisition = new Vue({
 
                     } else {
                         _this.$Modal.error({
+                            title:'提示信息',
                             content: r.msg,
                         })
                     }
                 },
                 error: function (err) {
                     _this.$Modal.error({
+                        title:'提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 },
@@ -334,12 +339,14 @@ var purchaseRequisition = new Vue({
                         _this.deptList = r.data;
                     } else {
                         _this.$Modal.error({
+                            title:'提示信息',
                             content: r.msg,
                         })
                     }
                 },
                 error: function (err) {
                     _this.$Modal.error({
+                        title:'提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 },
@@ -407,12 +414,14 @@ var purchaseRequisition = new Vue({
                         This.productTypeList = This.initGoodCategory(data.data.cateLists)
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: data.msg,
                         })
                     }
                 },
                 error: function () {
                     This.$Modal.error({
+                        title:'提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 }
@@ -558,7 +567,8 @@ var purchaseRequisition = new Vue({
         showProductDetail(index) {//点击商品明细
             this.selectedIndex = index;
             if (!this.productDetailList[index].commodityId) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -592,6 +602,7 @@ var purchaseRequisition = new Vue({
                     if (!item.tBaseBomEntity) {
                         flag = false;
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -600,6 +611,7 @@ var purchaseRequisition = new Vue({
                     if (!item.assistAttrs) {
                         flag = false;
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -621,6 +633,7 @@ var purchaseRequisition = new Vue({
                 success: function (data) {
                     if (data.code !== '100100') {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: '服务器出错',
                         });
                         return
@@ -631,6 +644,7 @@ var purchaseRequisition = new Vue({
                 },
                 error: function () {
                     This.$Modal.error({
+                        title:'提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 }
@@ -702,6 +716,7 @@ var purchaseRequisition = new Vue({
                     This.htHaveChange = false;
                     if (data.code === '100100') {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: '提交成功',
                         });
                         Object.assign(This.applyOrder, {...data.data});
@@ -711,6 +726,7 @@ var purchaseRequisition = new Vue({
                         This.isEdit(This.applyOrder.orderStatus == 1 ? 'Y' : 'N');
                     } else {
                         This.$Modal.error({
+                            title:'提示信息',
                             content: '提交失败',
                         });
                     }
@@ -718,6 +734,7 @@ var purchaseRequisition = new Vue({
                 error: function () {
                     window.top.home.loading('hide');
                     This.$Modal.error({
+                        title:'提示信息',
                         content: '服务器出错啦!',
                     });
                 }
@@ -728,7 +745,7 @@ var purchaseRequisition = new Vue({
             for (var key in this.paramsMap) {
                 if (this.paramsMap[key] == undefined || this.paramsMap[key] === "" || this.paramsMap[key] === "null") {
                     if (flag) {
-                        this.$Modal.warning({
+                        this.$Modal.info({
                             title: "提示",
                             okText: "确定",
                             content: key + "不能为空"
@@ -846,7 +863,8 @@ var purchaseRequisition = new Vue({
                 return;
             }
             if (!this.applyOrder.goodsGroupPath) {
-                this.$Modal.warning({
+                this.$Modal.info({
+                    title:'提示信息',
                     content: '商品类型未选择，请先选择商品类型！',
                 });
                 return;

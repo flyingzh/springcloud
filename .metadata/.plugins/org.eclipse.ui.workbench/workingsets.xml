@@ -119,14 +119,16 @@
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/interactmq-activemq" type="4"/>
 </workingSet>
 <workingSet editPageId="org.eclipse.jdt.ui.JavaWorkingSetPage" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545894104136_7" label="micro" name="micro">
+<item elementID="=config-client" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-utils" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+<item elementID="=config-server" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=eureka-server" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-user" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-zuul" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 <item elementID="=micro-ribbon" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
 </workingSet>
 <workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1542703231279_2" label="Window Working Set" name="Aggregate for window 1542703231279"/>
-<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545973613402_21" label="Multiple Working Sets" name="Aggregate:doraemon:micro:">
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1545977261697_25" label="Multiple Working Sets" name="Aggregate:doraemon:micro:">
 <workingSet IMemento.internal.id="doraemon"/>
 <workingSet IMemento.internal.id="micro"/>
 </workingSet>

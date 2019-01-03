@@ -171,6 +171,7 @@ var pendingList = new Vue({
                 },
                 error: function () {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -242,6 +243,7 @@ var pendingList = new Vue({
                             That.$Modal.info(
                                 {
                                     scrollable: true,
+                                    title:'提示信息',
                                     content: "请选择相同的源单类型生成收货订单"
                                 });
                             return;
@@ -250,6 +252,7 @@ var pendingList = new Vue({
                             if (collect.customerName != collect1.customerName) {
                                 That.$Modal.info({
                                     scrollable: true,
+                                    title:'提示信息',
                                     content: "请选择相同的客户生成收货订单"
                                 });
                                 return;
@@ -258,6 +261,7 @@ var pendingList = new Vue({
                             if (collect.supplierName != collect1.supplierName) {
                                 That.$Modal.info({
                                     scrollable: true,
+                                    title:'提示信息',
                                     content: "请选择相同的供应商生成收货订单"
                                 });
                                 return;
@@ -266,6 +270,7 @@ var pendingList = new Vue({
                         if (collect.goodsTypeName != collect1.goodsTypeName) {
                             That.$Modal.info({
                                 scrollable: true,
+                                title:'提示信息',
                                 content: "请选择相同的商品类型生成收货订单"
                             });
                             return;
@@ -295,6 +300,7 @@ var pendingList = new Vue({
                     error: function () {
                         That.$Modal.info({
                             scrollable: true,
+                            title:'提示信息',
                             content: "系统出现异常,请联系管理人员"
                         });
                     }
@@ -302,6 +308,7 @@ var pendingList = new Vue({
             } else {
                 That.$Modal.info({
                     scrollable: true,
+                    title:'提示信息',
                     content: "请选择数据生成收货订单"
                 });
             }
@@ -332,6 +339,7 @@ var pendingList = new Vue({
                 error: function (err) {
                     That.$Modal.info({
                         scrollable: true,
+                        title:'提示信息',
                         content: "系统出现异常,请联系管理人员"
                     });
                 },
@@ -384,6 +392,7 @@ var pendingList = new Vue({
                 error: function () {
                     That.$Modal.info({
                         scrollable: true,
+                        title:'提示信息',
                         content: "系统出现异常,请联系管理人员"
                     });
                 }

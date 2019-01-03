@@ -189,6 +189,7 @@ var vm = new Vue({
                         // 调用方法保存附件
                         This.saveAccess(data.data.id,This.boeType);
                         This.$Modal.success({
+                            title:'提示信息',
                             content:'更新成功！'
                         })
                         //查询附件
@@ -207,7 +208,8 @@ var vm = new Vue({
                             This.isSaveDisable = false;
                         }
                     } else {
-                        This.$Modal.info({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content:data.msg
                         })
                         This.isSaveDisable = false;
@@ -235,6 +237,7 @@ var vm = new Vue({
                     window.top.home.loading('hide');
                     if (data.code === '100100') {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: '提交成功',
                         });
                         Object.assign(This.revert, {...data.data});
@@ -251,7 +254,8 @@ var vm = new Vue({
                             This.isSaveDisable = false;
                         }
                     } else {
-                        This.$Modal.info({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content: '提交失败',
                         });
                         This.isSaveDisable = false;
@@ -259,7 +263,8 @@ var vm = new Vue({
                 },
                 error: function () {
                     window.top.home.loading('hide');
-                    This.$Modal.info({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错啦!',
                     });
                 }
@@ -276,7 +281,8 @@ var vm = new Vue({
                 dataType: "json",
                 success: function (data) {
                     if (data.code !== '100100') {
-                        this.$Modal.info({
+                        this.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错',
                         });
                         return
@@ -291,7 +297,8 @@ var vm = new Vue({
                     This.getAccess(This.revert.id,This.boeType);
                 },
                 error: function () {
-                    this.$Modal.info({
+                    this.$Modal.warning({
+                        title:'提示信息',
                         content:"网络异常,请联系技术人员！",
                     })
                 }
@@ -401,11 +408,19 @@ var vm = new Vue({
                        This.showBasicInfo(data.data);//基本信息
                         This.isEdit('Y');
                     } else {
-                        layer.alert(data.msg, {icon: 0});
+                        // layer.alert(data.msg, {icon: 0});
+                        This.$Modal.warning({
+                            title:'提示信息',
+                            content:data.msg
+                        })
                     }
                 },
                 error: function (e) {
-                    layer.alert('单据生成失败！', {icon: 0});
+                    // layer.alert('单据生成失败！', {icon: 0});
+                    This.$Modal.warning({
+                        title:'提示信息',
+                        content:'单据生成失败！'
+                    })
                 }
             });
         },

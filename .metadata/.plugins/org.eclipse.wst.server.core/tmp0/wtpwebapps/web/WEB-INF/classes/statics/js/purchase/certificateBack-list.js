@@ -250,6 +250,7 @@ var pendingList = new Vue({
                             if (res.code === '100100' && res.data === '' ) {
                                 setTimeout(function(){
                                     pendingList.$Modal.success({
+                                        title: '提示信息',
                                         content: '删除成功',
                                         onOk:function(){
                                             pendingList.reload = !pendingList.reload;
@@ -260,6 +261,7 @@ var pendingList = new Vue({
                             } else if(res.code === '100100' && res.data != '' ) {
                                 setTimeout(function(){
                                     pendingList.$Modal.warning({
+                                        title: '提示信息',
                                         content: res.data,
                                         onOk:function(){
                                             pendingList.reload = !pendingList.reload;
@@ -268,6 +270,7 @@ var pendingList = new Vue({
                                 },300)
                             }else {
                                 pendingList.$Modal.warning({
+                                    title: '提示信息',
                                     content: '删除失败',
                                     onOk: () => {
                                         pendingList.reload = ! pendingList.reload
@@ -277,7 +280,8 @@ var pendingList = new Vue({
                             }
                         },
                         error: function (err) {
-                            pendingList.$Modal.error({
+                            pendingList.$Modal.warning({
+                                title: '提示信息',
                                 content: '服务器错误',
                                 closable: true
                             })
@@ -289,14 +293,14 @@ var pendingList = new Vue({
         update(){
             var That = this;
             if (That.selected.length > 1) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title:'提示信息',
                     content:'最多选择一条数据！'
                 });
                 return false;
             }
             if (That.selected.length == 0) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title:'提示信息',
                     content:'请选择至少一条数据！'
                 });

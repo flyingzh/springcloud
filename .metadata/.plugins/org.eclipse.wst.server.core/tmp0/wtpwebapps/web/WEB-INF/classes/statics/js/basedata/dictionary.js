@@ -95,6 +95,7 @@ var vm = new Vue({
             vm.organ.parentName = nodes[0].name;
             vm.organ.id = "";
             vm.organ.searchContent = "";
+            vm.organ.optional = 0;
         },
         del: function (event) {
             var nodes = ztree.getSelectedNodes();
@@ -203,7 +204,7 @@ var vm = new Vue({
                         }
                         vm.showInfo = false;
                     } else {
-                        this.$Modal.error({
+                        vm.$Modal.error({
                             title: '提示信息',
                             content: r.msg,
                         });
@@ -212,7 +213,14 @@ var vm = new Vue({
             });
         },
         reload: function (event) {
-            $("#organFrom")[0].reset();
+            //$("#organFrom")[0].reset();
+            vm.organ.id = "";
+            vm.organ.name = "";
+            vm.organ.value = "";
+            vm.organ.sort = "";
+            vm.organ.mark = "";
+            vm.organ.remark = "";
+            vm.organ.optional = 0;
         }
     }
 });

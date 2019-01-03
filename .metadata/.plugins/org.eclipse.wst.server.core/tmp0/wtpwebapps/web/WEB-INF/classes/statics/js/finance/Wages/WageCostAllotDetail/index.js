@@ -30,7 +30,7 @@ var vm = new Vue({
             },
             colNames: [],
             colModel: [],
-            dataList:[],
+            dataList: [],
             tableHeaders: [],
             wageCategoryList: [], // 工资类别集合
             costAllocationList: [],//工资分配集合
@@ -45,10 +45,13 @@ var vm = new Vue({
         this.openTime = window.parent.params && window.parent.params.openTime;
     },
     methods: {
-        selectionPeriod() {
+        selectionPeriod(type) {
             for (var i = 0, len = this.yearAndPeriodList.length; i < len; i++) {
                 if (this.yearAndPeriodList[i].year == this.formData.year) {
                     this.periodList = this.yearAndPeriodList[i].period;
+                    if (!type) {
+                        this.formData.period = this.periodList[0];
+                    }
                     return;
                 }
             }
@@ -72,14 +75,14 @@ var vm = new Vue({
                         that.costAllocationList = result.data.WmCostAllotEntityList;
                         that.yearAndPeriodList = result.data.yearAndPeriods.list;
                         that.formData.year = result.data.yearAndPeriods.year;
+                        that.selectionPeriod(1);
                         that.formData.period = result.data.yearAndPeriods.period;
-                        that.selectionPeriod();
-                        if (!that.costAllocationList.length){
+                        if (!that.costAllocationList.length) {
                             that.$Modal.error({
                                 title: '提示',
                                 content: "该工资类别下没有费用分配,请重新选择"
                             })
-                        }else {
+                        } else {
                             that.formData.costAllocationId = that.costAllocationList[0].id;
                             that.getGridData();
                         }
@@ -146,10 +149,10 @@ var vm = new Vue({
             });
         },
         //切换分配名称时调用函数 清空表格,重新生成数据
-        selectCostAllocation(){
+        selectCostAllocation() {
             this.delTable();
 
-            if(this.formData.costAllocationId){
+            if (this.formData.costAllocationId) {
                 this.getGridData();
             }
         },
@@ -163,30 +166,37 @@ var vm = new Vue({
             parent.empty();
             $(`<table id="grid"></table><div id="page"></div>`).appendTo(parent);
         },
-        getGridData(){
+        getGridData() {
             let that = this;
+            if (!that.formData.period) {
+                that.$Modal.error({
+                    title: '提示',
+                    content: "请选择会计期间",
+                })
+                return;
+            }
             let pram = {
                 wageCategoryId: that.formData.wageCategoryId,
                 costAllocationId: that.formData.costAllocationId,
                 year: that.formData.year,
-                period:that.formData.period
+                period: that.formData.period
             }
             $.ajax({
                 type: 'post',
-                dataType:'json',
-                async:false,
+                dataType: 'json',
+                async: false,
                 data: pram,
                 url: contextPath + '/distributionSheetController/getExpenseDistributionSheet',
                 success: function (result) {
                     var data = result.data;
                     that.dataList = data.entityList;
                     that.tableHeaders = data.headerList;
-                    console.log("data",data)
+                    console.log("data", data)
                     var col = data.colList;
-                    for(var i = 0,len = col.length; i < len;i++){
+                    for (var i = 0, len = col.length; i < len; i++) {
                         var colName = {name: '', width: 130, hidden: false};
                         that.colNames.push(col[i].name);
-                        console.log(col[i].name,col[i].val)
+                        console.log(col[i].name, col[i].val)
                         colName.name = col[i].val;
                         that.colModel.push(colName);
                     }
@@ -195,9 +205,12 @@ var vm = new Vue({
             });
         },
         // 生成jqGrid
-        jqGridList(){
+        jqGridList() {
             let that = this;
-            console.log(that.colNames,that.colModel)
+            console.log('that.colNames', that.colNames)
+            console.log('that.colModel', that.colModel)
+            console.log('that.tableHeaders', that.tableHeaders)
+            console.log('that.dataList11', that.dataList)
             jQuery("#grid").jqGrid({
                 datatype: "local",
                 colNames: that.colNames,
@@ -210,10 +223,10 @@ var vm = new Vue({
                     $("table[id='grid']").addClass("alltotalClass");
                 },
                 gridComplete() { // 多表头表格设置
-                    console.log("that.tableHeader11s",that.tableHeaders)
+                    console.log("that.tableHeader11s", that.tableHeaders)
                     jQuery("#grid").jqGrid('setGroupHeaders', {
                         useColSpanStyle: true,
-                        groupHeaders:that.tableHeaders
+                        groupHeaders: that.tableHeaders
                     });
                 },
             });
@@ -222,12 +235,90 @@ var vm = new Vue({
         refresh() { //刷新
             this.selectCostAllocation();
         },
+        print1() {
+            var that = this;
+            //  that.dataList;
+            //  that.tableHeaders
+            //  that.colModel
+            that.colModel;
+            var _thead = `<tr class='thCs'>`, _tbody = `<tr>`, _tfoot = '';
+            var _thead1 = `<tr class='thCs'>`;
+            var col = that.colNames;
+            var head = that.tableHeaders;
+            var list = that.dataList;
+            var model = that.colModel;
+            var maxLen = that.colNames.length > 10 ? 10 : that.colNames.length;
+            var width = 100 / maxLen;
+            for (var i = 0, len = col.length, j = 0; i < len; i++) {
+                if (i == 0) {
+                    _thead += `<th rowspan="2" style="width: ${width}%">${col[i]}</th>`;
+                    continue;
+                }
+                if (i == len - 1) {
+                    _thead += `<th rowspan="2" style="width: ${width}%">${col[i]}</th></tr>`;
+                    continue;
+                }
+                if (i % 3 == 1) {
+                    _thead += `<th colspan="3" style="width: ${width * 3}%">${head[j].titleText}</th>`;
+                    j++;
+                }
+                var tr = `<th style="width: ${width}%">${col[i]}</th>`
+                _thead1 += tr;
+            }
+            _thead1 += `</tr>`;
+            _thead += _thead1;
+            console.log("_thead", _thead)
+            for(var i = 0,len = list.length;i<len;i++){
+                for(var j = 0 ,lent = model.length;j<lent;j++ ){
+                    var str = model[j]['name'];//typeof val !== 'number'  accounting.formatMoney(sum, '', 2);
+                    var listStr = list[i][str];
+                    if (listStr){
+                        if (typeof listStr == 'number'){
+                            listStr = accounting.formatMoney(listStr, '', 2);
+                        }
+                    }else {
+                        listStr = '';
+                    }
+                    _tbody += ` <td>${ listStr }</td>`;
+                }
+                _tbody += `</tr>`;
+            }
+
+            let data = {
+                title: "费用分配明细表",
+                template: 12,
+                'titleInfo': [       // title
+
+                ],
+                'data': [],
+                'colMaxLenght': 10,
+                'tbodyInfo': {
+                    'theadTX': _thead,
+                    'tbodyTX': _tbody,
+                    'tfootTX': _tfoot
+                }
+
+            }
+            htPrint(data);
+
+        },
         exitPrevent() {
             //关闭当前页签
             var name = '工资费用分配表';
             window.parent.closeCurrentTab({'name': name, 'openTime': this.openTime, 'url': this.openTime, exit: true})
         },
         exportExcel() {
+            var that = this;
+            if (!that.formData.period) {
+                that.$Modal.error({
+                    title: '提示',
+                    content: "请选择会计期间",
+                })
+                return;
+            }
+            var _url = contextPath + "/distributionSheetController/derivedExcel?wageCategoryId=" + that.formData.wageCategoryId +
+                "&costAllocationId=" + that.formData.costAllocationId + "&year=" + that.formData.year + "&period=" + that.formData.period;
+            window.open(_url);
         },
         formartMoney(value) {
             return value == null || value == 0 ? '0.00' : accounting.formatNumber(value, 2, ",");

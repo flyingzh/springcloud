@@ -171,7 +171,8 @@ var recycleRef = new Vue({
                 }
                 This.isEdit(This.body.orderStatus == 1 ? 'Y' : 'N');
             } else {
-                this.$Modal.error({
+                this.$Modal.warning({
+                    title: '提示信息',
                     content: res.result.msg,
                     title: '警告'
                 })
@@ -188,6 +189,7 @@ var recycleRef = new Vue({
                     if (!item.tBaseBomEntity) {
                         flag = false;
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -196,6 +198,7 @@ var recycleRef = new Vue({
                     if (!item.assistAttrs) {
                         flag = false;
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -554,6 +557,7 @@ var recycleRef = new Vue({
                     if (!item.tBaseBomEntity) {
                         flag = false;
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -562,6 +566,7 @@ var recycleRef = new Vue({
                     if (!item.assistAttrs) {
                         flag = false;
                         This.$Modal.warning({
+                            title: '提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -570,21 +575,21 @@ var recycleRef = new Vue({
             });
             return flag;
         },
-        checkData(flag) {
-            for (var key in this.paramsMap) {
-                if (this.paramsMap[key] == undefined || this.paramsMap[key] === "" || this.paramsMap[key] === "null") {
-                    if (flag) {
-                        this.$Modal.warning({
-                            title: "提示",
-                            okText: "确定",
-                            content: key + "不能为空"
-                        });
-                    }
-                    return false;
-                }
-            }
-            return true;
-        },
+        // checkData(flag) {
+        //     for (var key in this.paramsMap) {
+        //         if (this.paramsMap[key] == undefined || this.paramsMap[key] === "" || this.paramsMap[key] === "null") {
+        //             if (flag) {
+        //                 this.$Modal.warning({
+        //                     title: "提示信息",
+        //                     okText: "确定",
+        //                     content: key + "不能为空"
+        //                 });
+        //             }
+        //             return false;
+        //         }
+        //     }
+        //     return true;
+        // },
         saveClick(type) {
             //判断是否可提交
             if (this.body.orderStatus !== 1) {
@@ -600,6 +605,7 @@ var recycleRef = new Vue({
                 }
                 if (!(this.body.recycleGoodList && this.body.recycleGoodList.length > 0)) {
                     this.$Modal.warning({
+                        title: '提示信息',
                         content: '回收明细不能为空！',
                     });
                     return false;
@@ -636,9 +642,11 @@ var recycleRef = new Vue({
                 }
 
                 //  校验
+                /* 校验改成iview验证，此处弹框验证先注释
                 if (!this.checkData(true)) {
                     return;
                 }
+                */
                 if (this.body.processingResults == "discount") {
                     this.checkListData = {
                         totalWeight: {
@@ -823,26 +831,29 @@ var recycleRef = new Vue({
                         console.log(_this.unitMap);
 
                     } else {
-                        this.$Modal.error({
+                        this.$Modal.warning({
                             content: r.msg,
                         })
                     }
                 },
                 error: function (err) {
-                    this.$Modal.error({
+                    this.$Modal.warning({
+                        title: '提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 },
             });
         },
         errorTip(msg) {
-            this.$Modal.error({
+            this.$Modal.warning({
+                title: '提示信息',
                 scrollable: true,
                 content: msg || "系统异常,请联系技术人员！",
             })
         },
         successTip(msg) {
             this.$Modal.success({
+                title: '提示信息',
                 scrollable: true,
                 content: msg,
             })

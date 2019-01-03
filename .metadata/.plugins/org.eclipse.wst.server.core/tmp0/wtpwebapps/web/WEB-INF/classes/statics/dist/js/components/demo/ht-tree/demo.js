@@ -1,1 +1,0 @@
-"use strict";window.home.componentHtml('\n\t<ht-tree url="./ht-tree/data.json" :setting="treeSetting"></ht-tree>\n'),window.vm[window.home.nameEn]=new Vue({el:"#app",data:{treeSetting:{callback:{onClick:function(e,t,n){console.log(e,t,n)}}}}});

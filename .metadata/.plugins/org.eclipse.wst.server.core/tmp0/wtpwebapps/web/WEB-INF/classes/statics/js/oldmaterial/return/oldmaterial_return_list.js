@@ -243,11 +243,13 @@ var unSourceDocument = new Vue({
             // var f = confirm("确定要删除吗");
             if (This.selected.length < 1) {
                 This.$Modal.info({
+                    title:'提示信息',
                     content: '请至少选择一条数据！'
                 })
                 return;
             } else {
                 This.$Modal.confirm({
+                    title:'提示信息',
                     content: '您要删除该单据吗？',
                     onOk: () => {
                         var b = true;
@@ -258,6 +260,7 @@ var unSourceDocument = new Vue({
                                 // alert("单据编号为"+ item.orderNo +"的单据已提交或审核不可以删除！")
                                 setTimeout(function () {
                                     This.$Modal.info({
+                                        title:'提示信息',
                                         content: '单据编号为' + item.orderNo + '的单据已提交或审核不可以删除！',
                                     })
                                 }, 300)
@@ -277,6 +280,7 @@ var unSourceDocument = new Vue({
                                         // alert('删除成功！');
                                         setTimeout(function () {
                                             This.$Modal.success({
+                                                title:'提示信息',
                                                 content: '删除成功！',
                                                 onOk: () => {
                                                     This.reloadAgain();
@@ -288,6 +292,7 @@ var unSourceDocument = new Vue({
                                         // alert('删除失败！请重试！');
                                         setTimeout(function () {
                                             This.$Modal.warning({
+                                                title:'提示信息',
                                                 content: '删除失败！请重试！'
                                             })
                                         }, 300)
@@ -298,7 +303,8 @@ var unSourceDocument = new Vue({
                                 },
                                 error: function () {
                                     // alert('系统错误，请重试！');
-                                    This.$Modal.error({
+                                    This.$Modal.warning({
+                                        title:'提示信息',
                                         content: '系统错误，请重试！'
                                     })
                                 }
@@ -322,7 +328,8 @@ var unSourceDocument = new Vue({
                     }
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })

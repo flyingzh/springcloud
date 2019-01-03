@@ -141,12 +141,14 @@ var retunRef = new Vue({
                 }
                 if (that.returnEntity.salesmanId =='' || that.returnEntity.salesmanId==null){
 					this.$Modal.info({
+                        title:'提示信息',
 						content: '业务员不可为空!'
 					});
                     return;
                 }
 				if (that.returnEntity.logisticsMode=='' || that.returnEntity.logisticsMode==null){
 					this.$Modal.info({
+                        title:'提示信息',
 						content: '物流方式不可为空!'
 					});
 					return;
@@ -186,6 +188,7 @@ var retunRef = new Vue({
 						}
 						//页面提示操作结果
 						that.$Modal.success({
+                            title:'提示信息',
 							content: data.msg
 						});
 
@@ -196,13 +199,15 @@ var retunRef = new Vue({
 					    //调用失败，可能是提交失败，需要回写单据状态为暂存。
 						that.returnEntity.orderStatus == 1;
 						that.$Modal.warning({
+                            title:'提示信息',
 							content: data.msg
 						});
 					}
 
 				},
                 error: function () {
-                    that.$Modal.error({
+                    that.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -253,8 +258,8 @@ var retunRef = new Vue({
 					_this.isEdit("Y");//附件可上传图片
 				} else {
 					_this.$Modal.warning({
+                        title:'提示信息',
 						content: '审核异常!',
-						title: '警告'
 					});
 					return false;
 				}
@@ -322,7 +327,8 @@ var retunRef = new Vue({
                     }
                 },
                 error: function (err) {
-                    _that.$Modal.error({
+                    _that.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -339,7 +345,8 @@ var retunRef = new Vue({
                     that.employees = r.data.employees; //加载当前公司下面所有的员工
                 },
                 error: function () {
-					that.$Modal.error({
+					that.$Modal.warning({
+                        title:'提示信息',
 						scrollable: true,
 						content: "系统异常,请联系技术人员！",
 					})
@@ -464,7 +471,7 @@ var retunRef = new Vue({
                             that.errorTip(data.msg);
                             return
                         }
-                        that.allData = data.data.goodsList;
+                        that.allData = data.data.goodsList || [];
                         that.returnEntity.goodsList = that.allData.filter(item =>{
                             return !item.relationId
                         });
@@ -491,13 +498,15 @@ var retunRef = new Vue({
             }
         },
         errorTip(msg) {
-			this.$Modal.error({
+			this.$Modal.warning({
+                title:'提示信息',
                 scrollable: true,
                 content: msg || "系统异常,请联系技术人员！",
             })
         },
         successTip(msg) {
 			this.$Modal.success({
+                title:'提示信息',
                 scrollable: true,
                 content: msg
             })

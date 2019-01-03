@@ -339,7 +339,11 @@ var vm = new Vue({
                         vm.editData.periodDate = result.data.year + '年' + result.data.month + '期'
                         vm.editData.serialNumber = result.data.serialNum;
                     } else {
-                        layer.alert('请求错误')
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:"请求错误!",
+                        })
                     }
                 }
             });
@@ -736,7 +740,15 @@ var vm = new Vue({
                         url: _url,
                         success: function (result) {
                             if (result.code != '100100') {
-                                layer.alert('页面初始化失败');
+                                let _msg = '页面初始化失败';
+                                if (result.hasOwnProperty("data")){
+                                    _msg  = result.msg;
+                                }
+                                vm.$Modal.error({
+                                    title:'提示信息',
+                                    scrollable:true,
+                                    content:_msg,
+                                })
                                 return;
                             }
                             that.addSubjectListOpt = result.data.opts;
@@ -805,11 +817,23 @@ var vm = new Vue({
                 url: _url,
                 success: function (result) {
                     if (result.code != '100100') {
-                        layer.alert('页面初始化失败');
+                        let _msg = '页面初始化失败';
+                        if (result.hasOwnProperty("data")){
+                            _msg  = result.msg;
+                        }
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:_msg,
+                        })
                         return;
                     }
                     if (!result.data.subjectId) {
-                        layer.alert('查询无数据');
+                        vm.$Modal.error({
+                            title:'提示信息',
+                            scrollable:true,
+                            content:"查无此数据!",
+                        })
                         return;
                     }
                     that.editData.subjectId = result.data.subjectId;

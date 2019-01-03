@@ -25,17 +25,17 @@
                 <i-form   label-width="120">
                     <row>
                         <i-col span="8">
-                            <form-item label="日期">
+                            <form-item label="日期：">
                                 <date-picker v-model="dateArr"  format="yyyy-MM-dd" type="daterange" placement="bottom-end" placeholder="请选择日期" class="ht-width-input"></date-picker>
                             </form-item>
                         </i-col>
                         <i-col span="8">
-                            <form-item label="源单编号">
+                            <form-item label="源单编号：">
                                 <i-input v-model="body.orderNo" class="ht-width-input"></i-input>
                             </form-item>
                         </i-col>
                         <i-col span="8">
-                            <form-item label="商品类型">
+                            <form-item label="商品类型：">
                                 <cascader class="ht-width-input" :data="categoryType" @on-change="changeProductType" trigger="hover" v-model="body.goodsTypePath"></cascader>
                             </form-item>
                             <ht-btns style="margin-left:100px" @search="search" @clear='clear' :is-search="true" :is-add="false" class="inline-block"></ht-btns>

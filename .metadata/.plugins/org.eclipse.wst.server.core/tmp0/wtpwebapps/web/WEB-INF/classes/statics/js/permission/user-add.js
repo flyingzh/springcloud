@@ -199,6 +199,15 @@ let UserAddVm = new Vue({
                 this.addUser.empCode = e.value;
                 var le = e.label;
                 this.addUser.username = le.substring(le.lastIndexOf("-") + 1, le.length);
+
+                //获取到组织ID  根据empCode
+                $.each((this.employees), (index, item) => {
+                    if (this.addUser.empCode == item.empCode) {
+                        this.addUser.organId = item.orgId;
+                        console.log(this.addUser.organId)
+                        return false;
+                    }
+                })
             }
         },
         //保存按钮
@@ -215,19 +224,25 @@ let UserAddVm = new Vue({
 
             //检验是否填写数据
             let temp = true;
+            var operType = this.operType;
+            //判断是否为修改
+            if (operType === "update") {
+                //密码不需要校验
+                this.ruleValidate.password[0].required = false;
+                this.ruleValidate.copyPass[0].required = false;
+            }
             this.$refs.formValidate.validate((valid) => {
                 if (valid == false) {
                     temp = false;
                 }
-            })
+            });
             if (!temp) return;
-            var operType = this.operType;
             if (($.isEmptyObject(String(id)) || id === undefined) && operType === 'add') {
                 this.saveUser(params);
             } else if (operType === 'updatepassword') {
                 this.updateUserPassword(params);
-            } else {
-                this.update(params);
+            } else if (operType === 'update') {
+                this.updateUser(params);
             }
         },
         //保存请求
@@ -241,7 +256,7 @@ let UserAddVm = new Vue({
                 contentType: "application/json;charset=utf-8",
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {
-                        This.messageTip('info', "添加用户成功");
+                        This.messageTip('success', "添加用户成功");
                     } else {
                         This.messageTip('error', res.msg);
                     }
@@ -262,7 +277,7 @@ let UserAddVm = new Vue({
                 contentType: "application/json;charset=utf-8",
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {
-                        This.messageTip('info', "修改用户成功");
+                        This.messageTip('success', "修改用户成功");
                     } else {
                         This.messageTip('error', res.msg);
                     }
@@ -283,7 +298,7 @@ let UserAddVm = new Vue({
                 contentType: "application/json;charset=utf-8",
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {
-                        This.messageTip('info', "修改用户成功");
+                        This.messageTip('success', "修改密码成功");
                     } else {
                         This.messageTip('error', res.msg);
                     }
@@ -430,8 +445,8 @@ let UserAddVm = new Vue({
                     content: message
                 });
             }
-            if (type === 'info') {
-                this.$Modal.error({
+            if (type === 'success') {
+                this.$Modal.success({
                     title: "提示",
                     okText: "确定",
                     content: message

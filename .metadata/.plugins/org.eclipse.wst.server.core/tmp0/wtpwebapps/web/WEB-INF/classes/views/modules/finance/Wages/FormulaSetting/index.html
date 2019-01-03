@@ -71,12 +71,13 @@
                     </i-col>
                     <i-col span="8">
                         <form-item label="公式名称：" class="ht-star">
-                                    <i-select ref="formulaId" v-show="!isUpdate && initialFormulaNames.length" v-model="currentFormulaId" class="ht-input-width" @on-change="changeFormula('', '')">
-                                        <i-option v-for="item in initialFormulaNames" :value="item.id" :key="item.id">
-                                            <slot>{{ item.formulaName }}</slot>
-                                        </i-option>
-                                    </i-select>
-                                <i-input ref="formulaNameObj"  v-show="isUpdate" v-model="currentFormulaName"></i-input>
+                            <i-select ref="formulaId" v-show="!isUpdate && initialFormulaNames.length" v-model="currentFormulaId"
+                                class="ht-input-width" @on-change="changeFormula('', '')">
+                                <i-option v-for="item in initialFormulaNames" :value="item.id" :key="item.id">
+                                    <slot>{{ item.formulaName }}</slot>
+                                </i-option>
+                            </i-select>
+                            <i-input ref="formulaNameObj" v-show="isUpdate" v-model="currentFormulaName"></i-input>
                         </form-item>
                     </i-col>
                 </row>
@@ -88,7 +89,8 @@
                     <div>计算方法</div>
                 </div>
                 <div>
-                    <i-input ref="formulaObj" v-model="formData.currentFormulaItemName" type="textarea" :rows="15"></i-input>
+                    <i-input element-id="zhangdanNum" name="zhangdanNum" ref="formulaObj" v-model="formData.currentFormulaItemName"
+                        type="textarea" :rows="15"></i-input>
                 </div>
             </div>
             <div class="ht-right-content ht-commFloatLeft ml20 mr20" style="padding-left: 120px;">
@@ -127,6 +129,7 @@
             '${rc.contextPath}/js/finance/Wages/FormulaSetting/index.js'
         ])
     </script> -->
+
     <script src='${rc.contextPath}/js/finance/Wages/FormulaSetting/index.js'></script>
     #parse("modules/public/footer.html")
 </body>

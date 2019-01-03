@@ -76,10 +76,9 @@ new Vue({
         }
     },
     created() {
-        this.orgName = window.parent.userInfo.orgName;
-        console.log("this.orgName",this.orgName)
     },
     mounted() {
+
         this.inint();
         this.openTime = window.parent.params && window.parent.params.openTime;
     },
@@ -94,6 +93,7 @@ new Vue({
                 success: function (data) {
                     if (data.code == '100100') {
                         console.log("data", data)
+                        _that.orgName = data.data.org.label;
                         //获取默认的类别名称和id
                         _that.formData.wageCategoryId = data.data.category.id;
                         _that.wageCategoryName = data.data.category.categoryName;

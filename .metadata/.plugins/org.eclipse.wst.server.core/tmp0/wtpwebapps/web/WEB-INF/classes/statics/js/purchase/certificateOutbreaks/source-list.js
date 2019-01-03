@@ -123,7 +123,8 @@ Vue.component('source-list', {
         modalOk() {
 
             if(!this.isAllEqual(this.selectedRow)){
-              this.$Modal.error({
+              this.$Modal.info({
+                  title:'提示信息',
                   content: '所选商品类型必须一致'
               });
                 return ;

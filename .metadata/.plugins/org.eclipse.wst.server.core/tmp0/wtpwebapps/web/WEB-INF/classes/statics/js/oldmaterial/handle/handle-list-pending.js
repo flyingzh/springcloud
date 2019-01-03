@@ -175,12 +175,14 @@ var vm = new Vue({
                             That.goOldMaterialRegister(r.data,2);
                         }else {
                             That.$Modal.info({
+                                title:'提示信息',
                                 content: result.msg
                             })
                         }
                     },
                     error:function (r) {
                         That.$Modal.info({
+                            title:'提示信息',
                             scrollable:true,
                             content:"系统异常,请联系技术人员！",
                         })
@@ -197,12 +199,13 @@ var vm = new Vue({
                             That.jump(result.data, 'query');
                         } else {
                             That.$Modal.info({
+                                title:'提示信息',
                                 content: result.msg
                             })
                         }
                     }
                 })
-            } else if (data.rows.sourceType == 'W_STOCK_RETURN' ) {//查询采购退库单详情,参数需要传单据编号和组织id
+            } else if (data.rows.sourceType == 'W_STOCK_RETURN' ) {//跳转库存退库单
                 let postData = {orderNo:orderNo} ;
                 $.ajax({
                     type: 'POST',
@@ -215,7 +218,8 @@ var vm = new Vue({
                         if(data.code == '100100') {
                             window.parent.activeEvent({
                                 name:'库存退库单--查看',
-                                url: contextPath + '/purchase/returngoods/returngoods-add.html',
+                                // url: contextPath + '/purchase/returngoods/returngoods-add.html',
+                                url: contextPath + '/purchase/stockreturn/stockreturn-add.html',
                                 params: {type: 'detail',goodsData:data.data,activeType:'detail'}
                             })
                         } else {
@@ -286,6 +290,7 @@ var vm = new Vue({
             let ids = [],flag = true;
             if(this.selected.length<1){
                 this.$Modal.info({
+                    title:'提示信息',
                     content:'请至少选择一笔数据！'
                 });
                 return;

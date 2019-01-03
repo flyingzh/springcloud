@@ -61,9 +61,9 @@ let ButtonAddVM = new Vue({
                 contentType: 'application/json;charset=utf-8',
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {//成功
-                        This.messageTip("info", "添加按钮成功");
+                        This.messageTip("success", "修改按钮成功");
                     } else {
-                        This.messageTip("info", res.msg);
+                        This.messageTip("error", res.msg);
                     }
                 },
                 error: function (res) {
@@ -103,6 +103,13 @@ let ButtonAddVM = new Vue({
             }
             if (type === 'error') {
                 this.$Modal.error({
+                    title: "提示",
+                    okText: "确定",
+                    content: message
+                });
+            }
+            if (type === 'success') {
+                this.$Modal.success({
                     title: "提示",
                     okText: "确定",
                     content: message

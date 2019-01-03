@@ -123,6 +123,7 @@ var unSourceDocument = new Vue({
             let boolean = true;
             if (!items.length) {
                 that.$Modal.info({
+                    title:'提示信息',
                     content: '请至少选中一条数据！',
                 });
                 return;
@@ -130,6 +131,7 @@ var unSourceDocument = new Vue({
 
                 if (this.testData(items) === false) {
                     that.$Modal.info({
+                        title:'提示信息',
                         content: '商品类型和客户必须一致才能合成一张单！',
                     });
                     boolean = false;
@@ -176,12 +178,14 @@ var unSourceDocument = new Vue({
                         That.goOldMaterialRegister(r.data, 2);
                     } else {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: result.msg
                         })
                     }
                 },
                 error: function (r) {
                     That.$Modal.info({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })
@@ -232,7 +236,8 @@ var unSourceDocument = new Vue({
                     That.categoryType = That.initGoodCategory(data.data.cateLists)
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错啦！',
                     });
                 }
@@ -285,7 +290,8 @@ var unSourceDocument = new Vue({
                     }
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })

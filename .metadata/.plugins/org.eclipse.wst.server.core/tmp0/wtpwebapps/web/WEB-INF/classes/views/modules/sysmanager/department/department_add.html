@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>部门-新增</title>
     #parse("modules/public/header.html")
-    <link rel="stylesheet" href="${rc.contextPath}/css/sysmanager/department/department_add.css">
 </head>
 <body>
 <div id="department_list">
@@ -21,7 +20,7 @@
                             <i-input disabled style="width: 200px;" v-model="body.depCode" placeholder="保存时自动生成"></i-input>
                         </form-item>
                         <form-item label="部门名称：" prop="depName"  class="ht-star" >
-                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depName"></i-input>
+                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depName"  @on-change="htTestChange"></i-input>
                         </form-item>
                         <form-item label="部门主管：">
                             <ht-employee-list
@@ -30,7 +29,7 @@
                                     :disabled="showAll"
                                     ref="chargeRef"
                                     is-check="no"
-                                    @on-change="htTestChange()"
+                                    @on-change="htTestChange"
                             >
                             </ht-employee-list>
                         </form-item>
@@ -49,10 +48,10 @@
                     <i-col span="8">
                         <form-item label="部门编制人数：">
                             <input :disabled="showAll" style="width: 200px;" class="ivu-input" v-model="body.depStaff"
-                                    @input="clearNoNumber(body,'depStaff',0)"></input>
+                                    @input="clearNoNumber(body,'depStaff',0)"   @change="htTestChange">
                         </form-item>
                         <form-item label="备注：">
-                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depRemarks"></i-input>
+                            <i-input :disabled="showAll" style="width: 200px;" v-model="body.depRemarks"  @on-change="htTestChange"></i-input>
                         </form-item>
                     </i-col>
                 </row>

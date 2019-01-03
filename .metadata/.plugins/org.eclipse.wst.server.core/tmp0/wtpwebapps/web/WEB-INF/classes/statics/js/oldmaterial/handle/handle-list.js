@@ -233,6 +233,7 @@ var vm = new Vue({
             let ids = [],flag = true;
             if(this.selected.length<1){
                 this.$Modal.info({
+                    title:'提示信息',
                     content:'请至少选择一笔数据！'
                 });
                 return;
@@ -265,6 +266,7 @@ var vm = new Vue({
                                     if(data.code === '100100') {
                                         setTimeout(function(){
                                             vm.$Modal.success({
+                                                title:'提示信息',
                                                 content:'删除成功！'
                                             })
                                         },300)
@@ -272,6 +274,7 @@ var vm = new Vue({
                                     } else {
                                         setTimeout(function(){
                                             vm.$Modal.info({
+                                                title:'提示信息',
                                                 content:'删除失败，请稍后再试！'
                                             })
                                         },300)
@@ -309,6 +312,7 @@ var vm = new Vue({
                 error: function (err) {
                     // console.log("服务器出错");
                     vm.$Modal.info({
+                        title:'提示信息',
                         content:'服务器出错，请稍后再试！'
                     })
                 },

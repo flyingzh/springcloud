@@ -76,9 +76,10 @@ let ButtonListVM = new Vue({
                 dataType: "json",
                 success: function (res) {
                     if (res.code === This.SUCCESS_CODE) {//成功
-                        this.messageTip('info', '删除成功');
+                        This.messageTip('success', '删除成功');
+                        This.refresh();
                     } else {
-                        this.messageTip('error', res.msg);
+                        This.messageTip('error', res.msg);
                     }
                 }, error: function (res) {
 
@@ -117,8 +118,8 @@ let ButtonListVM = new Vue({
                     content: message
                 });
             }
-            if (type === 'info') {
-                this.$Modal.info({
+            if (type === 'success') {
+                this.$Modal.success({
                     title: "提示",
                     okText: "确定",
                     content: message

@@ -204,7 +204,8 @@ var returnReport = new Vue({
                 },
                 error: function () {
                     console.log('服务器出错啦');
-					That.$Modal.error({
+					That.$Modal.warning({
+                        title:'提示信息',
 						content: "初始化业务员失败!"
 					});
                 }
@@ -225,7 +226,8 @@ var returnReport = new Vue({
                     That.categoryType = That.initGoodCategory(data.data.cateLists)
                 },
                 error: function () {
-					That.$Modal.error({
+					That.$Modal.warning({
+                        title:'提示信息',
 						content: "初始化商品类型失败!"
 					});
                 }
@@ -293,6 +295,7 @@ var returnReport = new Vue({
           for (let attr in this.errorMsg){
               if(!this.cerOutEntity[attr]){
                   this.$Modal.info({
+                      title:'提示信息',
                       content: this.errorMsg[attr]
                   });
                   return true;
@@ -303,6 +306,7 @@ var returnReport = new Vue({
         totalTip(){//总数大于0验证
             if(this.detEntityList.length === 0){
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '至少需要有一条分录行!'
                 });
                 return true;
@@ -310,6 +314,7 @@ var returnReport = new Vue({
             for (let attr in this.totalMsg){
                 if(!this.cerOutEntity[attr]){
                     this.$Modal.info({
+                        title:'提示信息',
                         content: this.totalMsg[attr]
                     });
                     return true;
@@ -330,6 +335,7 @@ var returnReport = new Vue({
         saveClick() {
             if (this.cerOutEntity.orderStatus>1){
                 this.$Modal.info({
+                    title:'提示信息',
 					content: "该单据已经提交，不能更新！"
 				});
             }else{
@@ -352,6 +358,7 @@ var returnReport = new Vue({
             }
             if(this.typeValue.length === 0){//善品类型必选验证
                 this.$Modal.info({
+                    title:'提示信息',
                     content: '商品类型必选!'
                 });
                 return;
@@ -365,6 +372,7 @@ var returnReport = new Vue({
             
             if (this.cerOutEntity.orderStatus>1){
 				this.$Modal.info({
+                    title:'提示信息',
 					content: '该单据已经提交！不能再重复提交!'
 				});
             }else{
@@ -427,6 +435,7 @@ var returnReport = new Vue({
 
                         //页面提示操作结果，显示三秒钟
                         that.$Modal.success({
+                            title:'提示信息',
                             content: data.msg
                         });
 
@@ -437,6 +446,7 @@ var returnReport = new Vue({
 						that.cerOutEntity.orderStatus = 1;
                         //页面提示操作结果，显示三秒钟
                         that.$Modal.warning({
+                            title:'提示信息',
                             content: data.msg
                         });
                     }
@@ -446,7 +456,8 @@ var returnReport = new Vue({
 					that.cerOutEntity.orderStatus = 1;
 					//隐藏按钮圈圈
 					window.top.home.loading('hide');
-                    that.$Modal.error({
+                    that.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错，请联系技术人员！'
                     });
                 }
@@ -513,7 +524,7 @@ var returnReport = new Vue({
                        }
 
                    } else {
-                       _this.$Modal.error({
+                       _this.$Modal.warning({
                            content: '审核异常!',
                            title: '警告'
                        });
@@ -540,6 +551,7 @@ var returnReport = new Vue({
                 } else {
                     //页面提示操作结果，显示三秒钟
                     that.$Message.warning({
+                        title:'提示信息',
                         content: '更新单据状态失败，请重试！',
                         duration: 3
                     });
@@ -561,6 +573,7 @@ var returnReport = new Vue({
 				} else{
 					//只有手动新增的单据，且状态是暂存才可以新增行
 					this.$Modal.info({
+                        title:'提示信息',
 						content: '只有手动新增的单据，且状态是“暂存”才可以新增行!'
 					});
 				}
@@ -568,6 +581,7 @@ var returnReport = new Vue({
 				//如果删除的是最后一行,且是上游携带的数据
 				if (this.detEntityList.length==1 && this.cerOutEntity.dataSource == 2){
 					this.$Modal.info({
+                        title:'提示信息',
 						content: '上游携带的数据，至少要保留一行!'
 					});
 					return;
@@ -784,7 +798,8 @@ var returnReport = new Vue({
 
                     },
                     error: function () {
-						this.$Modal.error({
+						this.$Modal.warning({
+                            title:'提示信息',
 							content: "服务器出错啦!"
 						});
                     }

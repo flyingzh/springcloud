@@ -124,6 +124,7 @@ var vm = new Vue({
                     This.htHaveChange = false;
                     if (res.code == '100100') {
                         This.$Modal.success({
+                            title:'提示信息',
                             content: '保存成功',
                             duration: 1.5,
                             closable: true
@@ -158,7 +159,8 @@ var vm = new Vue({
                         This.output.auditTime = res.data.auditTime;
                         This.output.dataSource = res.data.dataSource;
                     } else {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content: res.msg,
                             duration: 1.5,
                             closable: true
@@ -167,7 +169,8 @@ var vm = new Vue({
                     }
                 },
                 error: function (err) {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '系统出现异常，请稍后再试!',
                         duration: 1.5,
                         closable: true
@@ -184,6 +187,7 @@ var vm = new Vue({
                 length = goodsEntityList.length;
                 if (length == 0) {
                     That.$Modal.info({
+                        title:'提示信息',
                         content: '请填写订单明细信息',
                         duration: 1.5,
                         closable: true
@@ -194,6 +198,7 @@ var vm = new Vue({
                 for (var i = 0; i < length; i++) {
                     if ((goodsEntityList[i].goodsNo === '') || (goodsEntityList[i].goodsNo === undefined) || (goodsEntityList[i].goodsNo === null)) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的商品编码`,
                             duration: 1.5,
                             closable: true
@@ -202,6 +207,7 @@ var vm = new Vue({
                         return false;
                     } else if (goodsEntityList[i].goodsName === '' || goodsEntityList[i].goodsName === undefined || goodsEntityList[i].goodsName === null) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的商品名称`,
                             duration: 1.5,
                             closable: true
@@ -211,6 +217,7 @@ var vm = new Vue({
                     }
                     else if ((goodsEntityList[i].countingUnit === '' || goodsEntityList[i].countingUnit === null || goodsEntityList[i].countingUnit === undefined )) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的计数单位`,
                             duration: 1.5,
                             closable: true
@@ -220,6 +227,7 @@ var vm = new Vue({
                     }
                     else if ((!goodsEntityList[i].count || goodsEntityList[i].count === '0' || goodsEntityList[i].count === 0 )) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的数量,并且数量大于0`,
                             duration: 1.5,
                             closable: true
@@ -229,6 +237,7 @@ var vm = new Vue({
                     }
                     else if ((goodsEntityList[i].weightUnit === '' || goodsEntityList[i].weightUnit === null || goodsEntityList[i].weightUnit === undefined )) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的计重单位`,
                             duration: 1.5,
                             closable: true
@@ -238,6 +247,7 @@ var vm = new Vue({
                     }
                     else if ((!goodsEntityList[i].totalWeight || goodsEntityList[i].totalWeight === '0' || goodsEntityList[i].totalWeight === 0 )) {
                         That.$Modal.info({
+                            title:'提示信息',
                             content: `请填写第${i + 1}行的总重，并且总重大于0`,
                             duration: 1.5,
                             closable: true
@@ -253,13 +263,14 @@ var vm = new Vue({
                 $.ajax({
                     type: 'post',
                     contentType: 'application/json',
-                    data: JSON.stringify(this.output),
+                    data: JSON.stringify(That.output),
                     url: contextPath + '/TOldmaterialOutputGoods/saveOrUpdateOutputGoods',
                     dataType: 'json',
                     success: function (res) {
                         window.top.home.loading('hide');
                         if (res.code == '100100') {
                             That.$Modal.success({
+                                title:'提示信息',
                                 content: '提交成功',
                                 duration: 1.5,
                                 closable: true
@@ -301,7 +312,8 @@ var vm = new Vue({
                             That.isEdit("N");
                             That.getInitDataById();
                         } else {
-                            That.$Modal.error({
+                            That.$Modal.warning({
+                                title:'提示信息',
                                 content: res.msg,
                                 duration: 1.5,
                                 closable: true
@@ -311,7 +323,8 @@ var vm = new Vue({
                         }
                     },
                     error: function (err) {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title:'提示信息',
                             content: '系统出现异常，请稍后再试!',
                             duration: 1.5,
                             closable: true
@@ -412,7 +425,8 @@ var vm = new Vue({
                 data: {id: id},
                 success: function (data) {
                     if (data.code !== '100100') {
-                        This.$Modal.info({
+                        This.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！',
                         });
                         return
@@ -422,7 +436,8 @@ var vm = new Vue({
                 },
                 error: function () {
                     // layer.alert('服务器出错啦');
-                    This.$Modal.info({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错,请稍后再试！',
                     });
                 }
@@ -483,6 +498,7 @@ var vm = new Vue({
                 }
             } else {
                 this.$Modal.warning({
+                    title:'提示信息',
                     content: res.result.msg,
                     title: '提示信息'
                 })
@@ -547,7 +563,6 @@ var vm = new Vue({
             // this.getCommodityList();
         },
         // getCommodityList(){
-        //     console.log('默认商品明细数据');
         //     let This = this;
         //     let params = {
         //         categoryCustomCode: This.output.goodsTypePath,
@@ -562,7 +577,7 @@ var vm = new Vue({
         //         dataType: "json",
         //         success: function (data) {
         //             if(data.code != "100100"){
-        //                 this.$Modal.error({
+        //                 this.$Modal.warning({
         //                     content:data.msg,
         //                 })
         //                 This.commodityList =[];
@@ -571,7 +586,7 @@ var vm = new Vue({
         //             This.commodityList = data.data;
         //         },
         //         error: function () {
-        //             this.$Modal.error({
+        //             this.$Modal.warning({
         //                 content:"网络异常,请联系技术人员！",
         //             })
         //         }
@@ -594,16 +609,17 @@ var vm = new Vue({
                             let value = item.name;
                             _this.unitMap[keyStr] = value;
                         })
-                        console.log(_this.unitMap);
 
                     } else {
-                        _this.$Modal.error({
+                        _this.$Modal.warning({
+                            title:'提示信息',
                             content: '服务器异常,请联系技术人员！'
                         })
                     }
                 },
                 error: function (err) {
-                    _this.$Modal.error({
+                    _this.$Modal.warning({
+                        title:'提示信息',
                         content: '网络异常,请联系技术人员！'
                     })
                 },
@@ -616,7 +632,6 @@ var vm = new Vue({
             //转换重量, 数量单位,计价单位
             // res.countUnitId = This.unitMap[res.countUnitId];
             // res.weightUnitId = This.unitMap[res.weightUnitId];
-            console.log(res);
             let newValue = {};
             Object.assign(newValue, {
                 goodsNo: res.code,//商品编码
@@ -726,7 +741,6 @@ var vm = new Vue({
         //     this.showSupplierModal = false;
         // },
         closeSupplier(id, scode, fname) {
-            console.log(id, scode, fname);
             this.output.supperId = id;
             this.output.supperName = fname;
         },
@@ -766,8 +780,7 @@ var vm = new Vue({
                     That.employees = r.data.employees; //加载当前公司下面所有的员工
                 },
                 error: function () {
-                    // console.log('服务器出错啦');
-                    That.$Modal.info({
+                    That.$Modal.warning({
                         title: '提示信息',
                         content: '服务器出错，请稍后再试！'
                     })
@@ -799,6 +812,7 @@ var vm = new Vue({
                 },
                 error: function () {
                     that.$Modal.warning({
+                        title:'提示信息',
                         content: '服务器出错，请稍后再试！'
                     })
                 }
@@ -860,7 +874,6 @@ var vm = new Vue({
                 data: JSON.stringify(params),
                 success: function (data) {
                     if (data.code === '100100') {
-                        console.log(data.data);
                         This.output.outputDate = new Date();
                         This.output.organizationName = layui.data('user').currentOrganization.orgName;
                         This.output.dataSource = 2;//上游生成
@@ -871,7 +884,6 @@ var vm = new Vue({
                         This.output.processingResults = data.data.processingResults;
                         This.output.customerId = data.data.customerId;
                         This.output.customerName = data.data.customerName;
-                        console.log(This.output.customerName, This.output.customerId);
                         //回显客户
                         This.$refs.customerRef.loadCustomerList(This.output.customerName, This.output.customerId);
                         This.output.supperId = data.data.supperId;
@@ -882,13 +894,15 @@ var vm = new Vue({
 
                     } else {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: '生成失败，请稍后再试！',
                             closable: true
                         })
                     }
                 },
                 error: function (e) {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title:'提示信息',
                         content: '生成失败，请稍后再试！',
                         closable: true
                     })
@@ -896,16 +910,13 @@ var vm = new Vue({
             });
         },
         showDetailById(id) {
-            console.log(id);
             let This = this;
             $.ajax({
                 url: contextPath + '/TOldmaterialOutputGoods/getSaveOldMaterialOutputVo',
                 type: 'post',
                 data: {id: id},
                 success: function (data) {
-                    console.log(data);
                     if (data.code === '100100') {
-                        console.log(data.data);
                         This.output = data.data;
                         This.output.organizationName = layui.data('user').currentOrganization.orgName;
                         //回显供应商
@@ -918,6 +929,7 @@ var vm = new Vue({
                         }
                     } else {
                         This.$Modal.warning({
+                            title:'提示信息',
                             content: data.msg
                         })
                     }
@@ -925,6 +937,7 @@ var vm = new Vue({
                 error: function (e) {
                     // layer.alert('查询失败！', {icon: 0});
                     This.$Modal.warning({
+                        title:'提示信息',
                         content: '查询失败，请稍后再试！'
                     })
                 }
@@ -970,7 +983,6 @@ var vm = new Vue({
     mounted() {
         this.repositionDropdown();
         this.openTime = window.parent.params.openTime;
-        console.log(this.params);
         this.output.organizationName = layui.data('user').currentOrganization.orgName;
         if (this.params.type == 'generate') {//从待外发列表新增
             this.isEdit("Y");

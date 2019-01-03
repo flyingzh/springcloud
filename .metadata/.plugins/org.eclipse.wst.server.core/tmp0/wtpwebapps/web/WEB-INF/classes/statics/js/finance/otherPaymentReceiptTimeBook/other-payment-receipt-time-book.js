@@ -555,11 +555,11 @@ var vem = new Vue({
                                                         '&sumAmountPaymentReceived='+sumAmountPaymentReceived+
                                                         '&sumPayableAmount='+sumPayableAmount+
                                                         '&timeStart='+jsObj.timeStart+
-                                                        '&timeEnd'+jsObj.timeEnd+
-                                                        '&dateSource'+jsObj.dateScore+
-                                                        '&auditStatus'+jsObj.auditStatus+
-                                                        '&isVoucher'+jsObj.isVoucher+
-                                                        '&documentNumber'+jsObj.documentNumber
+                                                        '&timeEnd='+jsObj.timeEnd+
+                                                        '&dateSource='+jsObj.dateScore+
+                                                        '&auditStatus='+jsObj.auditStatus+
+                                                        '&isVoucher='+jsObj.isVoucher+
+                                                        '&documentNumber='+jsObj.documentNumber
 
         },
         print () {

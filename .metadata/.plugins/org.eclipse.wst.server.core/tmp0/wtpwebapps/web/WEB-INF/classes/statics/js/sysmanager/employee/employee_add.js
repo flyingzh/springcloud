@@ -12,48 +12,8 @@ var vm = new Vue({
             deptName:[
                 {required:true}
             ],
-            idCard: [
-                {required: false,trigger: 'blur',validator:function (rule, value, callback) {
-                    if(!value){
-                        callback()
-                        return callback(new Error("请输入身份证号码！"));
-                    }else if(!(/^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/.test(value))){
-                        return callback(new Error("请输入正确身份证号码！"))
-                    }else{
-                        callback();
-                    }
-                }
-                }
-            ],
-            mailbox: [
-                { required: false,trigger: 'blur'},
-                { type: 'email', message: '请输入正确的邮箱格式！', trigger: 'blur' }
-            ],
-            phone: [
-                { type:'number',required: false,trigger:'blur',validator: function(rule, value, callback) {
-                    if(!value){
-                        callback()
-                        return callback(new Error("请输入联系方式！"));
-                    }else if(!(/^1[34578]\d{9}$/.test(value))){
-                        return callback(new Error("请输入正确联系方式！"))
-                    }else{
-                        callback();
-                    }
-                }
-                }
-            ],
-            emergencyTelephone:[
-                { type:'number',trigger:'blur',validator: function(rule, value, callback) {
-                    if(!value){
-                        callback()
-                        return callback(new Error("请输入紧急联系人方式！"));
-                    }else if(!(/^1[34578]\d{9}$/.test(value))){
-                        return callback(new Error("请输入正确的紧急联系人方式！"))
-                    }else{
-                        callback();
-                    }
-                }
-                }
+            entryDate:[
+                {required:true}
             ]
         },
         reload: false,
@@ -166,6 +126,67 @@ var vm = new Vue({
         },
     },
     methods: {
+        // 校验联系人手机号码
+        checkPhone() {
+            let phone = this.body.phone;
+            if (!phone) {
+                return;
+            }
+            var reg = /^[1][3,4,5,7,8][0-9]{9}$/;
+            if (!reg.test(phone)) {
+                this.$Modal.info({
+                    title: "提示",
+                    okText: "确定",
+                    content: "格式不正确,请重新输入!"
+                });
+                this.body.phone = "";
+            }
+        },
+        // 校验紧急联系人手机号码
+        checkEmergencyPhone() {
+            let phone = this.body.emergencyTelephone;
+            if (!phone) {
+                return;
+            }
+            var reg = /^[1][3,4,5,7,8][0-9]{9}$/;
+            if (!reg.test(phone)) {
+                this.$Modal.info({
+                    title: "提示",
+                    okText: "确定",
+                    content: "格式不正确,请重新输入!"
+                });
+                this.body.emergencyTelephone = "";
+            }
+        },
+        // 校验邮箱有效性
+        checkEmail() {
+            let email = this.body.mailbox;
+            if (!email) {
+                return;
+            }
+            var reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$");
+            if (!reg.test(email)) {
+                this.$Modal.info({
+                    title: "提示",
+                    okText: "确定",
+                    content: "格式不正确,请重新输入!"
+                });
+                this.body.mailbox = "";
+            }
+        },
+        //验证身份证号码是否正确
+        checkIdCard(){
+            let idCard = this.body.idCard;
+            let reg = /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/;
+            if (!reg.test(idCard)) {
+                this.$Modal.info({
+                    title: "提示",
+                    okText: "确定",
+                    content: "格式不正确,请重新输入!"
+                });
+                this.body.idCard = "";
+            }
+        },
         // 附件是编辑还是查看 传入Y表示编辑，传入N表示查看,页面初始化的时候就需要调用这个方法
         isEdit: function (isEdit) {
             eventHub.$emit('isEdit', isEdit);
@@ -199,6 +220,7 @@ var vm = new Vue({
             this.selectRank = getCodeList("sys_rank");
         },
 
+        //保存人员
         save(name){
             let isFormPass = '';
             this.$refs[name].validate((valid) => {
@@ -209,6 +231,10 @@ var vm = new Vue({
                 }
             })
               if(!isFormPass){
+                  this.$Modal.info({
+                      content: "数据有误，请认真填写",
+                      title: "提示信息"
+                  })
                   return false;
               }
 
@@ -224,8 +250,7 @@ var vm = new Vue({
                 async:false,
                 success: function (data) {
                     window.top.home.loading('hide');
-                    this.htHaveChange = false;
-                    console.log("不走了")
+                    This.htHaveChange = false;
                     if (data.code == "100100") {
                         This.$Modal.success({
                             content: "保存成功",
@@ -414,7 +439,7 @@ var vm = new Vue({
 
         //关闭
         handlerClose(){
-            if(this.htHaveChange || accessVm.htHaveChange){
+            if(this.htHaveChange){
                 this.$nextTick(()=>{
                     this.$refs.closeModalRef.showCloseModal();
                 });
@@ -433,7 +458,6 @@ var vm = new Vue({
             }
         },
         exit(close){
-
             if(close === true){
                 window.parent.closeCurrentTab({exit: true, openTime: this.openTime});
                 return false;
@@ -444,7 +468,6 @@ var vm = new Vue({
         },
         htTestChange(){
             this.htHaveChange = true;
-            console.log(333)
         },
     },
 

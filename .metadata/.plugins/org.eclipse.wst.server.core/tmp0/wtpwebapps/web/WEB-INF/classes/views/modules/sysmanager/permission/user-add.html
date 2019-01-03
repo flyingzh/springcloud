@@ -78,7 +78,7 @@
 				<i-col span="10">
 					<form-item class="ht-star" label="登录账号:" prop="loginName">
 						<i-input v-model="addUser.loginName" name="loginName"
-								 class="ht-width-md" @input="clearNum" :disabled="isEdit">
+								 class="ht-width-md" @input="clearNum" :disabled="isEdit"/>
 					</form-item>
 					<form-item class="ht-star" label="输入密码:" prop="password" v-show="isShowPasswordInput">
 						<i-input v-model="addUser.password" type="password" name="password" class="ht-width-md"
@@ -96,8 +96,11 @@
 							<i-input id="username" v-model="addUser.username" name="username" class="ht-width-md"/>
 						</form-item>-->
 					<form-item label="员工：" class="ht-star" prop="empCode">
-						<i-select  @on-change="changeSaleEmp($event)" :disabled="isEdit" v-model="addUser.empCode" label-in-value class="ht-width-input" transfer filterable :clearable="false">
-							<i-option v-if="item.empStatus == 1"  v-for="item in employees" :value="item.empCode">{{item.empCode}}-{{item.empName}}</i-option>
+						<i-select @on-change="changeSaleEmp($event)" :disabled="isEdit" v-model="addUser.empCode"
+								  label-in-value class="ht-width-input" transfer filterable :clearable="false">
+							<i-option v-if="item.empStatus == 1" v-for="item in employees" :value="item.empCode">
+								{{item.empCode}}-{{item.empName}}
+							</i-option>
 						</i-select>
 					</form-item>
 					<form-item class="ht-star" label="手机号:" prop="phone">

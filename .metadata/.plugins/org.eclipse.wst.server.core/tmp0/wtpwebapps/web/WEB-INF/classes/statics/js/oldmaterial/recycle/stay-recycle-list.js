@@ -210,7 +210,8 @@ var stayRecycleList = new Vue({
                     }
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title: '提示信息',
                         scrollable:true,
                         content:"系统异常,请联系技术人员！",
                     })
@@ -219,7 +220,7 @@ var stayRecycleList = new Vue({
         },
         generateReport() {
             if (this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '请先选择至少一条数据！'
                 });
@@ -229,7 +230,7 @@ var stayRecycleList = new Vue({
             let flag = false;
             for (let v in this.selected) {
                 if (this.selected[obj].goodsTypePath != this.selected[v].goodsTypePath) {
-                    this.$Modal.warning({
+                    this.$Modal.info({
                         title: '提示信息',
                         content: '商品类型不一致，请重新选择！'
                     });
@@ -237,7 +238,7 @@ var stayRecycleList = new Vue({
                     break;
                 }
                 if (this.selected[obj].supperId != this.selected[v].supperId) {
-                    this.$Modal.warning({
+                    this.$Modal.info({
                         title: '提示信息',
                         content: '处理厂家不一致，请重新选择！'
                     });
@@ -245,7 +246,7 @@ var stayRecycleList = new Vue({
                     break;
                 }
                 if (this.selected[obj].customerId != this.selected[v].customerId) {
-                    this.$Modal.warning({
+                    this.$Modal.info({
                         title: '提示信息',
                         content: '客户不一致，请重新选择！'
                     });
@@ -253,7 +254,7 @@ var stayRecycleList = new Vue({
                     break;
                 }
                 if (this.selected[obj].processingMode != this.selected[v].processingMode) {
-                    this.$Modal.warning({
+                    this.$Modal.info({
                         title: '提示信息',
                         content: '处理方式不一致，请重新选择！'
                     });
@@ -261,7 +262,7 @@ var stayRecycleList = new Vue({
                     break;
                 }
                 if (this.selected[obj].processingResults != this.selected[v].processingResults) {
-                    this.$Modal.warning({
+                    this.$Modal.info({
                         title: '提示信息',
                         content: '处理结果不一致，请重新选择！'
                     });
@@ -302,13 +303,15 @@ var stayRecycleList = new Vue({
 
         },
         errorTip(msg) {
-            this.$Modal.error({
+            this.$Modal.warning({
+                title: '提示信息',
                 scrollable: true,
                 content: msg || "系统异常,请联系技术人员！",
             })
         },
         successTip(msg) {
             this.$Modal.success({
+                title: '提示信息',
                 scrollable: true,
                 content: msg,
             })
@@ -330,7 +333,7 @@ var stayRecycleList = new Vue({
                 ids.push(this.selected[i].id);
             }
             if(ids.length == 0){
-                pendingList.$Modal.warning({
+                pendingList.$Modal.info({
                     title:'提示信息',
                     content:'<p>请选择</p>'
                 });
@@ -350,6 +353,7 @@ var stayRecycleList = new Vue({
                             if (res.code === '100100' && res.data === '' ) {
                                 setTimeout(function(){
                                     pendingList.$Modal.success({
+                                        title: '提示信息',
                                         content: '删除成功',
                                         onOk:function(){
                                             pendingList.reload = !pendingList.reload;
@@ -360,6 +364,7 @@ var stayRecycleList = new Vue({
                             } else if(res.code === '100100' && res.data != '' ) {
                                 setTimeout(function(){
                                     pendingList.$Modal.warning({
+                                        title: '提示信息',
                                         content: res.data,
                                         onOk:function(){
                                             pendingList.reload = !pendingList.reload;
@@ -367,7 +372,8 @@ var stayRecycleList = new Vue({
                                     })
                                 },300)
                             }else {
-                                pendingList.$Modal.error({
+                                pendingList.$Modal.warning({
+                                    title: '提示信息',
                                     content: '删除失败',
                                     onOk: () => {
                                         pendingList.reload = ! pendingList.reload
@@ -377,7 +383,8 @@ var stayRecycleList = new Vue({
                             }
                         },
                         error: function (err) {
-                            pendingList.$Modal.error({
+                            pendingList.$Modal.warning({
+                                title: '提示信息',
                                 content: '服务器错误',
                                 closable: true
                             })
@@ -404,14 +411,14 @@ var stayRecycleList = new Vue({
         update(){
             var That = this;
             if (That.selected.length > 1) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title:'提示信息',
                     content:'<p>请单选</p>'
                 });
                 return false;
             }
             if (That.selected.length == 0) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title:'提示信息',
                     content:'<p>请选择</p>'
                 });

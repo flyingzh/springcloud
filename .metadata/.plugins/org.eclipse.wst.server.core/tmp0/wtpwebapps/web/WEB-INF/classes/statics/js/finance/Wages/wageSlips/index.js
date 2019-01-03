@@ -1,6 +1,6 @@
 var _vue = new Vue({
     el: '#wageSlips',
-    data() {
+    data () {
         return {
             dateStr: "",
             openTime: '',
@@ -11,7 +11,9 @@ var _vue = new Vue({
             printInfo: {},
             printModal: false,
             showDept: false,
-            deptName:'',
+            deptName: '',
+            colList: [], //工资条表头
+            entityList: [], //工资条对象
             itemList: [],
             rankList: [], //职级
             stationList: [], //岗位
@@ -20,13 +22,13 @@ var _vue = new Vue({
                 sobId: layui.data('user').userCurrentOrganId, //组织
                 filterYear: 0, //会计年
                 filterPeriod: 0, //会计期
-                empCode: null,  //员工工号
-                empName: null, //员工姓名
-                idCard: null,  //身份证号
-                deptId: null,  //所属部门
-                rank: null,     //职级
-                station: null,  //员工岗位
-                stationLevel: null //岗位级别
+                empCode: '',  //员工工号
+                empName: '', //员工姓名
+                idCard: '',  //身份证号
+                deptId: '',  //所属部门
+                rank: '',     //职级
+                station: '',  //员工岗位
+                stationLevel: '' //岗位级别
             },
             sysStartYear: 0,       //系统启用年
             sysStartPeriod: 0,     //系统启用期间
@@ -36,8 +38,8 @@ var _vue = new Vue({
             endYearPeriodList: [],     //选择当前年度时 可选期间
             periodList: [],           //除开始年度,当前年度可用的全年12期 期间
             startEndPeriodList: [],   //启用年 = 当前期间年
-            startPeriodList:[],
-            accountYearList:[],
+            startPeriodList: [],
+            accountYearList: [],
             formData: {
                 startYear: '',
                 endYear: '',
@@ -75,7 +77,7 @@ var _vue = new Vue({
             accountantYearList: [],//会计年度集合
             accountantPeriodList: [], //会计期间集合
             economicUseList: [],//经济用途集合
-            currentOrgName:'',
+            currentOrgName: '',
             isEdit: true,
             filterVisible: false,
             dataList: [],
@@ -141,26 +143,48 @@ var _vue = new Vue({
             },
             colNames: [],
             colModel: [],
-            dataList:[],
+            dataList: [],
             tableHeaders: [],
-            table1DataList: [{'id': '1', 'name': '001'}, {'id': '2', 'name': '002'}],
+            table1DataList: [{ 'id': '1', 'name': '001' }, { 'id': '2', 'name': '002' }],
         }
     },
-    created(){
+    created () {
 
         this.currentOrgName = layui.data('user').currentOrgName
     },
     //获取会计科目列表
-    mounted() {
+    mounted () {
         this.openTime = window.parent.params && window.parent.params.openTime;
         this.filterVisible = true;
-        this.economicUseList = getCodeList("fixedAssets_economicUse");
+        // this.economicUseList = getCodeList("fixedAssets_economicUse");
         let _vm = this;
         _vm.initPage();
     },
+    watch:{
+        deptName(newValue,oldValue){
+            if(newValue == ''){
+                this.wmSheetParmas.deptId = null;
+            }
+        }
+    },
     methods: {
+        //引出
+        exportExcel(){
+            let parma = this.wmSheetParmas;
+            window.frames.exportIframe.location.href = contextPath + '/wmSheet/expord?sobId='+parma.sobId+
+                                                                                        '&filterYear='+parma.filterYear+
+                                                                                        '&filterPeriod='+parma.filterPeriod+
+                                                                                        '&empCode='+parma.empCode+
+                                                                                        '&empName='+parma.empName+
+                                                                                        '&idCard='+parma.idCard+
+                                                                                        '&deptId='+parma.deptId+
+                                                                                        '&rank='+parma.rank+
+                                                                                        '&station='+parma.station+
+                                                                                        '&stationLevel='+parma.stationLevel
+            ;
+        },
         //点击过滤弹窗,展示部门树
-        showDepartmentTree(value, which, index) {
+        showDepartmentTree (value, which, index) {
             if (this.showDept === true) {
                 this.showDept = false;
                 return;
@@ -168,13 +192,13 @@ var _vue = new Vue({
             this.showDept = value;
         },
         //部门树点击事件
-        deptTreeClickCallBack(event, treeId, treeNode) {
+        deptTreeClickCallBack (event, treeId, treeNode) {
             console.log(treeNode);
             this.wmSheetParmas.deptId = treeNode.id;
             this.deptName = treeNode.name;
             this.showDept = false;
         },
-        Merger(gridName, cellName) {
+        Merger (gridName, cellName) {
             //得到显示到界面的id集合
             var mya = $("#" + gridName + "").getDataIDs();
             //数据总行数
@@ -190,62 +214,62 @@ var _vue = new Vue({
                     var end = $("#" + gridName + "").jqGrid('getRowData', mya[j]);
                     if (before[cellName] == end[cellName]) {
                         rowSpanTaxCount++;
-                        $("#" + gridName + "").setCell(mya[j], cellName, '', {display: 'none'});
+                        $("#" + gridName + "").setCell(mya[j], cellName, '', { display: 'none' });
                     } else {
                         break;
                     }
                 }
-                $("#" + gridName + "").setCell(mya[i], cellName, '', '', {rowspan: rowSpanTaxCount});
+                $("#" + gridName + "").setCell(mya[i], cellName, '', '', { rowspan: rowSpanTaxCount });
             }
         },
 
         // 科目下拉框
-        showSubjectVisable(type) {
+        showSubjectVisable (type) {
             this.subjectVisable = true;
         },
         //资产类别下拉
-        assetsClassTreeClickCallBack(event, treeId, treeNode) {
+        assetsClassTreeClickCallBack (event, treeId, treeNode) {
             // console.log(treeNode,'资产类别');
             this.formData.assetsClassId = treeNode.id;
             this.assetsClassName = treeNode.name;
             this.assetsClassType = false;
         },
-        treeBeforeClick(treeId, treeNode, clickFlag) {
+        treeBeforeClick (treeId, treeNode, clickFlag) {
             // console.log("treeNode",treeNode)
             return !treeNode.isParent;
         },
         //使用状态下拉
-        useStateTreeClickCallBack(event, treeId, treeNode) {
+        useStateTreeClickCallBack (event, treeId, treeNode) {
             // console.log(treeNode,'使用状态');
             this.formData.useStateId = treeNode.id;
             this.useStateName = treeNode.name;
             this.useStateType = false;
         },
         //使用部门下拉
-        useDepartmentTreeClickCallBack(event, treeId, treeNode) {
+        useDepartmentTreeClickCallBack (event, treeId, treeNode) {
             // console.log(treeNode,'使用部门');
             this.formData.useDepartmentId = treeNode.id;
             this.useDepartmentName = treeNode.name;
             this.useDepartmentType = false;
         },
         //变动方式下拉
-        alterTypeTreeClickCallBack(event, treeId, treeNode) {
+        alterTypeTreeClickCallBack (event, treeId, treeNode) {
             // console.log(treeNode,'变动方式');
             this.formData.alterTypeId = treeNode.id;
             this.alterTypeName = treeNode.name;
             this.alterTypeType = false;
         },
-        subjectClose() {
+        subjectClose () {
             this.subjectVisable = false;
         },
-        subjectData(treeNode) {
+        subjectData (treeNode) {
             console.log(treeNode, '====treeNode');
             var that = this;
             that.formData.relateSubjectId = treeNode.id;
             that.subjectName = treeNode.subjectName + '--' + treeNode.subjectCode;
             this.subjectClose();
         },
-        initPage() {
+        initPage () {
             //初始化数据
             let that = this;
             $.ajax({
@@ -257,13 +281,13 @@ var _vue = new Vue({
                     if (res.code == '100100') {
                         //职级
                         that.rankList = res.data.rankList,
-                        //岗位
-                        that.stationList = res.data.stationList,
-                        //岗位级别
-                        that.stationLevelList = res.data.stationLevelList,
+                            //岗位
+                            that.stationList = res.data.stationList,
+                            //岗位级别
+                            that.stationLevelList = res.data.stationLevelList,
 
-                        //除开始年度,当前年度可用的全年12期 期间
-                        that.accountYearList = res.data.yearList;
+                            //除开始年度,当前年度可用的全年12期 期间
+                            that.accountYearList = res.data.yearList;
                         //选择启用年度时 可选期间
                         that.startYearPeriodList = res.data.startYearPeriodList;
                         //选择当前年度时 可选期间
@@ -274,12 +298,12 @@ var _vue = new Vue({
                         that.sysStartYear = res.data.startSysYear;
                         that.sysStartPeriod = res.data.startSysPeriod;
 
-                        that.wmSheetParmas.filterYear  = that.currenAccountYear = res.data.currenAccountYear;
+                        that.wmSheetParmas.filterYear = that.currenAccountYear = res.data.currenAccountYear;
                         that.wmSheetParmas.filterPeriod = that.currenAccountPeriod = res.data.currenAccountPeriod;
                         that.selectStartPeriod(that.wmSheetParmas.filterYear);
 
                     } else {
-                        _vm.$Modal.error({
+                        that.$Modal.error({
                             title: '提示',
                             content: result == null || result.msg == null || result.msg == '' ? "页面初始化失败" : result.msg
                         })
@@ -288,7 +312,7 @@ var _vue = new Vue({
             });
         },
         startYearMethod (value) {
-            
+
             this.wmSheetParmas.filterPeriod = null;
             // this.startPeriodList = null;
             this.$refs.sel2.reset();
@@ -297,7 +321,7 @@ var _vue = new Vue({
             });
         },
         selectStartPeriod (newValue) {
-            
+
             if (newValue == this.sysStartYear && this.currenAccountYear != this.sysStartYear) {
                 //选择为启用年 当前年!=启用年
                 this.startPeriodList = this.startYearPeriodList;
@@ -312,10 +336,10 @@ var _vue = new Vue({
                 this.startPeriodList = this.periodList;
             }
             let length = this.startPeriodList.length;
-            this.wmSheetParmas.filterPeriod =  this.startPeriodList[length-1];
+            this.wmSheetParmas.filterPeriod = this.startPeriodList[length - 1];
         },
 
-        accountingItem() {
+        accountingItem () {
             let _vm = this;
             for (var i = 0; i < _vm.projectCategory.length; i++) {
                 if (_vm.formData.projectId == _vm.projectCategory[i].id) {
@@ -323,19 +347,19 @@ var _vue = new Vue({
                 }
             }
         },
-        initMethod() {
+        initMethod () {
             this.delTable();
             this.setTableHeader();
         },
 
-        delTable() {
+        delTable () {
             $("#grid").empty();// 清空表格内容
             var parent = $(".jqGrid_wrapper"); // 获得整个表格容器
             parent.empty();
             $(`<table id="grid"></table><div id="page"></div>`).appendTo(parent);
         },
 
-        setTableHeader() {
+        setTableHeader () {
             //mergeColumn
             var that = this;
             this.colNames = [];
@@ -347,7 +371,7 @@ var _vue = new Vue({
         },
 
         // 生成jqGrid
-        jqGridInit(colNames, colModel, headers) {
+        jqGridInit (colNames, colModel, headers) {
 
             let _vm = this;
             let config = {
@@ -356,7 +380,7 @@ var _vue = new Vue({
                 mtype: 'POST',
                 styleUI: 'Bootstrap',
                 url: contextPath + '/expenseAllocation/detail',
-                ajaxGridOptions: {contentType: 'application/json;charset=utf-8'},
+                ajaxGridOptions: { contentType: 'application/json;charset=utf-8' },
                 datatype: 'json',
                 postData: JSON.stringify(_vm.formData),
                 jsonReader: {
@@ -377,6 +401,7 @@ var _vue = new Vue({
                         layer.alert(_msg);
                         return;
                     }
+                    _vm.dateStr = _vm.wmSheetParmas.filterYear +"年"+_vm.wmSheetParmas.filterPeriod+"期";
                     console.log("_vm.dateStr", _vm.dateStr)
                 },
                 gridComplete: function () {
@@ -385,32 +410,58 @@ var _vue = new Vue({
             jQuery("#grid").jqGrid(config);
 
         },
-        open() {
+        open () {
             this.filterVisible = true;
         },
-        _nullData(_t) {
+        _nullData (_t) {
             if (_t) {
                 return _t;
             } else {
                 return '';
             }
         },
-        formartMoney(value) {
+        formartMoney (value) {
             return value == null || value == 0 ? '' : accounting.formatNumber(value, 2, ",");
         },
         //点击保存
         save: function () {
-            console.log('wmSheetParmas==',this.wmSheetParmas);
-            //加载grid
-            debugger
-            this.base_config.url = contextPath + '/wmSheet/filter';
-            this.base_config.postData = JSON.stringify(this.wmPerPayParamsVO);
 
-            this.initMethod();
+            console.log('wmSheetParmas==', this.wmSheetParmas);
+            //加载grid
+            let that = this;
+            that.dateStr = that.wmSheetParmas.filterYear +"年"+that.wmSheetParmas.filterPeriod+"期";
+            let _url = contextPath + '/wmSheet/fieldsAndVals';
+            let _param = JSON.stringify(that.wmSheetParmas);
+            $.ajax({
+                url: _url,
+                type: "POST",
+                dateType: "json",
+                contentType: "application/json;charset=utf-8",
+                data: _param,
+                success: function (res) {
+                    if (res.code == '100100') {
+                        that.entityList = res.data.entityList;
+                        if(that.entityList.length==0){
+                            that.$Modal.error({
+                                title:'信息提示',
+                                content:`<p>无职员信息</p>`,
+                            });
+                            return;
+                        }
+                        that.colList = res.data.colList;
+                    }
+                },
+                error (res) {
+                    that.$Modal.error({
+                        title: '提示',
+                        content: "页面数据加载失败"
+                    })
+                }
+            })
             this.filterVisible = false;
         },
         //重置其他查询条件按钮
-        reset() {
+        reset () {
             this.formData.relateSubjectId = 0;
             this.formData.assetsClassId = 0;
             this.formData.useStateId = 0;
@@ -432,31 +483,31 @@ var _vue = new Vue({
             this.filterVisible = false;
         },
         //刷新
-        refresh() {
-            // this.initMethod();
-        },
-        //引出
-        exportExcel() {
-
+        refresh () {
+            window.top.home.loading('show',{text:'数据正在加载中，请稍等'});
+            this.save();
+            this.$nextTick(function () {
+                window.top.home.loading('hide');
+            })
         },
         //退出
-        exitPrevent() {
+        exitPrevent () {
             //关闭当前页签
             var name = '折旧费用分配表';
-            window.parent.closeCurrentTab({'name': name, 'openTime': this.openTime, 'url': this.openTime, exit: true})
+            window.parent.closeCurrentTab({ 'name': name, 'openTime': this.openTime, 'url': this.openTime, exit: true })
 
         },
         //打印
-        print() {
+        print () {
 
         },
-        printModalShow(_t) {
+        printModalShow (_t) {
             this.printModal = _t;
         },
 
-        exitThisPage() {
+        exitThisPage () {
             //退出当前页签
-            window.parent.closeCurrentTab({name: '折旧费用分配表', openTime: this.openTime, exit: true})
+            window.parent.closeCurrentTab({ name: '折旧费用分配表', openTime: this.openTime, exit: true })
         },
     },
 });

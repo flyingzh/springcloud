@@ -288,7 +288,7 @@ var stockReport = new Vue({
             let _this = this;
             const reg = /^\d{8}$/;
             if (!reg.test(this.inputBarCode)) {
-                _this.$Modal.warning({content: '条码格式不正确!'});
+                _this.$Modal.info({content: '条码格式不正确!'});
                 _this.resetInputBarCode();
                 return false;
             }
@@ -297,7 +297,7 @@ var stockReport = new Vue({
             let usedCodeList = codeList.concat(Object.keys(_this.codesUsed));
             let _res = usedCodeList.find((item) => item === _this.inputBarCode);
             if (_res === _this.inputBarCode) {
-                _this.$Modal.warning({
+                _this.$Modal.info({
                     content: '扫描的条码重复!',
                 });
                 _this.resetInputBarCode();
@@ -322,6 +322,7 @@ var stockReport = new Vue({
                         let _arr = res.data;
                         if (_arr.length === 0) {
                             _this.$Modal.warning({
+                                title: '提示信息',
                                 content: '扫描的商品条形码不存在!',
                                 onOk: _this.resetInputBarCode(),
                             });
@@ -330,6 +331,7 @@ var stockReport = new Vue({
                         let _r = _arr[0];
                         if (_r.isInStock !== 1) {
                             _this.$Modal.warning({
+                                title: '提示信息',
                                 content: '扫描的条码号不在库!',
                                 onOk: _this.resetInputBarCode(),
                             });
@@ -338,6 +340,7 @@ var stockReport = new Vue({
                                 return ware.id == _r.warehouseId;
                             })) {
                             _this.$Modal.warning({
+                                title: '提示信息',
                                 content: '扫描的条码号不在业务类型规定的仓库范围内!',
                                 onOk: _this.resetInputBarCode(),
                             });
@@ -350,7 +353,7 @@ var stockReport = new Vue({
 
                 },
                 error: function () {
-                    _this.$Modal.error({content: "服务器出错啦", title: "提示"})
+                    _this.$Modal.warning({content: "服务器出错啦", title: "提示"})
                 }
             })
 
@@ -436,13 +439,15 @@ var stockReport = new Vue({
                     if (r.code == "100100") {
                         That.wareHouse = r.data;
                     } else {
-                        That.$Modal.error({
+                        That.$Modal.warning({
+                            title: '提示信息',
                             content: r.msg
                         });
                     }
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -498,7 +503,8 @@ var stockReport = new Vue({
                     }
                 },
                 error: function (err) {
-                    _this.$Modal.error({
+                    _this.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 },
@@ -545,7 +551,8 @@ var stockReport = new Vue({
                     }
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -584,7 +591,8 @@ var stockReport = new Vue({
                     }
                 },
                 error: function () {
-                    This.$Modal.info({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -594,7 +602,8 @@ var stockReport = new Vue({
         showProductDetail(index) {
             this.selectedIndex = index;
             if (!this.productDetailListTemp.goodsEntities[index].goodsBarcodeId) {
-                this.$Modal.error({
+                this.$Modal.info({
+                    title: '提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -618,7 +627,8 @@ var stockReport = new Vue({
         showProductDetail2(index) {//点击商品明细
             this.selectedIndex = index;
             if (!this.productDetailList[index].commodityId) {
-                this.$Modal.error({
+                this.$Modal.info({
+                    title: '提示信息',
                     content: '还未选择商品，请先选择商品，再选择明细！',
                 });
                 return false;
@@ -818,7 +828,8 @@ var stockReport = new Vue({
                     // }
                     if (!item.assistAttrs) {
                         flag = false;
-                        This.$Modal.error({
+                        This.$Modal.info({
+                            title: '提示信息',
                             content: '第' + (i + 1) + '行商品明细未选择，请先选择商品明细！',
                         });
                         return false;
@@ -881,7 +892,8 @@ var stockReport = new Vue({
             let This = this;
             for (var i = 0; i < This.productDetailListTemp.goodsEntities.length; i++) {
                 if (This.productDetailListTemp.goodsEntities[i].goodsEntity.goodsBarcode == params.code) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '条码明细中已存在条码为【' + params.code + '】的条码信息！',
                     });
                     return;
@@ -917,6 +929,7 @@ var stockReport = new Vue({
                 },
                 error: function () {
                     This.$Modal.info({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -952,6 +965,7 @@ var stockReport = new Vue({
         isHintShow(status) {
             if (status && this.stockReturn.typeValue && this.isHint && this.productDetailList && this.productDetailList.length > 0) {
                 this.$Modal.warning({
+                    title: '提示信息',
                     content: '温馨提示：改变商品类型将删除所有商品信息!',
                     onOk: () => {
                         this.isHint = false;
@@ -974,7 +988,8 @@ var stockReport = new Vue({
                 dataType: "json",
                 success: function (data) {
                     if (data.code != "100100") {
-                        this.$Modal.error({
+                        this.$Modal.info({
+                            title: '提示信息',
                             content: data.msg,
                         })
                         This.commodityList = [];
@@ -983,7 +998,8 @@ var stockReport = new Vue({
                     This.commodityList = data.data;
                 },
                 error: function () {
-                    this.$Modal.error({
+                    this.$Modal.warning({
+                        title: '提示信息',
                         content: "网络异常,请联系技术人员！",
                     })
                 }
@@ -1080,7 +1096,8 @@ var stockReport = new Vue({
                     This.handlerProductType(This.stockReturn.goodsTypePath)
                 },
                 error: function () {
-                    This.$Modal.error({
+                    This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！'
                     });
                 }
@@ -1150,7 +1167,8 @@ var stockReport = new Vue({
                     }
                 }
             if (!goodsBarcodeBl) {
-                This.$Modal.error({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: msg,
                 });
                 return;
@@ -1188,7 +1206,8 @@ var stockReport = new Vue({
                         This.saveAccess(This.stockReturn.id, This.boeType);
                         This.isEdit(This.stockReturn.orderStatus == 1 ? "Y" : "N");
                     } else {
-                        This.$Modal.error({
+                        This.$Modal.warning({
+                            title: '提示信息',
                             content: data.msg,
                         });
                     }
@@ -1196,6 +1215,7 @@ var stockReport = new Vue({
                 error: function () {
                     window.top.home.loading('hide');
                     This.$Modal.warning({
+                        title: '提示信息',
                         content: '服务器异常，请稍后再试！',
                     });
                 }
@@ -1207,62 +1227,72 @@ var stockReport = new Vue({
             let This = this;
             var bl = false;
             if (This.stockReturn.direction == null || This.stockReturn.direction == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择退库去向！',
                 });
                 return bl;
             }
             if (This.stockReturn.goodsTypePath == null || This.stockReturn.goodsTypePath == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择商品类型！',
                 });
                 return bl;
             }
             if (This.stockReturn.supplierId == null || This.stockReturn.supplierId == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择供应商！',
                 });
                 return bl;
             }
             if (This.stockReturn.logisticsMode == null || This.stockReturn.logisticsMode == '') {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '请选择物流方式！',
                 });
                 return bl;
             }
             if (this.productDetailList == null || This.productDetailList.length == 0) {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '商品信息不能为空！',
                 });
                 return bl;
             }
             if (This.productDetailList.length > 0 && This.productDetailList[0].goodsCode == null) {
-                This.$Modal.warning({
+                This.$Modal.info({
+                    title: '提示信息',
                     content: '商品信息不能为空！',
                 });
                 return bl;
             }
             for (var i = 0; i < this.productDetailList.length; i++) {
                 if (this.productDetailList[i].goodsMainType != 'attr_ranges_gold' && (this.productDetailList[i].returnWeight == null || this.productDetailList[i].returnWeight == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货重量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].goodsMainType != 'attr_ranges_gold' && (this.productDetailList[i].returnCount == null || this.productDetailList[i].returnCount == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货数量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].goodsMainType == 'attr_ranges_gold' && (this.productDetailList[i].returnWeight == null || this.productDetailList[i].returnWeight == '')) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请输入第' + (i + 1) + '行的退货重量！',
                     });
                     return bl;
                 }
                 if (this.productDetailList[i].warehouseId == null) {
-                    This.$Modal.warning({
+                    This.$Modal.info({
+                        title: '提示信息',
                         content: '请选择第' + (i + 1) + '行的仓库信息！',
                     });
                     return bl;
@@ -1290,7 +1320,8 @@ var stockReport = new Vue({
             //新增行
             if (type === 'add') {
                 if (this.stockReturn.goodsTypePath == null || this.stockReturn.goodsTypePath == '') {
-                    this.$Modal.warning({
+                    this.$Modal.info({
+                        title: '提示信息',
                         content: '请选择商品类型！',
                     });
                     return;
@@ -1299,7 +1330,8 @@ var stockReport = new Vue({
                 if (this.productDetailList.length > 0) {
                     for (var i = 0; i < this.productDetailList.length; i++) {
                         if (this.productDetailList[i].commodityId == undefined || this.productDetailList[i].commodityId == null) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title: '提示信息',
                                 content: '请输输入第' + (i + 1) + '行的商品信息！',
                             });
                             return;
@@ -1314,7 +1346,8 @@ var stockReport = new Vue({
                     //上游生成，不能全部删除
                     if (this.stockReturn.dataSource == 2) {
                         if (this.productDetailList.length == 1) {
-                            this.$Modal.warning({
+                            this.$Modal.info({
+                                title: '提示信息',
                                 content: '生成的商品明细不能全部删除！',
                             });
                             return;

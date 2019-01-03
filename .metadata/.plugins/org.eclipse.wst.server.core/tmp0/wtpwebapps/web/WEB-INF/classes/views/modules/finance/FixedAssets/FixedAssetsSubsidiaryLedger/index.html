@@ -150,12 +150,22 @@
                 <i-button @click="cancel">取消</i-button>
             </div>
         </Modal>
-        <!-- <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose> -->
+        <ht-print-choose v-model="printModal" :print-info="printInfo" @close="printModalShow(false)"> </ht-print-choose>
     </div>
-    <!-- <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script> -->
+    <script src="${rc.contextPath}/js/components/ht-print-choose.js"></script>
     <script src='${rc.contextPath}/js/finance/components/ht-input-tree.js'></script>
     <script src="${rc.contextPath}/js/finance/FixedAssets/FixedAssetsSubsidiaryLedger/index.js"></script>
     <script src='${rc.contextPath}/js/finance/components/ht-assets-list.js'></script>
+
+    <!-- <script>
+        htLoadJs([
+            'ht-print-choose',
+            '${rc.contextPath}/js/finance/components/ht-tree.js',
+            '${rc.contextPath}/js/basedata/components/ht-common-confirm.js',
+            '${rc.contextPath}/js/finance/general-ledge/general-ledge.js'
+        ])
+    </script> -->
+
     #parse("modules/public/footer.html")
 </body>
 

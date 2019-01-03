@@ -145,7 +145,7 @@ var voucherVm = new Vue({
         copy() {
             if (this.selected.length !== 1) {
                 this.$Modal.info({
-                    titel: '提示信息',
+                    title: '提示信息',
                     content: '只能对单行数据操作！'
                 })
                 // layer.alert("只能对单行数据操作!");
@@ -167,7 +167,7 @@ var voucherVm = new Vue({
                 success: function (result) {
                     if (result.code === "100100") {
                         voucherVm.$Modal.success({
-                            titel: '提示信息',
+                            title:'提示信息',
                             content: '操作成功！'
                         })
                         voucherVm.cancel();
@@ -180,7 +180,7 @@ var voucherVm = new Vue({
                         // });
                     } else {
                         voucherVm.$Modal.warning({
-                            titel: '提示信息',
+                            title:'提示信息',
                             content: result.msg
                         })
                         // layer.alert(result.msg, {icon: 0});
@@ -189,7 +189,7 @@ var voucherVm = new Vue({
                 },
                 error: function (err) {
                     voucherVm.$Modal.warning({
-                        titel: '提示信息',
+                        title:'提示信息',
                         content: '服务器出错！'
                     })
                     // console.log("服务器出错");
@@ -200,7 +200,7 @@ var voucherVm = new Vue({
             this.isShow = false;
             if (this.selected.length == 0) {
                 this.$Modal.info({
-                    titel: '提示信息',
+                    title:'提示信息',
                     content: '请选择行！'
                 })
                 // layer.alert("请选择行!");
@@ -220,6 +220,7 @@ var voucherVm = new Vue({
                                 // layer.alert(result.data, { icon: 1 });
                                 setTimeout(function(){
                                     voucherVm.$Modal.success({
+                                        title:'提示信息',
                                         content:result.data
                                     })
                                     voucherVm.selected = [];
@@ -229,6 +230,7 @@ var voucherVm = new Vue({
                                 // layer.alert(result.msg, { icon: 0 });
                                 setTimeout(function(){
                                     voucherVm.$Modal.success({
+                                        title:'提示信息',
                                         content:result.msg
                                     })
                                 },300)
@@ -273,7 +275,7 @@ var voucherVm = new Vue({
         modify() {
             if (this.selected.length !== 1) {
                 this.$Modal.info({
-                    titel: '提示信息',
+                    title:'提示信息',
                     content: '只能对单行数据操作！'
                 })
                 // layer.alert("只能对单条数据进行操作!");
@@ -307,7 +309,7 @@ var voucherVm = new Vue({
                     error: function (err) {
                         // layer.alert("服务器出错!");
                         voucherVm.$Modal.warning({
-                            titel: '提示信息',
+                            title:'提示信息',
                             content: '服务器出错，请稍后再试！'
                         })
                     },

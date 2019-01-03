@@ -374,7 +374,6 @@ let customerAdd = new Vue({
 
         //保存
         save() {
-            debugger
             let temp = true;
             let This = this;
             let dataInfo = this.handlerDataToPost()

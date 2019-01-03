@@ -94,7 +94,8 @@ var deliverList = new Vue({
                     That.suppliers =  r.data;
                 },
                 error: function () {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title:'提示信息',
                         context:"系统出现异常,请联系管理人员"
                     });
                 }
@@ -130,13 +131,13 @@ var deliverList = new Vue({
         //点击修改
         modify() {
             if(this.selected.length < 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '<p>请选择一条记录！</p>'
                 });
                 return;
             } else if(this.selected.length > 1) {
-                this.$Modal.warning({
+                this.$Modal.info({
                     title: '提示信息',
                     content: '<p>只能选择一条记录！</p>'
                 });
@@ -155,11 +156,19 @@ var deliverList = new Vue({
                                 params: {type: 'detail',goodsData:data.data,activeType:'detail'}
                             });
                         }else{
-                            layer.alert(data.msg, {icon: 0});
+                            // layer.alert(data.msg, {icon: 0});
+                            deliverList.$Modal.warning({
+                                title: '提示信息',
+                                content: data.msg
+                            });
                         }
                     },
                     error:function(){
-                        layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                        // layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                        deliverList.$Modal.warning({
+                            title: '提示信息',
+                            content: '服务器异常，请稍后再试！'
+                        });
                     }
                 });
             }
@@ -178,11 +187,19 @@ var deliverList = new Vue({
                             params: {type: 'detail',goodsData:data.data,activeType:'detail'}
                         });
                     }else{
-                        layer.alert(data.msg, {icon: 0});
+                        // layer.alert(data.msg, {icon: 0});
+                        deliverList.$Modal.warning({
+                            title: '提示信息',
+                            content: data.msg
+                        });
                     }
                 },
                 error:function(){
-                    layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                    // layer.alert('服务器异常，请稍后再试！', {icon: 0});
+                    deliverList.$Modal.warning({
+                        title: '提示信息',
+                        content: '服务器异常，请稍后再试！'
+                    });
                 }
             });
         },
@@ -310,11 +327,19 @@ var deliverList = new Vue({
                                         This.refresh();
                                     }, 300);
                                 } else {
-                                    layer.alert(data.msg, {icon: 0});
+                                    // layer.alert(data.msg, {icon: 0});
+                                    deliverList.$Modal.warning({
+                                        title: '提示信息',
+                                        content: data.msg
+                                    });
                                 }
                             },
                             error: function (e) {
-                                layer.alert('删除失败！', {icon: 0});
+                                // layer.alert('删除失败！', {icon: 0});
+                                deliverList.$Modal.warning({
+                                    title: '提示信息',
+                                    content: '删除失败！'
+                                });
                             }
                         });
                     },

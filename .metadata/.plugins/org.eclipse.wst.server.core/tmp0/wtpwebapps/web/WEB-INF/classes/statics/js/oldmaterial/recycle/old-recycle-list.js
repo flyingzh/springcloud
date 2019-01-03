@@ -249,80 +249,96 @@ var oldRecycleList = new Vue({
             this.dateArr = [];
         },
         del() {
-            var ids = [];
+            var ids = [],flag = true;
             for (var i = 0; i < this.selected.length; i++) {
                 ids.push(this.selected[i].id);
             }
             if (ids.length == 0) {
-                oldRecycleList.$Modal.warning({
+                oldRecycleList.$Modal.info({
                     title: '提示信息',
-                    content: '<p>请选择</p>'
+                    content: '<p>请选择至少一笔数据！</p>'
                 });
                 return false;
             }
-            this.$Modal.confirm({
-                title: '提示信息',
-                content: '<p>是否删除信息？</p>',
-                onOk: () => {
-                    $.ajax({
-                        type: "post",
-                        url: contextPath + '/oldmaterialRecycle/delete',
-                        contentType: 'application/json',
-                        data: JSON.stringify(ids),
-                        dataType: "json",
-                        success: function (res) {
-                            if (res.code === '100100' && res.data === '') {
-                                setTimeout(function () {
-                                    oldRecycleList.$Modal.success({
-                                        content: '删除成功',
-                                        onOk: function () {
-                                            oldRecycleList.reload = !oldRecycleList.reload;
-                                        }
-                                    })
-                                }, 300)
-
-                            } else if (res.code === '100100' && res.data != '') {
-                                setTimeout(function () {
+            //过滤非暂存状态单据
+            for(let sub of this.selected) {
+                if(sub.orderStatus !== 1) {
+                    this.$Modal.info({
+                        title:'提示信息',
+                        content:`编号为${sub.orderNo}的单据已进入审批流，不能删除！`
+                    });
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag){
+                this.$Modal.confirm({
+                    title: '提示信息',
+                    content: '<p>是否删除信息？</p>',
+                    onOk: () => {
+                        $.ajax({
+                            type: "post",
+                            url: contextPath + '/oldmaterialRecycle/delete',
+                            contentType: 'application/json',
+                            data: JSON.stringify(ids),
+                            dataType: "json",
+                            success: function (res) {
+                                if (res.code === '100100' && res.data === '') {
+                                    setTimeout(function () {
+                                        oldRecycleList.$Modal.success({
+                                            title: '提示信息',
+                                            content: '删除成功',
+                                            onOk: function () {
+                                                oldRecycleList.reload = !oldRecycleList.reload;
+                                            }
+                                        })
+                                    }, 300)
+                                } else if (res.code === '100100' && res.data != '') {
+                                    setTimeout(function () {
+                                        oldRecycleList.$Modal.success({
+                                            title: '提示信息',
+                                            content: res.data,
+                                            onOk: function () {
+                                                oldRecycleList.reload = !oldRecycleList.reload;
+                                            }
+                                        })
+                                    }, 300)
+                                } else {
                                     oldRecycleList.$Modal.warning({
-                                        content: res.data,
-                                        onOk: function () {
-                                            oldRecycleList.reload = !oldRecycleList.reload;
-                                        }
-                                    })
-                                }, 300)
-                            } else {
-                                oldRecycleList.$Modal.error({
-                                    content: '删除失败',
-                                    onOk: () => {
+                                        title: '提示信息',
+                                        content: '删除失败',
+                                        onOk: () => {
                                         oldRecycleList.reload = !oldRecycleList.reload
-                                    }
+                                }
                                 })
-                                oldRecycleList.reload = !oldRecycleList.reload
-                            }
-                        },
-                        error: function (err) {
-                            oldRecycleList.$Modal.error({
-                                content: '服务器错误',
-                                closable: true
-                            })
-                        },
-                    })
-                },
-            })
+                                    oldRecycleList.reload = !oldRecycleList.reload
+                                }
+                            },
+                            error: function (err) {
+                                oldRecycleList.$Modal.warning({
+                                    title: '提示信息',
+                                    content: '服务器错误',
+                                    closable: true
+                                })
+                            },
+                        })
+                    },
+                })
+            }
         },
         update() {
             var That = this;
             if (That.selected.length > 1) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title: '提示信息',
-                    content: '<p>请单选</p>'
+                    content: '只能选择一笔数据，请重新选择！'
                 });
                 return false;
             }
             if (That.selected.length == 0) {
-                That.$Modal.warning({
+                That.$Modal.info({
                     title: '提示信息',
-                    content: '<p>请选择</p>'
+                    content: '请选择一条数据进行修改！'
                 });
                 return false;
             }
@@ -361,7 +377,8 @@ var oldRecycleList = new Vue({
                     }
                 },
                 error: function (err) {
-                    That.$Modal.error({
+                    That.$Modal.warning({
+                        title: '提示信息',
                         scrollable: true,
                         content: "系统异常,请联系技术人员！",
                     })

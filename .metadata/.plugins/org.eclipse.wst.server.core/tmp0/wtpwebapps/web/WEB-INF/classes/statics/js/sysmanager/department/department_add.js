@@ -77,23 +77,27 @@ var parvm = new Vue({
                     type: "post",
                     url: '/web/dept/saveDeptDetailed',
                     dataType: "json",
+                    async:false,
                     data: JSON.stringify(This.body),
                     contentType: 'application/json;charset=utf-8',
                     success: function (data) {
                         window.top.home.loading('hide');
+                        This.htHaveChange = false;
+                        console.log("不走了！")
                         if (data.code === "100100") {
                             console.log(data.data,data)
                             This.body = data.data
                             console.log(This.body)
                             This.$Modal.success({
                                 title: '提示信息',
-                                content: '保存成功!',
+                                content: '保存成功!'
                             });
                         }else{
                             This.$Modal.info({
                                 title: '提示信息',
                                 content: data.msg,
                             });
+
                         }
                     },
                     error: function () {
@@ -149,10 +153,14 @@ var parvm = new Vue({
             }
         },
         handlerClose(){
-            this.$nextTick(()=>{
-                this.$refs.closeModalRef.showCloseModal();
-            });
-            return false;
+            if(this.htHaveChange){
+                this.$nextTick(()=>{
+                    this.$refs.closeModalRef.showCloseModal();
+                });
+
+                return false;
+            }
+            return true;
         },
         getUserInfo(date){
             let This = this;
@@ -233,6 +241,7 @@ var parvm = new Vue({
         },
         htTestChange(){
             this.htHaveChange = true;
+            console.log(333333333)
         },
         clearNoNumber(item,type,floor){
             return htInputNumber(item,type,floor)

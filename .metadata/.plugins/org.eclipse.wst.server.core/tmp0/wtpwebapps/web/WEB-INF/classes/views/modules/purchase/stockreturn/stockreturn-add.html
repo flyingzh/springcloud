@@ -121,17 +121,17 @@
                     <tab-pane label="基本信息" name="name1">
                         <row>
                             <i-col span="8">
-                                <form-item label="单据编号">
+                                <form-item label="单据编号：">
                                     <i-input v-model="stockReturn.orderNo" :disabled="true" class="ht-width-input"
                                              placeholder="保存时自动生成"></i-input>
                                 </form-item>
-                                <form-item label="退料日期" prop="returnDate">
+                                <form-item label="退料日期：" prop="returnDate">
                                     <date-picker type="date" :disabled="stockReturn.orderStatus != 1"
                                                  v-model="stockReturn.returnDate"
                                                  :clearable="false"
                                                  format="yyyy-MM-dd" class="ht-width-md" transfer></date-picker>
                                 </form-item>
-                                <form-item label="商品类型" prop="typeValue">
+                                <form-item label="商品类型：" prop="typeValue">
                                     <cascader transfer @on-change="changeProductType"
                                               :data="productTypeList" trigger="hover" @on-visible-change="isHintShow"
                                               v-model="stockReturn.typeValue"
@@ -142,11 +142,11 @@
                                 </form-item>
                             </i-col>
                             <i-col span="8">
-                                <form-item label="所属组织" prop="orgName">
+                                <form-item label="所属组织：" prop="orgName">
                                     <i-input class="ht-width-input" :disabled="true" v-model="stockReturn.orgName"
-                                             icon="search"></i-input>
+                                             icon="ios-search"></i-input>
                                 </form-item>
-                                <form-item label="退库去向" prop="direction">
+                                <form-item label="退库去向：" prop="direction">
                                     <i-select :disabled="stockReturn.orderStatus != 1"
                                               transfer
                                               class="ht-width-input"
@@ -156,7 +156,7 @@
                                         <i-option :value="3">转维修</i-option>
                                     </i-select>
                                 </form-item>
-                                <form-item label="业务员">
+                                <form-item label="业务员：">
                                     <i-select transfer @on-change="changeEmp"
                                               :disabled="stockReturn.orderStatus != 1" v-model="stockReturn.salesmanId"
                                               label-in-value class="ht-width-input" filterable>
@@ -169,14 +169,14 @@
                                 </form-item>
                             </i-col>
                             <i-col span="8">
-                                <form-item label="供应商" class="ivu-form-item-required">
+                                <form-item label="供应商：" class="ivu-form-item-required">
                                     <ht-selectsupplier
                                             @getinfo="closeSupplier"
                                             :disabled="stockReturn.orderStatus == 2|| stockReturn.orderStatus != 1"
                                             ref="supplier">
                                     </ht-selectsupplier>
                                 </form-item>
-                                <form-item label="物流方式" prop="logisticsMode">
+                                <form-item label="物流方式：" prop="logisticsMode">
                                     <i-select class="ht-input-width" v-model="stockReturn.logisticsMode"
                                               :disabled="stockReturn.orderStatus != 1" ref="dType"
                                               style="width: 200px;display: inline-block;" transfer="true">
@@ -185,7 +185,7 @@
                                         </i-option>
                                     </i-select>
                                 </form-item>
-                                <form-item label="备注">
+                                <form-item label="备注：">
                                     <i-input class="ht-width-input" :disabled="stockReturn.orderStatus != 1"
                                              v-model="stockReturn.remark"></i-input>
                                 </form-item>

@@ -67,13 +67,34 @@ var ve = new Vue({
         itemSelect (type) {
             this.selectItemCode = type;
             console.log(type, '=========type==============');
+            // 获取光标位置下标
+            var _n = getPositionForTextArea(document.getElementById('zhangdanNum'));
+            if (this.formData.currentFormulaItemCode == null) {
+                this.formData.currentFormulaItemCode = "";
+            }
+
+            if (this.formData.currentFormulaItemName == null) {
+                this.formData.currentFormulaItemName = "";
+            }
 
             this.initialItems.forEach(_v => {
                 if (_v.itemCode === type) {
-                    this.formData.currentFormulaItemCode += _v.itemCode;
-                    this.formData.currentFormulaItemName += _v.itemName;
+                    // this.formData.currentFormulaItemCode += _v.itemCode;
+                    // this.formData.currentFormulaItemName += _v.itemName;
+                    // 根据获取的光标位置 往数据中插入选择的值
+                    // this.formData.currentFormulaItemName = this.formData.currentFormulaItemName.htSplice(_n, 0, _v.itemName);
+                    this.formData.currentFormulaItemName = this.htSplice2(this.formData.currentFormulaItemName, _n, 0, _v.itemName);
+                    var _l = _n + _v.itemName.length;
+
+                    this.$nextTick(() => {
+                        // 设置光标位置
+                        setCursorPosition(document.getElementById('zhangdanNum'), _l);
+                    })
                 }
             });
+        },
+        htSplice2 (tx, idx, rem, str) {
+            return tx.slice(0, idx) + str + tx.slice(idx + Math.abs(rem));
         },
         actionMth (type) {
             console.log(type, '=========actionMthtype==============');
@@ -112,23 +133,23 @@ var ve = new Vue({
                     if (ret.code == '100100') {
                         var wageCategorysObj = ret.data;
 
-                        if (null != wageCategorysObj && wageCategorysObj != '' && typeof(wageCategorysObj) != "undefined") {
+                        if (null != wageCategorysObj && wageCategorysObj != '' && typeof (wageCategorysObj) != "undefined") {
                             _vm.initialWageCategorys = wageCategorysObj;
                             var sysDefault = 0;
 
                             for (var i = 0; i < wageCategorysObj.length; i++) {
                                 var wageCategoryObj = wageCategorysObj[i];
 
-                                if (null != wageCategoryObj && wageCategoryObj != '' && typeof(wageCategoryObj) != "undefined") {
+                                if (null != wageCategoryObj && wageCategoryObj != '' && typeof (wageCategoryObj) != "undefined") {
                                     sysDefault = wageCategoryObj.sysDefault;
-                                    
+
                                     if (sysDefault == 1 || sysDefault == '1') {
                                         _vm.currentWageCategoryId = wageCategoryObj.id;
                                         _vm.currentWageCategoryNo = wageCategoryObj.categoryNo;
                                     }
                                 }
                             }
-                            
+
                             if (sysDefault == 0) {
                                 _vm.currentWageCategoryId = wageCategorysObj[0].id;
                                 _vm.currentWageCategoryNo = wageCategorysObj[0].categoryNo;
@@ -167,7 +188,7 @@ var ve = new Vue({
                                     } else {
                                         _vm.$Modal.error({
                                             title: '错误',
-                                            content: '页面初始化失败'
+                                            content: ret.msg
                                         })
                                     }
                                 }
@@ -179,28 +200,31 @@ var ve = new Vue({
                             $.ajax({
                                 type: 'post',
                                 url: contextPath + "/wmFormulaSetting/queryFormulaSettingByCategory",
-                                data: {categoryId: _vm.currentWageCategoryId},
+                                data: { categoryId: _vm.currentWageCategoryId },
                                 async: false,
                                 success: function (ret) {
                                     if (ret.code == '100100') {
                                         var currentWageCategoryObj = ret.data;
 
-                                        if (null != currentWageCategoryObj && currentWageCategoryObj != '' && typeof(currentWageCategoryObj) != "undefined") {
+                                        if (null != currentWageCategoryObj && currentWageCategoryObj != '' && typeof (currentWageCategoryObj) != "undefined") {
+                                            _vm.isUpdate = false;
                                             var selectedWageCategoryObj = currentWageCategoryObj[0];
                                             var wageFormulaSettingObj = selectedWageCategoryObj.wmFormulaSettingList;
 
-                                            if (null != wageFormulaSettingObj && wageFormulaSettingObj != '' && typeof(wageFormulaSettingObj) != "undefined") {
+                                            if (null != wageFormulaSettingObj && wageFormulaSettingObj != '' && typeof (wageFormulaSettingObj) != "undefined") {
                                                 _vm.currentFormulaName = wageFormulaSettingObj[0].formulaName;
                                                 _vm.initialFormulaNames = wageFormulaSettingObj;
                                                 _vm.currentFormulaId = wageFormulaSettingObj[0].id;
                                                 _vm.formData.currentFormulaItemCode = wageFormulaSettingObj[0].calcMethod;
                                                 _vm.formData.currentFormulaItemName = _vm.getItemName(_vm.formData.currentFormulaItemCode);
+                                            } else {
+                                                _vm.isUpdate = true;
                                             }
                                         }
                                     } else {
                                         _vm.$Modal.error({
                                             title: '错误',
-                                            content: '页面初始化失败'
+                                            content: ret.msg
                                         })
                                     }
                                 }
@@ -209,7 +233,7 @@ var ve = new Vue({
                     } else {
                         _vm.$Modal.error({
                             title: '错误',
-                            content: '页面初始化失败'
+                            content: ret.msg
                         })
                     }
                 }
@@ -346,7 +370,7 @@ var ve = new Vue({
                         })
                     }
                 })
-                
+
                 return;
             }
 
@@ -405,14 +429,14 @@ var ve = new Vue({
                         }
                     }
                 })
-            /**
-             * 修改
-             */
+                /**
+                 * 修改
+                 */
             } else {
                 wmFormulaSetting.id = that.currentFormulaId;
                 wmFormulaSetting.categoryId = that.currentWageCategoryId;
                 wmFormulaSetting.formulaName = that.currentFormulaName;
-                console.log("1:" + that.formData.currentFormulaItemName);console.log("2:" + that.getItemCode(that.formData.currentFormulaItemName));
+                console.log("1:" + that.formData.currentFormulaItemName); console.log("2:" + that.getItemCode(that.formData.currentFormulaItemName));
                 wmFormulaSetting.calcMethod = that.getItemCode(that.formData.currentFormulaItemName);
 
                 /**
@@ -468,7 +492,7 @@ var ve = new Vue({
             $.ajax({
                 type: 'post',
                 url: contextPath + "/wmFormulaSetting/deleteWmFormulaSetting",
-                data: {id: _vm.currentFormulaId},
+                data: { categoryId: _vm.currentWageCategoryId, id: _vm.currentFormulaId },
                 dataType: 'json',
                 async: false,
                 success: function (ret) {
@@ -488,9 +512,17 @@ var ve = new Vue({
                             }
                         }
                     } else {
+                        var message = "";
+
+                        if (null != ret.msg && ret.msg != "" && typeof (ret.msg) != "undefined") {
+                            message = ret.msg;
+                        } else {
+                            message = "删除失败!";
+                        }
+
                         _vm.$Modal.error({
                             title: '错误',
-                            content: '页面初始化失败'
+                            content: message
                         })
                     }
                 }
@@ -501,23 +533,26 @@ var ve = new Vue({
             var changeWageCategoryObj = _that.currentWageCategoryId;
             var initialWageCategorys = _that.initialWageCategorys;
 
-            if (null != initialWageCategorys && initialWageCategorys != '' && typeof(initialWageCategorys) != "undefined") {
+            if (null != initialWageCategorys && initialWageCategorys != '' && typeof (initialWageCategorys) != "undefined") {
                 for (var index = 0; index < initialWageCategorys.length; index++) {
                     var wageCategory = initialWageCategorys[index];
 
-                    if (null != wageCategory && wageCategory != '' && typeof(wageCategory) != "undefined") {
-                        if (null != changeWageCategoryObj && changeWageCategoryObj != '' && typeof(changeWageCategoryObj) != "undefined") {
+                    if (null != wageCategory && wageCategory != '' && typeof (wageCategory) != "undefined") {
+                        if (null != changeWageCategoryObj && changeWageCategoryObj != '' && typeof (changeWageCategoryObj) != "undefined") {
                             if (changeWageCategoryObj == wageCategory.id) {
                                 _that.initialFormulaNames = wageCategory.wmFormulaSettingList;
 
-                                if (null != _that.initialFormulaNames && _that.initialFormulaNames != '' && typeof(_that.initialFormulaNames) != "undefined") {
+                                if (null != _that.initialFormulaNames && _that.initialFormulaNames != '' && typeof (_that.initialFormulaNames) != "undefined") {
+                                    _that.isUpdate = false;
                                     _that.currentFormulaId = _that.initialFormulaNames[0].id;
                                     /*
                                      * 更新公式信息
                                      */
                                     _that.changeFormula(_that.initialFormulaNames, _that.currentFormulaId);
                                 } else {
+                                    _that.isUpdate = true;
                                     _that.currentFormulaId = null;
+                                    _that.currentFormulaName = null;
                                     _that.formData.currentFormulaItemCode = null;
                                     _that.formData.currentFormulaItemName = null;
                                 }
@@ -540,12 +575,12 @@ var ve = new Vue({
                 changeFormulaObj = currentFormulaId;
             }
 
-            if (null != formulaNamesObj && formulaNamesObj != '' && typeof(formulaNamesObj) != "undefined") {
+            if (null != formulaNamesObj && formulaNamesObj != '' && typeof (formulaNamesObj) != "undefined") {
                 for (var index = 0; index < formulaNamesObj.length; index++) {
                     var formula = formulaNamesObj[index];
 
-                    if (null != formula && formula != '' && typeof(formula) != "undefined") {
-                        if (null != changeFormulaObj && changeFormulaObj != '' && typeof(changeFormulaObj) != "undefined") {
+                    if (null != formula && formula != '' && typeof (formula) != "undefined") {
+                        if (null != changeFormulaObj && changeFormulaObj != '' && typeof (changeFormulaObj) != "undefined") {
                             if (changeFormulaObj == formula.id) {
                                 _that.currentFormulaName = formula.formulaName;
                                 _that.formData.currentFormulaItemCode = formula.calcMethod;
@@ -562,33 +597,39 @@ var ve = new Vue({
             let _vm = this;
             var currentFormulaItemName = "";   // 用于显示计算方法
 
-            if (null != currentFormulaItemCode && currentFormulaItemCode != '' && typeof(currentFormulaItemCode) != "undefined") {
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\+","gm"), ",+,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\-","gm"), ",-,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\*","gm"), ",*,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\/","gm"), ",/,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\=","gm"), ",=,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\(","gm"), "(,");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\)","gm"), ",)");
-                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\;","gm"), ",;,");
+            if (null != currentFormulaItemCode && currentFormulaItemCode != '' && typeof (currentFormulaItemCode) != "undefined") {
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\+", "gm"), ",+,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\-", "gm"), ",-,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\*", "gm"), ",*,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\/", "gm"), ",/,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\=", "gm"), ",=,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\(", "gm"), "(,");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\)", "gm"), ",)");
+                currentFormulaItemCode = currentFormulaItemCode.replace(new RegExp("\\;", "gm"), ",;,");
                 var currentFormulaItemCodeArray = currentFormulaItemCode.split(",");
 
-                if (null != currentFormulaItemCodeArray && currentFormulaItemCodeArray != '' && typeof(currentFormulaItemCodeArray) != "undefined") {
-                    if (null != _vm.initialItems && _vm.initialItems != '' && typeof(_vm.initialItems) != "undefined") {
+                if (null != currentFormulaItemCodeArray && currentFormulaItemCodeArray != '' && typeof (currentFormulaItemCodeArray) != "undefined") {
+                    if (null != _vm.initialItems && _vm.initialItems != '' && typeof (_vm.initialItems) != "undefined") {
                         for (var i = 0; i < currentFormulaItemCodeArray.length; i++) {
                             var currentFormulaItemObj = currentFormulaItemCodeArray[i];
+
+                            // 剔除空白符
+                            var formulaItemObj = currentFormulaItemObj.replace(/\s/g, '');
+
+                            // 剔除换行符
+                            formulaItemObj = currentFormulaItemObj.replace(/[\r\n]/g, "");
 
                             for (var j = 0; j < _vm.initialItems.length; j++) {
                                 var itemObj = _vm.initialItems[j];
 
-                                if (null != itemObj && itemObj != '' && typeof(itemObj) != "undefined") {
+                                if (null != itemObj && itemObj != '' && typeof (itemObj) != "undefined") {
                                     var itemCode = itemObj.itemCode;
                                     var itemName = itemObj.itemName;
 
                                     // 当项目Code对应时，转换为项目名称
-                                    if (currentFormulaItemObj == itemCode) {
+                                    if (formulaItemObj == itemCode) {
                                         // 将项目编码替换为项目名称
-                                        currentFormulaItemCodeArray[i] = itemName;
+                                        currentFormulaItemCodeArray[i] = currentFormulaItemObj.replace(formulaItemObj, itemName);
                                     }
                                 }
                             }
@@ -597,7 +638,7 @@ var ve = new Vue({
                 }
             }
 
-            if (null != currentFormulaItemCodeArray && currentFormulaItemCodeArray != '' && typeof(currentFormulaItemCodeArray) != "undefined") {
+            if (null != currentFormulaItemCodeArray && currentFormulaItemCodeArray != '' && typeof (currentFormulaItemCodeArray) != "undefined") {
                 currentFormulaItemName = currentFormulaItemCodeArray.join('');
             }
 
@@ -607,33 +648,39 @@ var ve = new Vue({
             let _vm = this;
             var currentFormulaItemCode = "";   // 用于保存计算方法
 
-            if (null != currentFormulaItemName && currentFormulaItemName != '' && typeof(currentFormulaItemName) != "undefined") {
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\+","gm"), ",+,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\-","gm"), ",-,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\*","gm"), ",*,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\/","gm"), ",/,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\=","gm"), ",=,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\(","gm"), "(,");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\)","gm"), ",)");
-                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\;","gm"), ",;,");
+            if (null != currentFormulaItemName && currentFormulaItemName != '' && typeof (currentFormulaItemName) != "undefined") {
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\+", "gm"), ",+,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\-", "gm"), ",-,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\*", "gm"), ",*,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\/", "gm"), ",/,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\=", "gm"), ",=,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\(", "gm"), "(,");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\)", "gm"), ",)");
+                currentFormulaItemName = currentFormulaItemName.replace(new RegExp("\\;", "gm"), ",;,");
                 var currentFormulaItemNameArray = currentFormulaItemName.split(",");
 
-                if (null != currentFormulaItemNameArray && currentFormulaItemNameArray != '' && typeof(currentFormulaItemNameArray) != "undefined") {
-                    if (null != _vm.initialItems && _vm.initialItems != '' && typeof(_vm.initialItems) != "undefined") {
+                if (null != currentFormulaItemNameArray && currentFormulaItemNameArray != '' && typeof (currentFormulaItemNameArray) != "undefined") {
+                    if (null != _vm.initialItems && _vm.initialItems != '' && typeof (_vm.initialItems) != "undefined") {
                         for (var i = 0; i < currentFormulaItemNameArray.length; i++) {
                             var currentFormulaItemObj = currentFormulaItemNameArray[i];
+
+                            // 剔除空白符
+                            var formulaItemObj = currentFormulaItemObj.replace(/\s/g, '');
+
+                            // 剔除换行符
+                            formulaItemObj = currentFormulaItemObj.replace(/[\r\n]/g, "");
 
                             for (var j = 0; j < _vm.initialItems.length; j++) {
                                 var itemObj = _vm.initialItems[j];
 
-                                if (null != itemObj && itemObj != '' && typeof(itemObj) != "undefined") {
+                                if (null != itemObj && itemObj != '' && typeof (itemObj) != "undefined") {
                                     var itemCode = itemObj.itemCode;
                                     var itemName = itemObj.itemName;
 
                                     // 当项目Code对应时，转换为项目名称
-                                    if (currentFormulaItemObj == itemName) {
+                                    if (formulaItemObj == itemName) {
                                         // 将项目编码替换为项目名称
-                                        currentFormulaItemNameArray[i] = itemCode;
+                                        currentFormulaItemNameArray[i] = currentFormulaItemObj.replace(formulaItemObj, itemCode);
                                     }
                                 }
                             }
@@ -642,7 +689,7 @@ var ve = new Vue({
                 }
             }
 
-            if (null != currentFormulaItemNameArray && currentFormulaItemNameArray != '' && typeof(currentFormulaItemNameArray) != "undefined") {
+            if (null != currentFormulaItemNameArray && currentFormulaItemNameArray != '' && typeof (currentFormulaItemNameArray) != "undefined") {
                 currentFormulaItemCode = currentFormulaItemNameArray.join('');
             }
 
@@ -654,8 +701,11 @@ var ve = new Vue({
             // 剔除空白符
             string = string.replace(/\s/g, '');
 
+            // 提出换行符
+            string = string.replace(/[\r\n]/g, "");
+
             // 错误情况，空字符串
-            if("" === string){
+            if ("" === string) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '计算方法为空!',
@@ -878,7 +928,7 @@ var ve = new Vue({
             }
 
             // 错误情况，运算符连续
-            if( /[\+\-\*\/\;\=]{2,}/.test(string) ){
+            if (/[\+\-\*\/\;\=]{2,}/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，运算符不能连续',
@@ -893,7 +943,7 @@ var ve = new Vue({
             }
 
             // 空括号
-            if(/\(\)/.test(string)){
+            if (/\(\)/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，不能存在空括号',
@@ -910,15 +960,15 @@ var ve = new Vue({
             // 错误情况，括号不配对
             var stack = [];
 
-            for(var i = 0, item; i < string.length; i++){
+            for (var i = 0, item; i < string.length; i++) {
                 item = string.charAt(i);
 
-                if('(' === item){
+                if ('(' === item) {
                     stack.push('(');
-                }else if(')' === item){
-                    if(stack.length > 0){
+                } else if (')' === item) {
+                    if (stack.length > 0) {
                         stack.pop();
-                    }else{
+                    } else {
                         _vm.$Modal.error({
                             title: '提示',
                             content: '语法错误，括号不配对',
@@ -934,7 +984,7 @@ var ve = new Vue({
                 }
             }
 
-            if(0 !== stack.length){
+            if (0 !== stack.length) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，括号不配对',
@@ -949,7 +999,7 @@ var ve = new Vue({
             }
 
             // 错误情况，(后面是运算符
-            if(/\([\+\-\*\/]/.test(string)){
+            if (/\([\+\-\*\/]/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，(后面不能是运算符',
@@ -964,7 +1014,7 @@ var ve = new Vue({
             }
 
             // 错误情况，)前面是运算符
-            if(/[\+\-\*\/]\)/.test(string)){
+            if (/[\+\-\*\/]\)/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，)前面不能是运算符',
@@ -979,7 +1029,7 @@ var ve = new Vue({
             }
 
             // 错误情况，(前面不是运算符
-            if(/[^\+\-\*\/]\(/.test(string)){
+            if (/[^\+\-\*\/]\(/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，(前面不是运算符',
@@ -994,7 +1044,7 @@ var ve = new Vue({
             }
 
             // 错误情况，)后面不是运算符
-            if(/\)[^\+\-\*\/]/.test(string)){
+            if (/\)[^\+\-\*\/]/.test(string)) {
                 _vm.$Modal.error({
                     title: '提示',
                     content: '语法错误，)后面不是运算符',
@@ -1014,15 +1064,21 @@ var ve = new Vue({
             let _vm = this;
             var isExists = false;
 
-            if (null != formulaName && formulaName != '' && typeof(formulaName) != "undefined") {
-                formulaName = formulaName.replace(new RegExp("\\+","gm"), ",+,");
-                formulaName = formulaName.replace(new RegExp("\\-","gm"), ",-,");
-                formulaName = formulaName.replace(new RegExp("\\*","gm"), ",*,");
-                formulaName = formulaName.replace(new RegExp("\\/","gm"), ",/,");
-                formulaName = formulaName.replace(new RegExp("\\=","gm"), ",=,");
-                formulaName = formulaName.replace(new RegExp("\\(","gm"), "(,");
-                formulaName = formulaName.replace(new RegExp("\\)","gm"), ",)");
-                formulaName = formulaName.replace(new RegExp("\\;","gm"), ",;,");
+            // 剔除空白符
+            formulaName = formulaName.replace(/\s/g, '');
+
+            // 剔除换行符
+            formulaName = formulaName.replace(/[\r\n]/g, "");
+
+            if (null != formulaName && formulaName != '' && typeof (formulaName) != "undefined") {
+                formulaName = formulaName.replace(new RegExp("\\+", "gm"), ",+,");
+                formulaName = formulaName.replace(new RegExp("\\-", "gm"), ",-,");
+                formulaName = formulaName.replace(new RegExp("\\*", "gm"), ",*,");
+                formulaName = formulaName.replace(new RegExp("\\/", "gm"), ",/,");
+                formulaName = formulaName.replace(new RegExp("\\=", "gm"), ",=,");
+                formulaName = formulaName.replace(new RegExp("\\(", "gm"), "(,");
+                formulaName = formulaName.replace(new RegExp("\\)", "gm"), ",)");
+                formulaName = formulaName.replace(new RegExp("\\;", "gm"), ",;,");
                 var formulaNameArray = formulaName.split(",");
 
                 if (formulaNameArray != null && formulaNameArray.length > 0) {
@@ -1030,7 +1086,7 @@ var ve = new Vue({
                         var formulaNameObj = formulaNameArray[i];
                         isExists = false;
 
-                        if (null != formulaNameObj && formulaNameObj != '' && typeof(formulaNameObj) != "undefined") {
+                        if (null != formulaNameObj && formulaNameObj != '' && typeof (formulaNameObj) != "undefined") {
                             if (formulaNameObj != '+' && formulaNameObj != '-'
                                 && formulaNameObj != '*' && formulaNameObj != '/'
                                 && formulaNameObj != '(' && formulaNameObj != ')'
@@ -1038,7 +1094,7 @@ var ve = new Vue({
                                 for (var j = 0; j < _vm.initialItems.length; j++) {
                                     var itemObj = _vm.initialItems[j];
 
-                                    if (null != itemObj && itemObj != '' && typeof(itemObj) != "undefined") {
+                                    if (null != itemObj && itemObj != '' && typeof (itemObj) != "undefined") {
                                         var itemName = itemObj.itemName;
 
                                         // 当项目名称不对应时，提示用户项目名称未定义
@@ -1065,15 +1121,15 @@ var ve = new Vue({
                         }
                     }
                 } else {
-                        _vm.$Modal.error({
-                            title: '提示',
-                            content: '计算方法为空，请设置！',
-                            onOk: function () {
-                                _vm.$nextTick(() => {
-                                    _vm.$refs.formulaObj.focus();
-                                })
-                            }
-                        })
+                    _vm.$Modal.error({
+                        title: '提示',
+                        content: '计算方法为空，请设置！',
+                        onOk: function () {
+                            _vm.$nextTick(() => {
+                                _vm.$refs.formulaObj.focus();
+                            })
+                        }
+                    })
                 }
             } else {
                 _vm.$Modal.error({
@@ -1093,6 +1149,12 @@ var ve = new Vue({
             let _vm = this;
 
             var formulaName = _vm.formData.currentFormulaItemName;
+
+            // 剔除空白符
+            formulaName = formulaName.replace(/\s/g, '');
+
+            // 剔除换行符
+            formulaName = formulaName.replace(/[\r\n]/g, "");
 
             if (formulaName != null) {
                 if (formulaName.lastIndexOf(';') != formulaName.length - 1) {
@@ -1170,13 +1232,13 @@ var ve = new Vue({
         },
         //退出
         cancelFun: function (close) {
-            if(close === true){
-                window.parent.closeCurrentTab({exit: true, openTime: this.openTime});
+            if (close === true) {
+                window.parent.closeCurrentTab({ exit: true, openTime: this.openTime });
                 return;
             }
 
-            if(this.handlerClose()){
-                window.parent.closeCurrentTab({exit: true, openTime: this.openTime});
+            if (this.handlerClose()) {
+                window.parent.closeCurrentTab({ exit: true, openTime: this.openTime });
             }
         },
         //刷新

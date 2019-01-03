@@ -6,8 +6,6 @@ var _vue = new Vue({
             dateStr: '',
             categoryStr: '',
             openTime: '',
-            colNames: [],
-            colModel: [],
             printInfo: {},
             printModal: false,
             filterVisible: false,
@@ -29,6 +27,8 @@ var _vue = new Vue({
                 stationLevel: '',
             },
             dataList: [],
+            colModel: [],
+            colNames: [],
             categoryList: [],
             empNameList: [],
             empCodeList: [],
@@ -133,6 +133,17 @@ var _vue = new Vue({
                 url: contextPath + '/wageSummaryReportAppController/getWageSummaryReportList',
                 contentType: 'application/json;charset=utf-8',
                 success: function (result) {
+
+                    //页面标题赋值
+                    that.dateStr = that.formData.checkStartYear + '年' + that.formData.checkStartPeriod + '期 -- '
+                        + that.formData.checkEndYear + '年' + that.formData.checkEndPeriod + '期';
+                    that.categoryStr = '全部';
+                    $.each(that.categoryList, function (idex, ele) {
+                        if (ele.id === that.formData.categoryId) {
+                            that.categoryStr = ele.categoryName;
+                        }
+                    });
+
                     if (result.code != '100100') {
                         let _msg = '页面初始化失败';
                         if (result.hasOwnProperty("data")){
@@ -145,12 +156,14 @@ var _vue = new Vue({
                         });
                         return;
                     }
-
+                    //渲染jgGrid
                     let data = result.data;
                     that.colNames = data.colNames;
                     that.colModel = data.colModel;
                     that.dataList = data.dataList;
                     that.jqGridInit();
+
+
                 }
             });
         },
@@ -167,7 +180,8 @@ var _vue = new Vue({
                 styleUI: 'Bootstrap',
                 height: $(window).height() - 210,
                 loadComplete: function (ret) {
-                    $("table[id='grid'] tr[id='-2'] td").addClass("alltotalClass");
+                    $('table[id="grid"] tr td[title="合计"]').siblings().addClass("alltotalClass");
+                    $('table[id="grid"] tr td[title="合计"]').addClass("alltotalClass");
                 }
             });
             this.$Message.info("数据加载中...");
@@ -208,8 +222,16 @@ var _vue = new Vue({
             this.delTable();
             this.getGridData();  //刷新
         },
-        //引出
+        //引出,导出到excel表
         exportExcel() {
+            let _d = this.formData;
+            let _url = contextPath + "/wageSummaryReportAppController/exportExcel?showEmployee="+_d.showEmployee+
+                "&checkStartYear="+_d.checkStartYear+"&checkStartPeriod="+_d.checkStartPeriod+"&checkEndYear="+
+                _d.checkEndYear+"&checkEndPeriod="+_d.checkEndPeriod+"&categoryId="+_d.categoryId+"&empName="+
+                _d.empName+"&empCode="+_d.empCode+"&deptName="+_d.deptName+"&depId="+_d.depId+"&idCard="+_d.idCard+
+                "&empRank="+_d.empRank+"&empStation="+_d.empStation+"&stationLevel="+_d.stationLevel ;
+            console.log(_url);
+            window.open(_url);
 
         },
         clearFormData(){
@@ -233,8 +255,43 @@ var _vue = new Vue({
 
         },
         //打印
-        print() {
+        printV() {
+            let that = this;
+            var _info;
+            if (!that.dataList || !that.dataList.length) {
+                that.$Message.info({
+                    title: '提示信息',
+                    content: '无打印数据',
+                    duration: 2
+                });
+                return;
+            }
 
+            let printColNames = [];
+            printColNames.push( { 'name': '部门', 'col': 'empDepName' },);
+            printColNames.push( { 'name': '人数', 'col': 'members' },);
+            for (var i=2;i<that.colModel.length;i++) {
+                printColNames.push({ 'name': that.colNames[i], 'col': that.colModel[i].name, 'formatNub': true });
+            }
+
+            //单行表头
+            _info = {
+                'title': '工资汇总表',  // 标题
+                'template': 1,  // 模板
+                'titleInfo': [       // title
+                    { 'name': '工资类别', 'val': that.categoryStr },
+                    { 'name': '会计期间', 'val': that.dateStr }
+                ],
+                'colNames':  printColNames ,    // 列名与对应字段名
+                'styleCss': '',   // 自定义样式 例：  thead{text-align: center;font-size: 14px;font-weight: 100;}
+                'colMaxLenght': 16,  // 显示最大长度， 默认为7
+                'data': that.dataList,  // 打印数据  list
+                'totalRow': false
+            };
+
+            // 弹窗选择列 模式
+            that.printInfo = _info;
+            that.printModalShow(true);
         },
         printModalShow(_t) {
             this.printModal = _t;
